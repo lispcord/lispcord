@@ -1,9 +1,9 @@
 (ql:quickload "dexador")
 
 ;; should these be constants?
-(defvar bot-url "N/A")
-(defvar bot-ver-str "0.0.1")
-(defvar discord-api-base-url "https://discordapp.com/api/v6")
+(defparameter bot-url "N/A")
+(defparameter bot-ver-str "0.0.1")
+(defparameter discord-api-base-url "https://discordapp.com/api/v6")
 
 (defun str-concat (&rest strings)
   (apply #'concatenate 'string strings))
@@ -22,16 +22,13 @@
         (mk-header "User-Agent" (mk-user-agent-str))
         (mk-header "Content-length" "0")))
 
-(defun mk-api-url (endpoint)
-  (str-concat discord-api-base-url "/" endpoint))
-
 ;; is 'get' reserved?
 (defun get-rq (endpoint)
-  (dex:get (mk-api-url endpoint)))
+  (dex:get (str-concat discord-api-base-url "/" endpoint)))
 
 ;; i added -rq to make the name match get-rq for now
 (defun post-rq (endpoint token)
-  (dex:post (mk-api-url endpoint)
+  (dex:post (str-concat discord-api-base-url "/" endpoint)
 	    :headers (mk-headers token)))
 
 (defun gateway ()
