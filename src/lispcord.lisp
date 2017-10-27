@@ -51,39 +51,34 @@
 (defun gateway-url ()
   (str-concat (fetch-gateway-url) api-suffix))
 
-;; get unix timestamp (millis)
-(defun get-millis ()
-  0)
-
 (defun send-payload (bot op d)
-  (wsd:send (bot-connection bot) (jonathan:to-json (list :op op
-							 :d d))))
+  (let ((payload (jonathan:to-json (list :op op :d d))))
+    (print (format t "send-payload: ~a~%" payload))
+    (wsd:send (bot-connection bot) payload)))
 
-;; how to put 'false' in the json?
+(defun presence (game-name status)
+  (list :game (list :name "presence"
+                    :type 0)
+        :status "online"
+        :since (get-universal-time)
+        :afk :false))
+
+;; is the case messing things up here?
 (defun send-identify (bot)
-  (let ((identify (list :token (bot-token bot)
-			                  :properties (list :$os os-string
-					                    :$browser lib-string
-						            :$device lib-string)
-				          :compress :false
-				          :large_threshold 250
-				          :shard '(1 10)
-				          ;; this should probably be separated out?
-				          :presence (list :game (list :name "presence"
-						   	              :type 0)
-						          :status "online"
-						          :since (get-millis)
-						          :afk :false))))
-    (format t "identify: ~a" identify)
-    (send-payload bot 10 identify)))
+  (send-payload bot 10 (list :token (bot-token bot)
+                             :properties (list :$os os-string
+                                               :$browser lib-string
+                                               :$device lib-string)
+                             :compress :false
+                             :large_threshold 250
+                             :shard '(1 10)
+                             :presence (presence "hello there" "online"))))
 
 ;; opcode 10
 ;; not sure how we should actually be passing his bot arg around still ^^;
 (defun on-recv-hello (bot msg)
   (let ((heartbeat (getf (getf msg :|d|) :|heartbeat_interval|)))
-    (print bot)
-    (print (bot-token bot))
-    (format t "Heartbeat: ~a" heartbeat)
+    (format t "Heartbeat: ~a~%" heartbeat)
     ;; setup heartbeat interval here
     ;; should be able to know whether to _identify_ anew or _resume_ here?
     (send-identify bot)))
