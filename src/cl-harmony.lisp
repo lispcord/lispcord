@@ -2,7 +2,6 @@
 (ql:quickload :websocket-driver-client)
 (ql:quickload :jonathan)
 
-;; should these be constants?
 (defparameter bot-url "N/A")
 (defparameter bot-ver-str "0.0.1")
 (defparameter discord-api-base-url "https://discordapp.com/api/v6")
@@ -20,7 +19,6 @@
         (cons "User-Agent" (mk-user-agent-str))
         (cons "Content-length" "0")))
 
-;; is 'get' reserved?
 (defun get-rq (endpoint)
   (dex:get (str-concat discord-api-base-url "/" endpoint)))
 
@@ -29,5 +27,10 @@
   (dex:post (str-concat discord-api-base-url "/" endpoint)
 	    :headers (mk-headers token)))
 
+;; raw api requests
 (defun gateway ()
   (get-rq "gateway"))
+
+;; utility ?
+(defun get-gateway-url ()
+  (cadr (jonathan:parse (gateway))))
