@@ -53,4 +53,8 @@
   (wsd:start-connection *client*)
   (wsd:on :message *client*
           (lambda (message)
-            (print (str-concat "ws: " message)))))
+	    (on-recv (jonathan:parse message)))))
+
+;; receive message from websock
+(defun on-recv (msg)
+  (print msg))
