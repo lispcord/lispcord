@@ -3,8 +3,7 @@
 ;; should these be constants?
 (defvar bot-url "N/A")
 (defvar bot-ver-str "0.0.1")
-(defvar discord-api-ver "v6")
-(defvar discord-api-base-url "https://discordapp.com/api")
+(defvar discord-api-base-url "https://discordapp.com/api/v6")
 
 (defun str-concat (&rest strings)
   (apply #'concatenate 'string strings))
@@ -24,7 +23,7 @@
         (mk-header "Content-length" "0")))
 
 (defun mk-api-url (endpoint)
-  (str-concat discord-api-base-url "/" discord-api-ver "/" endpoint))
+  (str-concat discord-api-base-url "/" endpoint))
 
 ;; is 'get' reserved?
 (defun get-rq (endpoint)
