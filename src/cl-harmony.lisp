@@ -12,15 +12,11 @@
 (defun mk-user-agent-str ()
   (str-concat "DiscordBot ('" bot-url "', '" bot-ver-str "')"))
 
-;; not sure if this should exist or not, a part of me just wants to be explicit
-(defun mk-header (key val)
-  (cons key val))
-
 ;; is there a better way to do this? quote was causing str-concat to be literal
 (defun mk-headers (token)
-  (list (mk-header "Authorization" (str-concat "Bot " token))
-        (mk-header "User-Agent" (mk-user-agent-str))
-        (mk-header "Content-length" "0")))
+  (list (cons "Authorization" (str-concat "Bot " token))
+        (cons "User-Agent" (mk-user-agent-str))
+        (cons "Content-length" "0")))
 
 ;; is 'get' reserved?
 (defun get-rq (endpoint)
