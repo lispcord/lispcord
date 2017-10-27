@@ -56,66 +56,8 @@
 (defun get-ws-client ()
   (make-ws-client (gateway-url)))
 
-;; im note sure what the *var* convention is, so im just going by the examples :p
-(defun connect (bot)
-  (defvar *client* (get-ws-client))
-  (wsd:start-connection *client*)
-  (wsd:on :message *client*
-          (lambda (message)
-	    (on-recv bot (jonathan:parse message)))))
-
-;; on receive websock messages by opcode
-;; opcode 0
-(defun on-recv-dispatch (bot msg)
-  nil)
-
-;; opcode 1
-(defun on-recv-heartbeat (bot msg)
-  nil)
-
-;; opcode 2
-(defun on-recv-identify (bot msg)
-  nil)
-
-;; opcode 3
-(defun on-recv-status-update (bot msg)
-  nil)
-
-;; opcode 4
-(defun on-recv-voice-status-update (bot msg)
-  nil)
-
-;; opcode 5
-(defun on-recv-voice-server-ping (bot msg)
-  nil)
-
-;; opcode 6
-(defun on-recv-resume (bot msg)
-  nil)
-
-;; opcode 7
-(defun on-recv-reconnect (bot msg)
-  nil)
-
-;; opcode 8
-(defun on-recv-request-guild-members (bot msg)
-  nil)
-
-;; opcode 9
-(defun on-recv-invalid-session (bot msg)
-  nil)
-
-;; opcode 10
-(defun on-recv-hello (bot msg)
-  (let ((heartbeat (getf (getf msg :|d|) :heartbeat_interval)))
-    (print (str-concat "Heartbeat: " heartbeat))))
-
-;; opcode 11
-(defun on-recv-heartbeat-ack (bot msg)
-  nil)
-
 ;; receive message from websock and dispatch to handler
-(defun on-recv (bot msg)
+(defun on-recv (msg)
   (print "Hello at all??")
   (let ((op (getf msg :op)))
     (case op
@@ -133,3 +75,11 @@
       (11 (on-recv-heartbeat-ack msg))
       (T ;; not sure if this should be an error to the user or not?
        (error "Received invalid opcode!")))))
+
+
+(defun connect (bot)
+  (let ((*client* (get-ws-client)))
+    (wsd:start-connection *client*)
+    (wsd:on :message *client*
+	    (lambda (message)
+	      (on-recv (jonathan:parse message))))))
