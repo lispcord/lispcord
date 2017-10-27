@@ -7,4 +7,4 @@
 (defun post (endpoint token)
   (dex:post (str-concat "https://discordapp.com/api/v6/" endpoint)
 	    :headers '(("Authorization" . (str-concat "Bot " token))
-		       ("User-Agent" . "DiscordBot ($url, $versionNumber)"))))
+		       ("User-Agent" . "DiscordBot (N/A, 0.0.1)"))))
