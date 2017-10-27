@@ -12,7 +12,8 @@
 
 (defstruct (bot (:constructor primitive-bot-make))
   (token "" :type string :read-only t)
-  (version "0.0.1" :type string))
+  (version "0.0.1" :type string)
+  connection)
 
 (defun make-bot (token &key (version "0.0.1"))
   (unless token (error "No token specified!"))
@@ -47,19 +48,9 @@
   (str-concat (fetch-gateway-url) api-suffix))
 
 
-(defun make-ws-client (url)
-  (wsd:make-client url))
-
-;; i cant think off the top of my head the best way to structure these things
-;; a lot of these can probably be merged
-;; or better named
-(defun get-ws-client ()
-  (make-ws-client (gateway-url)))
-
 ;; receive message from websock and dispatch to handler
 (defun on-recv (msg)
-  (print "Hello at all??")
-  (let ((op (getf msg :op)))
+  (let ((op (getf msg :|op|)))
     (case op
       (0  (print msg))
       (1  (print msg))
@@ -74,12 +65,12 @@
       (10 (print msg))
       (11 (print msg))
       (T ;; not sure if this should be an error to the user or not?
-       (error "Received invalid opcode!")))))
+       (error "Received invalid opcode! ~a" op)))))
 
 
 (defun connect (bot)
-  (let ((*client* (get-ws-client)))
-    (wsd:start-connection *client*)
-    (wsd:on :message *client*
-	    (lambda (message)
-	      (on-recv (jonathan:parse message))))))
+  (setf (bot-connection bot) (wsd:make-client (gateway-url)))
+  (wsd:start-connection (bot-connection bot))
+  (wsd:on :message (bot-connection bot)
+	  (lambda (message)
+	    (on-recv (jonathan:parse message)))))
