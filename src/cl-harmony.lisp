@@ -13,6 +13,7 @@
 (defun mk-user-agent-str ()
   (str-concat "DiscordBot ('" bot-url "', '" bot-ver-str "')"))
 
+;; is there a better way to do this? quote was causing str-concat to be literal
 (defun mk-headers (token)
   (list (cons "Authorization" (str-concat "Bot " token))
         (cons "User-Agent" (mk-user-agent-str))
@@ -25,6 +26,7 @@
 (defun get-rq (endpoint)
   (dex:get (mk-api-url endpoint)))
 
+;; i added -rq to make the name match get-rq for now
 (defun post-rq (endpoint token)
   (dex:post (mk-api-url endpoint)
 	    :headers (mk-headers token)))
