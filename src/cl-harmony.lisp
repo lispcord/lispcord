@@ -1,4 +1,7 @@
 
+(defparameter gateway-url-suffix "/?v=6&encoding=json")
+
+
 ;; (TODO:) we should move this into a util.lisp file eventually
 (defun str-concat (&rest strings)
   (apply #'concatenate 'string strings))
@@ -32,11 +35,36 @@
 
 ;; is 'get' reserved?
 (defun get-rq (endpoint)
-  (dex:get (mk-api-url endpoint)))
+  (dex:get (str-concat discord-api-base-url "/" endpoint)))
 
+;; i added -rq to make the name match get-rq for now
 (defun post-rq (endpoint token)
-  (dex:post (mk-api-url endpoint)
+  (dex:post (str-concat discord-api-base-url "/" endpoint)
 	    :headers (mk-headers token)))
 
 (defun gateway ()
   (get-rq "gateway"))
+
+(defun fetch-gateway-url ()
+  (cadr (jonathan:parse (gateway))))
+
+;; should this be combined with the above?
+(defun gateway-url ()
+  (str-concat (fetch-gateway-url) gateway-url-suffix))
+
+(defun make-ws-client (url)
+  (wsd:make-client url))
+
+;; i cant think off the top of my head the best way to structure these things
+;; a lot of these can probably be merged
+;; or better named
+(defun get-ws-client ()
+  (make-ws-client (gateway-url)))
+
+;; im note sure what the *var* convention is, so im just going by the examples :p
+(defun connect ()
+  (defvar *client* (get-ws-client))
+  (wsd:start-connection *client*)
+  (wsd:on :message *client*
+          (lambda (message)
+            (print (str-concat "ws: " message)))))
