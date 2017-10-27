@@ -1,5 +1,8 @@
 (in-package :lispcord)
 
+;; preserve case???
+;;(setf (readtable-case *readtable*) :downcase)
+
 ;; make dynamic?
 (defparameter os-string "linux")
 (defparameter lib-string "lispcord")
@@ -52,27 +55,28 @@
   (str-concat (fetch-gateway-url) api-suffix))
 
 (defun send-payload (bot op d)
-  (let ((payload (jonathan:to-json (list :op op :d d))))
+  ;; make json and send
+  (let ((payload (jonathan:to-json (list :|op| op :|d| d))))
     (print (format t "send-payload: ~a~%" payload))
     (wsd:send (bot-connection bot) payload)))
 
 (defun presence (game-name status)
-  (list :game (list :name "presence"
-                    :type 0)
-        :status "online"
-        :since (get-universal-time)
-        :afk :false))
+  (list :|game| (list :|name| "presence"
+                      :|type| 0)
+        :|status| "online"
+        :|since| (get-universal-time)
+        :|afk| :false))
 
 ;; is the case messing things up here?
 (defun send-identify (bot)
-  (send-payload bot 10 (list :token (bot-token bot)
-                             :properties (list :$os os-string
-                                               :$browser lib-string
-                                               :$device lib-string)
-                             :compress :false
-                             :large_threshold 250
-                             :shard '(1 10)
-                             :presence (presence "hello there" "online"))))
+  (send-payload bot 2 (list :|token| (bot-token bot)
+                             :|properties| (list :|$os| os-string
+                                                 :|$browser| lib-string
+                                                 :|$device| lib-string)
+                             :|compress| :false
+                             :|large_threshold| 250
+                             :|shard| '(1 10)
+                             :|presence| (presence "hello there" "online"))))
 
 ;; opcode 10
 ;; not sure how we should actually be passing his bot arg around still ^^;
