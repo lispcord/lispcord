@@ -1,32 +1,30 @@
-
+(in-package :cl-harmony)
 
 ;; (TODO:) we should move this into a util.lisp file eventually
 (defun str-concat (&rest strings)
   (apply #'concatenate 'string strings))
 
+(defparameter bot-url "N/A")
+(defun bot-url (url)
+  (setf bot-url url))
+
+(defparameter base-url "https://discordapp.com/api/v6/")
+(defun api-version (version)
+  (str-concat "https://discordapp.com/api/" version "/"))
+
+(defparameter api-suffix "/?v=6&encoding=json")
 
 (defstruct (bot (:constructor primitive-bot-make))
   (token "" :type string :read-only t)
-  (version "0.0.1" :type string)
-  (url "N/A" :type string)
-  (base-url "" :type string)
-  (suffix "" :type string))
+  (version "0.0.1" :type string))
 
-(defun make-bot (token &key
-			 (version "0.0.1")
-			 (url "N/A")
-			 (api-ver "v6")
-			 (suffix "/?v=6&encoding=json"))
+(defun make-bot (token &key (version "0.0.1"))
   (unless token (error "No token specified!"))
   (primitive-bot-make :token token
-		      :version version
-		      :url url
-		      :base-url (str-concat "https://discordapp.com/api/"
-					    api-ver
-					    "/")))
+		      :version version))
 
 (defun user-agent (bot)
-  (str-concat "DiscordBot (" (bot-url bot) ", " (bot-version bot) ")"))
+  (str-concat "DiscordBot (" bot-url ", " (bot-version bot) ")"))
 
 (defun headers (bot &optional (length 0))
   (list (cons "Authorization" (str-concat "Bot " (bot-token bot)))
@@ -34,12 +32,12 @@
         (cons "Content-length" (format nil "~a" length))))
 
 ;; is 'get' reserved?
-(defun get-rq (bot endpoint)
-  (dex:get (str-concat (bot-base-url bot) "/" endpoint (bot-suffix bot))))
+(defun get-rq (endpoint)
+  (dex:get (str-concat base-url "/" endpoint api-suffix)))
 
 ;; i added -rq to make the name match get-rq for now
-(defun post-rq (endpoint bot)
-  (dex:post (str-concat (bot-base-url bot) "/" endpoint (bot-suffix bot))
+(defun post-rq (bot endpoint)
+  (dex:post (str-concat base-url "/" endpoint api-suffix)
 	    :headers (headers bot)))
 
 (defun gateway ()
@@ -50,7 +48,7 @@
 
 ;; should this be combined with the above?
 (defun gateway-url ()
-  (str-concat (fetch-gateway-url) gateway-url-suffix))
+  (str-concat (fetch-gateway-url) api-suffix))
 
 (defun make-ws-client (url)
   (wsd:make-client url))
