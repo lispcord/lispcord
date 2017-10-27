@@ -1,8 +1,5 @@
 (in-package :lispcord)
 
-;; preserve case???
-;;(setf (readtable-case *readtable*) :downcase)
-
 ;; make dynamic?
 (defparameter os-string "linux")
 (defparameter lib-string "lispcord")
@@ -67,23 +64,48 @@
         :|since| (get-universal-time)
         :|afk| :false))
 
-;; is the case messing things up here?
 (defun send-identify (bot)
   (send-payload bot 2 (list :|token| (bot-token bot)
-                             :|properties| (list :|$os| os-string
-                                                 :|$browser| lib-string
-                                                 :|$device| lib-string)
-                             :|compress| :false
-                             :|large_threshold| 250
-                             :|shard| '(1 10)
-                             :|presence| (presence "hello there" "online"))))
+                            :|properties| (list :|$os| os-string
+                                                :|$browser| lib-string
+                                                :|$device| lib-string)
+                            :|compress| :false
+                            :|large_threshold| 250
+                            :|shard| '(1 10)
+                            :|presence| (presence "hello there" "online"))))
+
+(defun send-status-update (bot)
+  (send-payload bot 3 (presence "hello!" "online")))
+
+(defun send-heartbeat (bot)
+  (send-payload bot 1 last-seq))
+
+(defun heartbeat-timer (bot interval)
+  ;; check to make sure bot is connected still first
+  (send-heartbeat bot)
+  (schedule-timer (make-timer (lambda () (heartbeat-timer bot heartbeat)) interval)))
+
+;; opcode 0
+;; this last seq var should be associated with the bot struct, not global
+(defvar last-seq nil)
+(defun on-recv-dispatch (bot msg)
+  (let ((event (getf msg :|t|)) (seq (getf msg :|s|)))
+    (setf last-seq seq)
+    (format t "Event: ~a~%" event)
+    (format t "Payload: ~a~%" msg)
+    ;; is there a case form for strings?
+    (cond
+      ;; unsure if this is necessary
+      ((string= event "READY") (send-status-update bot))
+      (T (error "Received invalid event! ~a~%" event)))))
 
 ;; opcode 10
 ;; not sure how we should actually be passing his bot arg around still ^^;
 (defun on-recv-hello (bot msg)
   (let ((heartbeat (getf (getf msg :|d|) :|heartbeat_interval|)))
-    (format t "Heartbeat: ~a~%" heartbeat)
+    (format t "Heartbeat Inverval: ~a~%" heartbeat)
     ;; setup heartbeat interval here
+    (heartbeat-timer bot (/ heartbeat 1000))
     ;; should be able to know whether to _identify_ anew or _resume_ here?
     (send-identify bot)))
 
@@ -91,7 +113,7 @@
 (defun on-recv (bot msg)
   (let ((op (getf msg :|op|)))
     (case op
-      (0  (print msg))
+      (0  (on-recv-dispatch bot msg))
       (1  (print msg))
       (2  (print msg))
       (3  (print msg))
@@ -102,9 +124,9 @@
       (8  (print msg))
       (9  (print msg))
       (10 (on-recv-hello bot msg))
-      (11 (print msg))
+      (11 (format t "Received Heartbeat ACK~%"))
       (T ;; not sure if this should be an error to the user or not?
-       (error "Received invalid opcode! ~a" op)))))
+       (error "Received invalid opcode! ~a~%" op)))))
 
 
 (defun connect (bot)
