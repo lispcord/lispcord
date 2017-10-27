@@ -1,9 +1,5 @@
 (in-package :cl-harmony)
 
-(ql:quickload :dexador)
-(ql:quickload :websocket-driver-client)
-(ql:quickload :jonathan)
-
 ;; (TODO:) we should move this into a util.lisp file eventually
 (defun str-concat (&rest strings)
   (apply #'concatenate 'string strings))
@@ -70,7 +66,6 @@
   (wsd:start-connection *client*)
   (wsd:on :message *client*
           (lambda (message)
-  	    (print "Hello at all??")
 	    (on-recv (jonathan:parse message)))))
 
 ;; on receive websock messages by opcode
