@@ -1,7 +1,10 @@
 (ql:quickload "dexador")
 
 
-(defun post (endpoint)
-  (dex:post (concatenate 'string  "https://discordapp.com/api/v6/" endpoint)
-	    :headers '(("Authorization" . "Bot ___")
+(defun ++ (&rest strings)
+  (apply #'concatenate 'string strings))
+
+(defun post (endpoint token)
+  (dex:post (++ "https://discordapp.com/api/v6/" endpoint)
+	    :headers '(("Authorization" . (++ "Bot " token))
 		       ("User-Agent" . "DiscordBot ($url, $versionNumber)"))))
