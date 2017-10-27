@@ -57,65 +57,65 @@
   (make-ws-client (gateway-url)))
 
 ;; im note sure what the *var* convention is, so im just going by the examples :p
-(defun connect (bot)
+(defun connect ()
   (defvar *client* (get-ws-client))
   (wsd:start-connection *client*)
   (wsd:on :message *client*
           (lambda (message)
-	    (on-recv bot (jonathan:parse message)))))
+	    (on-recv (jonathan:parse message)))))
 
 ;; on receive websock messages by opcode
 ;; opcode 0
-(defun on-recv-dispatch (bot msg)
+(defun on-recv-dispatch (msg)
   nil)
 
 ;; opcode 1
-(defun on-recv-heartbeat (bot msg)
+(defun on-recv-heartbeat (msg)
   nil)
 
 ;; opcode 2
-(defun on-recv-identify (bot msg)
+(defun on-recv-identify (msg)
   nil)
 
 ;; opcode 3
-(defun on-recv-status-update (bot msg)
+(defun on-recv-status-update (msg)
   nil)
 
 ;; opcode 4
-(defun on-recv-voice-status-update (bot msg)
+(defun on-recv-voice-status-update (msg)
   nil)
 
 ;; opcode 5
-(defun on-recv-voice-server-ping (bot msg)
+(defun on-recv-voice-server-ping (msg)
   nil)
 
 ;; opcode 6
-(defun on-recv-resume (bot msg)
+(defun on-recv-resume (msg)
   nil)
 
 ;; opcode 7
-(defun on-recv-reconnect (bot msg)
+(defun on-recv-reconnect (msg)
   nil)
 
 ;; opcode 8
-(defun on-recv-request-guild-members (bot msg)
+(defun on-recv-request-guild-members (msg)
   nil)
 
 ;; opcode 9
-(defun on-recv-invalid-session (bot msg)
+(defun on-recv-invalid-session (msg)
   nil)
 
 ;; opcode 10
-(defun on-recv-hello (bot msg)
+(defun on-recv-hello (msg)
   (let ((heartbeat (getf (getf msg :|d|) :heartbeat_interval)))
     (print (str-concat "Heartbeat: " heartbeat))))
 
 ;; opcode 11
-(defun on-recv-heartbeat-ack (bot msg)
+(defun on-recv-heartbeat-ack (msg)
   nil)
 
 ;; receive message from websock and dispatch to handler
-(defun on-recv (bot msg)
+(defun on-recv (msg)
   (print "Hello at all??")
   (let ((op (getf msg :op)))
     (case op
