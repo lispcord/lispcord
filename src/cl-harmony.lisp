@@ -24,6 +24,7 @@
   (primitive-bot-make :token token
 		      :version version
 		      :url url
+		      :suffix suffix
 		      :base-url (str-concat "https://discordapp.com/api/"
 					    api-ver
 					    "/")))
@@ -38,11 +39,11 @@
 
 ;; is 'get' reserved?
 (defun get-rq (bot endpoint)
-  (dex:get (str-concat (bot-base-url bot) "/" endpoint (bot-suffix bot))))
+  (dex:get (str-concat (bot-base-url bot) "/" endpoint)))
 
 ;; i added -rq to make the name match get-rq for now
 (defun post-rq (endpoint bot)
-  (dex:post (str-concat (bot-base-url bot) "/" endpoint (bot-suffix bot))
+  (dex:post (str-concat (bot-base-url bot) "/" endpoint)
 	    :headers (headers bot)))
 
 (defun gateway (bot)
@@ -70,6 +71,7 @@
   (wsd:start-connection *client*)
   (wsd:on :message *client*
           (lambda (message)
+  	    (print "Hello at all??")
 	    (on-recv (jonathan:parse message)))))
 
 ;; on receive websock messages by opcode
