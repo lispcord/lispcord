@@ -3,7 +3,7 @@
     :author "MegaLoler"
     :license "yet-to-be-specified"
     :serial t
-    :depends-on (:dexador :websocket-driver-client)
+    :depends-on (:dexador :websocket-driver-client :jonathan)
     :components ((:module src
 			  :serial t
 			  :components ((:file "package")

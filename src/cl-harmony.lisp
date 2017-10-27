@@ -1,5 +1,6 @@
 (ql:quickload :dexador)
 (ql:quickload :websocket-driver-client)
+(ql:quickload :jonathan)
 
 ;; should these be constants?
 (defparameter bot-url "N/A")
