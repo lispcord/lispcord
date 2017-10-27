@@ -120,7 +120,7 @@
 
 ;; receive message from websock and dispatch to handler
 (defun on-recv (bot msg)
-  (print "Hello at all??")
+  (print msg)
   (let ((op (getf msg :|op|)))
     (cond ((= op 0)
 	   (on-recv-dispatch bot msg))
