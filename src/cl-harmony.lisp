@@ -15,7 +15,7 @@
 
 ;; not sure if this should exist or not, a part of me just wants to be explicit
 (defun mk-header (key val)
-  (cons key val)
+  (cons key val))
 
 ;; is there a better way to do this? quote was causing str-concat to be literal
 (defun mk-headers (token)
