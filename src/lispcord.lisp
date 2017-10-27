@@ -115,13 +115,7 @@
     (case op
       (0  (on-recv-dispatch bot msg))
       (1  (print msg))
-      (2  (print msg))
-      (3  (print msg))
-      (4  (print msg))
-      (5  (print msg))
-      (6  (print msg))
       (7  (print msg))
-      (8  (print msg))
       (9  (print msg))
       (10 (on-recv-hello bot msg))
       (11 (format t "Received Heartbeat ACK~%"))
