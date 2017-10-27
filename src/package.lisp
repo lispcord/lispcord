@@ -1,6 +1,6 @@
-(defpackage :cl-harmony.util
+(defpackage :lispcord.util
   (:use :cl)
   (:export #:str-concat))
 
-(defpackage :cl-harmony
-  (:use :cl :cl-harmony.util))
+(defpackage :lispcord
+  (:use :cl :lispcord.util))

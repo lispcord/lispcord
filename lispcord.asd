@@ -1,4 +1,4 @@
-(asdf:defsystem :cl-harmony
+(asdf:defsystem :lispcord
     :description "A client library for the discordapp bot api"
     :author "MegaLoler"
     :license "yet-to-be-specified"
@@ -8,4 +8,4 @@
 			  :serial t
 			  :components ((:file "package")
 				       (:file "util")
-				       (:file "cl-harmony")))))
+				       (:file "lispcord")))))

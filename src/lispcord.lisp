@@ -1,4 +1,8 @@
-(in-package :cl-harmony)
+(in-package :lispcord)
+
+;; make dynamic?
+(defparameter os-string "linux")
+(defparameter lib-string "lispcord")
 
 (defparameter bot-url "N/A")
 (defun bot-url (url)
@@ -47,9 +51,45 @@
 (defun gateway-url ()
   (str-concat (fetch-gateway-url) api-suffix))
 
+;; get unix timestamp (millis)
+(defun get-millis ()
+  0)
+
+(defun send-payload (bot op d)
+  (wsd:send (bot-connection bot) (jonathan:to-json (list :op op
+							 :d d))))
+
+;; how to put 'false' in the json?
+(defun send-identify (bot)
+  (let ((identify (list :token (bot-token bot)
+			                  :properties (list :$os os-string
+					                    :$browser lib-string
+						            :$device lib-string)
+				          :compress :false
+				          :large_threshold 250
+				          :shard '(1 10)
+				          ;; this should probably be separated out?
+				          :presence (list :game (list :name "presence"
+						   	              :type 0)
+						          :status "online"
+						          :since (get-millis)
+						          :afk :false))))
+    (format t "identify: ~a" identify)
+    (send-payload bot 10 identify)))
+
+;; opcode 10
+;; not sure how we should actually be passing his bot arg around still ^^;
+(defun on-recv-hello (bot msg)
+  (let ((heartbeat (getf (getf msg :|d|) :|heartbeat_interval|)))
+    (print bot)
+    (print (bot-token bot))
+    (format t "Heartbeat: ~a" heartbeat)
+    ;; setup heartbeat interval here
+    ;; should be able to know whether to _identify_ anew or _resume_ here?
+    (send-identify bot)))
 
 ;; receive message from websock and dispatch to handler
-(defun on-recv (msg)
+(defun on-recv (bot msg)
   (let ((op (getf msg :|op|)))
     (case op
       (0  (print msg))
@@ -62,13 +102,15 @@
       (7  (print msg))
       (8  (print msg))
       (9  (print msg))
-      (10 (print msg))
+      (10 (on-recv-hello bot msg))
       (11 (print msg))
       (T ;; not sure if this should be an error to the user or not?
        (error "Received invalid opcode! ~a" op)))))
 
 
 (defun connect (bot)
+  ;; not sure how these args work, so i'm passing 'bot' from this defun for now to on-recv
+  (defvar b bot);
   (setf (bot-connection bot) (wsd:make-client (gateway-url)))
   (wsd:start-connection (bot-connection bot))
   (wsd:on :open (bot-connection bot)
@@ -76,7 +118,7 @@
 	    (format t "Connected!~%")))
   (wsd:on :message (bot-connection bot)
 	  (lambda (message)
-	    (on-recv (jonathan:parse message))))
+	    (on-recv b (jonathan:parse message))))
   (wsd:on :error (bot-connection bot)
 	  (lambda (error) (warn "Websocket error: ~a~%" error)))
   (wsd:on :close (bot-connection bot)
