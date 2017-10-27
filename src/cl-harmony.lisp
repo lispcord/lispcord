@@ -28,14 +28,29 @@
   (dex:post (str-concat discord-api-base-url "/" endpoint)
 	    :headers (mk-headers token)))
 
-;; raw api requests
 (defun gateway ()
   (get-rq "gateway"))
 
-;; utility ?
 (defun fetch-gateway-url ()
   (cadr (jonathan:parse (gateway))))
 
 ;; should this be combined with the above?
 (defun gateway-url ()
   (str-concat (fetch-gateway-url) gateway-url-suffix))
+
+(defun make-ws-client (url)
+  (wsd:make-client url))
+
+;; i cant think off the top of my head the best way to structure these things
+;; a lot of these can probably be merged
+;; or better named
+(defun get-ws-client ()
+  (make-ws-client (gateway-url)))
+
+;; im note sure what the *var* convention is, so im just going by the examples :p
+(defun connect ()
+  (defvar *client* (get-ws-client))
+  (wsd:start-connection *client*)
+  (wsd:on :message *client*
+          (lambda (message)
+            (print (str-concat "ws: " message)))))
