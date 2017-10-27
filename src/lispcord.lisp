@@ -80,11 +80,6 @@
 (defun send-heartbeat (bot)
   (send-payload bot 1 last-seq))
 
-(defun heartbeat-timer (bot interval)
-  ;; check to make sure bot is connected still first
-  (send-heartbeat bot)
-  (schedule-timer (make-timer (lambda () (heartbeat-timer bot heartbeat)) interval)))
-
 ;; opcode 0
 ;; this last seq var should be associated with the bot struct, not global
 (defvar last-seq nil)
@@ -102,10 +97,11 @@
 ;; opcode 10
 ;; not sure how we should actually be passing his bot arg around still ^^;
 (defun on-recv-hello (bot msg)
-  (let ((heartbeat (getf (getf msg :|d|) :|heartbeat_interval|)))
-    (format t "Heartbeat Inverval: ~a~%" heartbeat)
+  (let ((heartbeat-interval (getf (getf msg :|d|) :|heartbeat_interval|)))
+    (format t "Heartbeat Inverval: ~a~%" heartbeat-interval)
     ;; setup heartbeat interval here
-    (heartbeat-timer bot (/ heartbeat 1000))
+    (schedule-timer (make-timer (lambda () (send-heartbeat bot))
+				(/ heartbeat-interval 1000.0) :repeat-interval (/ heartbeat-interval 1000.0)))
     ;; should be able to know whether to _identify_ anew or _resume_ here?
     (send-identify bot)))
 

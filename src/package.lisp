@@ -3,4 +3,4 @@
   (:export #:str-concat))
 
 (defpackage :lispcord
-  (:use :cl :lispcord.util))
+  (:use :sb-ext :cl :lispcord.util))
