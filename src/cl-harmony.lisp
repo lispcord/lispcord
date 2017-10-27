@@ -1,6 +1,4 @@
 
-(defparameter gateway-url-suffix "/?v=6&encoding=json")
-
 
 ;; (TODO:) we should move this into a util.lisp file eventually
 (defun str-concat (&rest strings)
@@ -11,12 +9,14 @@
   (token "" :type string :read-only t)
   (version "0.0.1" :type string)
   (url "N/A" :type string)
-  (base-url "" :type string))
+  (base-url "" :type string)
+  (suffix "" :type string))
 
 (defun make-bot (token &key
 			 (version "0.0.1")
 			 (url "N/A")
-			 (api-ver "v6"))
+			 (api-ver "v6")
+			 (suffix "/?v=6&encoding=json"))
   (unless token (error "No token specified!"))
   (primitive-bot-make :token token
 		      :version version
@@ -34,13 +34,13 @@
         (cons "Content-length" (format nil "~a" length))))
 
 ;; is 'get' reserved?
-(defun get-rq (endpoint)
-  (dex:get (str-concat discord-api-base-url "/" endpoint)))
+(defun get-rq (bot endpoint)
+  (dex:get (str-concat (bot-base-url bot) "/" endpoint (bot-suffix bot))))
 
 ;; i added -rq to make the name match get-rq for now
-(defun post-rq (endpoint token)
-  (dex:post (str-concat discord-api-base-url "/" endpoint)
-	    :headers (mk-headers token)))
+(defun post-rq (endpoint bot)
+  (dex:post (str-concat (bot-base-url bot) "/" endpoint (bot-suffix bot))
+	    :headers (headers bot)))
 
 (defun gateway ()
   (get-rq "gateway"))
