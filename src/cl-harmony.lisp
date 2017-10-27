@@ -1,25 +1,39 @@
-(ql:quickload :dexador)
-(ql:quickload :websocket-driver-client)
-(ql:quickload :jonathan)
 
-(defparameter bot-url "N/A")
-(defparameter bot-ver-str "0.0.1")
-(defparameter discord-api-base-url "https://discordapp.com/api/v6")
 (defparameter gateway-url-suffix "/?v=6&encoding=json")
 
+
+;; (TODO:) we should move this into a util.lisp file eventually
 (defun str-concat (&rest strings)
   (apply #'concatenate 'string strings))
 
-;; unsure if the url and version string should be quoted or not in the header
-(defun mk-user-agent-str ()
-  (str-concat "DiscordBot ('" bot-url "', '" bot-ver-str "')"))
 
-;; is there a better way to do this? quote was causing str-concat to be literal
-(defun mk-headers (token)
-  (list (cons "Authorization" (str-concat "Bot " token))
-        (cons "User-Agent" (mk-user-agent-str))
-        (cons "Content-length" "0")))
+(defstruct (bot (:constructor primitive-bot-make))
+  (token "" :type string :read-only t)
+  (version "0.0.1" :type string)
+  (url "N/A" :type string)
+  (base-url "" :type string))
 
+(defun make-bot (token &key
+			 (version "0.0.1")
+			 (url "N/A")
+			 (api-ver "v6"))
+  (unless token (error "No token specified!"))
+  (primitive-bot-make :token token
+		      :version version
+		      :url url
+		      :base-url (str-concat "https://discordapp.com/api/"
+					    api-ver
+					    "/")))
+
+(defun user-agent (bot)
+  (str-concat "DiscordBot (" (bot-url bot) ", " (bot-version bot) ")"))
+
+(defun headers (bot &optional (length 0))
+  (list (cons "Authorization" (str-concat "Bot " (bot-token bot)))
+        (cons "User-Agent" (user-agent bot))
+        (cons "Content-length" (format nil "~a" length))))
+
+;; is 'get' reserved?
 (defun get-rq (endpoint)
   (dex:get (str-concat discord-api-base-url "/" endpoint)))
 
