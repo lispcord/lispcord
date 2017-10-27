@@ -45,15 +45,15 @@
   (dex:post (str-concat (bot-base-url bot) "/" endpoint (bot-suffix bot))
 	    :headers (headers bot)))
 
-(defun gateway ()
-  (get-rq "gateway"))
+(defun gateway (bot)
+  (get-rq bot "gateway"))
 
-(defun fetch-gateway-url ()
-  (cadr (jonathan:parse (gateway))))
+(defun fetch-gateway-url (bot)
+  (cadr (jonathan:parse (bot gateway))))
 
 ;; should this be combined with the above?
-(defun gateway-url ()
-  (str-concat (fetch-gateway-url) gateway-url-suffix))
+(defun gateway-url (bot)
+  (str-concat (fetch-gateway-url bot) gateway-url-suffix))
 
 (defun make-ws-client (url)
   (wsd:make-client url))
@@ -61,12 +61,12 @@
 ;; i cant think off the top of my head the best way to structure these things
 ;; a lot of these can probably be merged
 ;; or better named
-(defun get-ws-client ()
-  (make-ws-client (gateway-url)))
+(defun get-ws-client (bot)
+  (make-ws-client (gateway-url bot)))
 
 ;; im note sure what the *var* convention is, so im just going by the examples :p
-(defun connect ()
-  (defvar *client* (get-ws-client))
+(defun connect (bot)
+  (defvar *client* (get-ws-client bot))
   (wsd:start-connection *client*)
   (wsd:on :message *client*
           (lambda (message)
@@ -115,7 +115,8 @@
 
 ;; opcode 10
 (defun on-recv-hello (msg)
-  nil)
+  (let ((heartbeat (getf (getf msg :|d|) :heartbeat_interval)))
+    (print (str-concat "Heartbeat: " heartbeat))))
 
 ;; opcode 11
 (defun on-recv-heartbeat-ack (msg)
