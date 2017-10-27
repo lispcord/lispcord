@@ -5,6 +5,7 @@
 (defparameter bot-url "N/A")
 (defparameter bot-ver-str "0.0.1")
 (defparameter discord-api-base-url "https://discordapp.com/api/v6")
+(defparameter gateway-url-suffix "/?v=6&encoding=json")
 
 (defun str-concat (&rest strings)
   (apply #'concatenate 'string strings))
@@ -32,5 +33,9 @@
   (get-rq "gateway"))
 
 ;; utility ?
-(defun get-gateway-url ()
+(defun fetch-gateway-url ()
   (cadr (jonathan:parse (gateway))))
+
+;; should this be combined with the above?
+(defun gateway-url ()
+  (str-concat (fetch-gateway-url) gateway-url-suffix))
