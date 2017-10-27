@@ -49,11 +49,11 @@
   (get-rq bot "gateway"))
 
 (defun fetch-gateway-url (bot)
-  (cadr (jonathan:parse (bot gateway))))
+  (cadr (jonathan:parse (gateway bot))))
 
 ;; should this be combined with the above?
 (defun gateway-url (bot)
-  (str-concat (fetch-gateway-url bot) gateway-url-suffix))
+  (str-concat (fetch-gateway-url bot) (bot-suffix bot)))
 
 (defun make-ws-client (url)
   (wsd:make-client url))
@@ -124,6 +124,7 @@
 
 ;; receive message from websock and dispatch to handler
 (defun on-recv (msg)
+  (print "Hello at all??")
   (let ((op (getf msg :|op|)))
     (cond ((= op 0)
 	   (on-recv-dispatch msg))
