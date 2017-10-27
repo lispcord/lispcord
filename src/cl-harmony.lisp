@@ -29,11 +29,11 @@
 
 ;; is 'get' reserved?
 (defun get-rq (endpoint)
-  (dex:get (str-concat base-url "/" endpoint api-suffix)))
+  (dex:get (str-concat base-url "/" endpoint)))
 
 ;; i added -rq to make the name match get-rq for now
 (defun post-rq (bot endpoint)
-  (dex:post (str-concat base-url "/" endpoint api-suffix)
+  (dex:post (str-concat base-url "/" endpoint)
 	    :headers (headers bot)))
 
 (defun gateway ()
