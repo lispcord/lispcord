@@ -8,4 +8,7 @@
 			  :serial t
 			  :components ((:file "package")
 				       (:file "util")
+				       (:file "core")
+				       (:file "http")
+				       (:file "gateway")
 				       (:file "lispcord")))))
