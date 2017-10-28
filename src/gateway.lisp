@@ -3,7 +3,7 @@
 (defun gateway-url ()
   (doit (get-rq "gateway")
 	(jparse it)
-	(assoc "url" it)
+	(aget "url" it)
 	(str-concat it api-suffix)))
 
 (defun send-payload (bot op d)
@@ -14,10 +14,10 @@
 
 
 ;;wasn't this deprecated in the api?
-(defun presence (game-name status)
-  (alist "game" (alist "name" "presence"
+(defun presence (game-name &optional (status "online"))
+  (alist "game" (alist "name" game-name
 		       "type" 0)
-        "status" "online"
+        "status" status
         "since" (get-universal-time)
         "afk" :false))
 
@@ -40,7 +40,7 @@
 
 ;; opcode 0
 (defun on-dispatch (bot msg)
-  (let ((event (assoc "t" msg)) (seq (assoc "s" msg)))
+  (let ((event (aget "t" msg)) (seq (aget "s" msg)))
     (setf (bot-seq bot) seq)
     (format t "Event: ~a~%" event)
     (format t "Payload: ~a~%" msg)
@@ -49,33 +49,30 @@
       (:else (error "Received invalid event! ~a~%" event)))))
 
 ;; opcode 10
-;; not sure how we should actually be passing his bot arg around still ^^;
-(defun on-recv-hello (bot msg)
-  (let ((heartbeat-interval (assoc "heartbeat_interval" (assoc "d" msg))))
+;; not sure how we should actually be passing this bot arg around still ^^;
+(defun on-hello (bot msg)
+  (let ((heartbeat-interval (aget "heartbeat_interval" (aget "d" msg))))
     (format t "Heartbeat Inverval: ~a~%" heartbeat-interval)
     ;; setup heartbeat interval here
-    (schedule-timer (make-timer (lambda () (send-heartbeat bot))
-				(/ heartbeat-interval 1000.0) :repeat-interval (/ heartbeat-interval 1000.0)))
+    ;;(TODO): set up heartbeat things here; for now i want it all to compile xD
     ;; should be able to know whether to _identify_ anew or _resume_ here?
     (send-identify bot)))
 
 ;; receive message from websock and dispatch to handler
 (defun on-recv (bot msg)
-  (let ((op (assoc "op" msg)))
+  (let ((op (aget "op" msg)))
     (case op
-      (0  (on-recv-dispatch bot msg))
+      (0  (on-dispatch bot msg))
       (1  (print msg))
       (7  (print msg))
       (9  (print msg))
-      (10 (on-recv-hello bot msg))
+      (10 (on-hello bot msg))
       (11 (format t "Received Heartbeat ACK~%"))
       (T ;; not sure if this should be an error to the user or not?
        (error "Received invalid opcode! ~a~%" op)))))
 
 
 (defun connect (bot)
-  ;; not sure how these args work, so i'm passing 'bot' from this defun for now to on-recv
-  (defvar b bot);
   (setf (bot-conn bot) (wsd:make-client (gateway-url)))
   (wsd:start-connection (bot-conn bot))
   (wsd:on :open (bot-conn bot)
@@ -83,7 +80,7 @@
 	    (format t "Connected!~%")))
   (wsd:on :message (bot-conn bot)
 	  (lambda (message)
-	    (on-recv b (jparse message))))
+	    (on-recv bot (jparse message))))
   (wsd:on :error (bot-conn bot)
 	  (lambda (error) (warn "Websocket error: ~a~%" error)))
   (wsd:on :close (bot-conn bot)

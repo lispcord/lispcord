@@ -4,12 +4,21 @@
   (:export #:jparse)
   (:export #:jmake)
   (:export #:alist
+	   #:aget
 	   #:doit
 	   #:str-case))
 
 (defpackage :lispcord.core
   (:use :cl :lispcord.util)
   (:export #:bot
+	   #:primitive-make-bot
+	   #:bot-token
+	   #:bot-os
+	   #:bot-lib
+	   #:bot-version
+	   #:bot-seq
+	   #:bot-conn
+	   
 	   #:bot-url
 	   #:base-url
 	   #:api-suffix
