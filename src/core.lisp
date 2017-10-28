@@ -6,6 +6,7 @@
   (lib "lispcord" :type string)
   (version "0.0.1" :type string)
   (seq 0 :type fixnum)
+  (heartbeat-thread nil)
   conn)
 
 (defparameter bot-url "N/A")
@@ -22,10 +23,10 @@
 (defun user-agent (bot)
   (str-concat "DiscordBot (" bot-url ", " (bot-version bot) ")"))
 
-(defun headers (bot &optional (length 0))
+;; i removed content length because i think it handles it automatically
+(defun headers (bot)
   (list (cons "Authorization" (str-concat "Bot " (bot-token bot)))
-        (cons "User-Agent" (user-agent bot))
-        (cons "Content-length" (format nil "~a" length))))
+        (cons "User-Agent" (user-agent bot))))
 
 
 ;; is 'get' reserved?
@@ -34,6 +35,7 @@
 	   :headers (if bot (headers bot))))
 
 ;; i added -rq to make the name match get-rq for now
-(defun post-rq (endpoint &optional bot)
+(defun post-rq (endpoint &optional bot content)
   (dex:post (str-concat base-url "/" endpoint)
-	    :headers (if bot (headers bot))))
+	    :headers (if bot (headers bot))
+	    :content content))

@@ -1,5 +1,11 @@
 (in-package :lispcord.gateway)
 
+(defun make-heartbeat-thread (bot seconds)
+  (make-thread (lambda ()
+		 (loop
+		   (send-heartbeat bot)
+		   (sleep seconds)))))
+
 (defun gateway-url ()
   (doit (get-rq "gateway")
 	(jparse it)
@@ -29,7 +35,7 @@
 					   "$device" (bot-lib bot))
 		       "compress" :false
 		       "large_threshold" 250
-		       "shard" '(1 10)
+		       "shard" '(0 1)
 		       "presence" (presence "hello there" "online"))))
 
 (defun send-status-update (bot)
@@ -38,15 +44,42 @@
 (defun send-heartbeat (bot)
   (send-payload bot 1 (bot-seq bot)))
 
+; send a message!
+(defun send (bot channel-id content)
+  (post-rq (str-concat "channels/" channel-id "/messages") bot
+	   ;(jmake (list (cons "content" content)))))
+	   (list (cons "content" content))))
+
+(defun reply (bot msg content)
+  (send bot (aget "channel_id" msg) content))
+
+(defun on-message (bot msg)
+  (format t "[Message] ~a: ~a~%" (aget "username" (aget "author" msg)) (aget "content" msg))
+  (if (not (aget "bot" (aget "author" msg))) (reply bot msg "yo  yo yo")))
+
 ;; opcode 0
 (defun on-dispatch (bot msg)
-  (let ((event (aget "t" msg)) (seq (aget "s" msg)))
+  (let ((event (aget "t" msg)) (seq (aget "s" msg)) (d (aget "d" msg)))
     (setf (bot-seq bot) seq)
-    (format t "Event: ~a~%" event)
-    (format t "Payload: ~a~%" msg)
+    (format t "[Event] ~a~%" event)
+    (format t "[Payload] ~a~%" msg)
     (str-case event
-      ("READY" (send-status-update bot))
-      (:else (error "Received invalid event! ~a~%" event)))))
+      ;; on handshake
+      ("READY" T)
+      ;; someone starts typing somewhere
+      ("TYPING_START" T)
+      ;; existance of a channel is made known
+      ("CHANNEL_CREATE" T)
+      ;; existance of a guild is made known
+      ("GUILD_CREATE" T)
+      ;; a new message is received
+      ("MESSAGE_CREATE" (on-message bot d))
+      ;; a message is edited
+      ("MESSAGE_UPDATE" T)
+      ;; a message is deleted
+      ("MESSAGE_DELETE" T)
+      ;; changed from 'error' to avoid crashing on an undocumented event for now
+      (:else (format t "Received invalid event! ~a~%" event)))))
 
 ;; opcode 10
 ;; not sure how we should actually be passing this bot arg around still ^^;
@@ -55,6 +88,9 @@
     (format t "Heartbeat Inverval: ~a~%" heartbeat-interval)
     ;; setup heartbeat interval here
     ;;(TODO): set up heartbeat things here; for now i want it all to compile xD
+    ;; how to add a this thread to the bot struct?
+    ;(setf (bot-heartbeat-thread bot) (make-heartbeat-thread bot (/ heartbeat-interval 1000.0)))
+    (make-heartbeat-thread bot (/ heartbeat-interval 1000.0))
     ;; should be able to know whether to _identify_ anew or _resume_ here?
     (send-identify bot)))
 

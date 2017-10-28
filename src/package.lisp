@@ -28,16 +28,14 @@
 	   #:post-rq))
 
 (defpackage :lispcord.gateway
-  (:use :cl :lispcord.util :lispcord.core))
+  (:use :bordeaux-threads :cl ::lispcord.util :lispcord.core))
 
 (defpackage :lispcord.http
   (:use :cl :lispcord.util :lispcord.core))
 
 
-;;is it possible to remove the sb-ext? I'd like to keep this as portable as possible
 (defpackage :lispcord
-  (:use :sb-ext
-	:cl
+  (:use :cl
 	:lispcord.util
 	:lispcord.gateway
 	:lispcord.http
