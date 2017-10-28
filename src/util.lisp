@@ -14,3 +14,19 @@
       (cons (cons car cdr)
 	    (apply #'alist (car pairs) (cadr pairs) (cddr pairs)))
       (list (cons car cdr))))
+
+(defun aget (key list)
+  (cdr (assoc key list :test #'equal)))
+
+(defmacro doit (&rest forms)
+  (let ((it (intern (symbol-name 'it))))
+    `(let (,it)
+       ,@(mapcar (lambda (f) `(setf ,it ,f)) forms))))
+
+(defmacro str-case (key-form &body clauses &aux (key (gensym)))
+  `(let ((,key ,key-form))
+     (cond ,@(mapcar (lambda (c)
+		       (if (string= (string (car c)) "ELSE")
+			   `(T ,@(cdr c))
+			   `((string= ,key ,(car c)) ,@(cdr c))))
+		     clauses))))
