@@ -53,26 +53,26 @@
 
 (defun send-payload (bot op d)
   ;; make json and send
-  (let ((payload (jonathan:to-json (list :|op| op :|d| d))))
+  (let ((payload (jmake (alist "op" op "d" d))))
     (print (format t "send-payload: ~a~%" payload))
     (wsd:send (bot-connection bot) payload)))
 
 (defun presence (game-name status)
-  (list :|game| (list :|name| "presence"
-                      :|type| 0)
-        :|status| "online"
-        :|since| (get-universal-time)
-        :|afk| :false))
+  (alist "game" (alist "name" "presence"
+		       "type" 0)
+        "status" "online"
+        "since" (get-universal-time)
+        "afk" :false))
 
 (defun send-identify (bot)
-  (send-payload bot 2 (list :|token| (bot-token bot)
-                            :|properties| (list :|$os| os-string
-                                                :|$browser| lib-string
-                                                :|$device| lib-string)
-                            :|compress| :false
-                            :|large_threshold| 250
-                            :|shard| '(1 10)
-                            :|presence| (presence "hello there" "online"))))
+  (send-payload bot 2 (alist "token" (bot-token bot)
+                            "properties" (alist "$os" os-string
+                                                "$browser" lib-string
+                                                "$device" lib-string)
+                            "compress" :false
+                            "large_threshold" 250
+                            "shard" '(1 10)
+                            "presence" (presence "hello there" "online"))))
 
 (defun send-status-update (bot)
   (send-payload bot 3 (presence "hello!" "online")))
@@ -84,7 +84,7 @@
 ;; this last seq var should be associated with the bot struct, not global
 (defvar last-seq nil)
 (defun on-recv-dispatch (bot msg)
-  (let ((event (getf msg :|t|)) (seq (getf msg :|s|)))
+  (let ((event (assoc "t" msg)) (seq (assoc "s" msg)))
     (setf last-seq seq)
     (format t "Event: ~a~%" event)
     (format t "Payload: ~a~%" msg)
@@ -97,7 +97,7 @@
 ;; opcode 10
 ;; not sure how we should actually be passing his bot arg around still ^^;
 (defun on-recv-hello (bot msg)
-  (let ((heartbeat-interval (getf (getf msg :|d|) :|heartbeat_interval|)))
+  (let ((heartbeat-interval (assoc "heartbeat_interval" (assoc "d" msg))))
     (format t "Heartbeat Inverval: ~a~%" heartbeat-interval)
     ;; setup heartbeat interval here
     (schedule-timer (make-timer (lambda () (send-heartbeat bot))
@@ -107,7 +107,7 @@
 
 ;; receive message from websock and dispatch to handler
 (defun on-recv (bot msg)
-  (let ((op (getf msg :|op|)))
+  (let ((op (assoc "op" msg)))
     (case op
       (0  (on-recv-dispatch bot msg))
       (1  (print msg))
@@ -129,7 +129,7 @@
 	    (format t "Connected!~%")))
   (wsd:on :message (bot-connection bot)
 	  (lambda (message)
-	    (on-recv b (jonathan:parse message))))
+	    (on-recv b (jparse message))))
   (wsd:on :error (bot-connection bot)
 	  (lambda (error) (warn "Websocket error: ~a~%" error)))
   (wsd:on :close (bot-connection bot)
