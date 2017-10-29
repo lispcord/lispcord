@@ -99,6 +99,8 @@
     (str-case event
       ;; on handshake
       ("READY" (on-ready bot d))
+      ;; on resume
+      ("RESUME" (dprint :info "Connection resumed!"))
       ;; someone starts typing somewhere
       ("TYPING_START" T)
       ;; existance of a channel is made known
