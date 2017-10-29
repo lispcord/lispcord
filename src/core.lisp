@@ -6,7 +6,7 @@
   (lib "lispcord" :type string)
   (version "0.0.1" :type string)
   (seq 0 :type fixnum)
-  (session-id nil :type string)
+  (session-id nil :type (or null string))
   heartbeat-thread
   conn)
 

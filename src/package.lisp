@@ -20,7 +20,7 @@
 	   #:bot-lib
 	   #:bot-version
 	   #:bot-seq
-	   #:session-id
+	   #:bot-session-id
 	   #:bot-conn
 	   #:bot-heartbeat-thread
 	   

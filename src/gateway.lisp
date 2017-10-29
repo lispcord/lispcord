@@ -13,12 +13,10 @@
 	(wsd:send (bot-conn bot) it)))
 
 
-(defun presence (game-name &optional (status "online"))
-  (alist "game" (alist "name" game-name
-		       "type" 0)
-        "status" status
-        "since" (get-universal-time)
-        "afk" :false))
+
+
+
+
 
 (defun send-identify (bot)
   (dprint :info "~&Send identify for ~a~%" (bot-token bot))
@@ -32,8 +30,30 @@
 		       "shard" '(0 1)
 		       "presence" (presence "hello there" "online"))))
 
+(defun send-resume (bot)
+  (dprint :info "~&Resuming connection for session ~a...~%"
+	  (bot-session-id bot))
+  (send-payload bot 6
+		(alist "token" (bot-token bot)
+		       "session_id" (bot-session-id bot)
+		       "seq" (bot-seq bot))))
+
+
+
+
+(defun presence (game-name &optional (status "online"))
+  (alist "game" (alist "name" game-name
+		       "type" 0)
+        "status" status
+        "since" (get-universal-time)
+        "afk" :false))
+
+
 (defun send-status-update (bot)
   (send-payload bot 3 (presence "hello!" "online")))
+
+
+
 
 (defun send-heartbeat (bot)
   (send-payload bot 1 (bot-seq bot)))
@@ -46,11 +66,20 @@
 		   (sleep seconds)))))
 
 
+
+
+
+
 (defun on-message (bot msg)
+  (declare (ignorable bot))
   (dprint :info "[Message] ~a: ~a~%"
 	  (aget "username" (aget "author" msg))
 	  (aget "content" msg))
-  (if (not (aget "bot" (aget "author" msg))) (reply bot msg "yo  yo yo")))
+  ;;implement the user-facing event handling
+  )
+
+
+
 
 ;; opcode 0
 (defun on-dispatch (bot msg)
@@ -75,6 +104,10 @@
       ("MESSAGE_DELETE" T)
       (:else (dprint :warn "Received invalid event! ~a~%" event)))))
 
+
+
+
+
 ;; opcode 10
 (defun on-hello (bot msg)
   (let ((heartbeat-interval (aget "heartbeat_interval" (aget "d" msg))))
@@ -82,8 +115,12 @@
     (setf (bot-heartbeat-thread bot)
 	  (make-heartbeat-thread bot (/ heartbeat-interval 1000.0)))
     (if (bot-session-id bot)
-	;;resume
+	(send-resume bot)
 	(send-identify bot))))
+
+
+
+
 
 ;; receive message from websock and dispatch to handler
 (defun on-recv (bot msg)
@@ -97,6 +134,10 @@
       (11 (dprint :debug "Received Heartbeat ACK~%"))
       (T ;; not sure if this should be an error to the user or not?
        (dprint :error "Received invalid opcode! ~a~%" op)))))
+
+
+
+
 
 
 (defun connect (bot)
