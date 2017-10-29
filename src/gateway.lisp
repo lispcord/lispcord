@@ -39,6 +39,15 @@
 		       "seq" (bot-seq bot))))
 
 
+(defun on-ready (bot payload)
+  (dprint :info "~&Ready payload received; Session-id: ~a~%"
+	  (aget "session_id" payload))
+  (setf (bot-session-id bot) (aget "session_id" payload))
+  ;dispatch event
+  )
+
+
+
 
 
 (defun presence (game-name &optional (status "online"))
@@ -89,7 +98,7 @@
     (dprint :debug "[Payload] ~a~%" msg)
     (str-case event
       ;; on handshake
-      ("READY" T)
+      ("READY" (on-ready bot d))
       ;; someone starts typing somewhere
       ("TYPING_START" T)
       ;; existance of a channel is made known
