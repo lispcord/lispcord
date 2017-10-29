@@ -6,18 +6,21 @@
   (lib "lispcord" :type string)
   (version "0.0.1" :type string)
   (seq 0 :type fixnum)
-  (heartbeat-thread nil)
+  (session-id nil :type string)
+  heartbeat-thread
   conn)
+
 
 (defparameter bot-url "N/A")
 (defun bot-url (url)
   (setf bot-url url))
 
 (defparameter base-url "https://discordapp.com/api/v6/")
+(defparameter api-suffix "?v=6&encoding=json")
 (defun api-version (version)
-  (setf base-url (str-concat "https://discordapp.com/api/" version "/")))
+  (setf base-url (str-concat "https://discordapp.com/api/v" version "/")
+	api-suffix (str-concat "?v=" version "&encoding=json")))
 
-(defparameter api-suffix "/?v=6&encoding=json")
 
 
 (defun user-agent (bot)

@@ -73,7 +73,6 @@
       ("MESSAGE_UPDATE" T)
       ;; a message is deleted
       ("MESSAGE_DELETE" T)
-      ;; changed from 'error' to avoid crashing on an undocumented event for now
       (:else (dprint :warn "Received invalid event! ~a~%" event)))))
 
 ;; opcode 10
@@ -82,8 +81,9 @@
     (dprint :debug "Heartbeat Inverval: ~a~%" heartbeat-interval)
     (setf (bot-heartbeat-thread bot)
 	  (make-heartbeat-thread bot (/ heartbeat-interval 1000.0)))
-    ;; should be able to know whether to _identify_ anew or _resume_ here?
-    (send-identify bot)))
+    (if (bot-session-id bot)
+	;;resume
+	(send-identify bot))))
 
 ;; receive message from websock and dispatch to handler
 (defun on-recv (bot msg)
