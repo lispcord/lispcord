@@ -78,9 +78,8 @@
 (defun on-hello (bot msg)
   (let ((heartbeat-interval (aget "heartbeat_interval" (aget "d" msg))))
     (format t "Heartbeat Inverval: ~a~%" heartbeat-interval)
-    ;; how to add a this thread to the bot struct?
-    ;(setf (bot-heartbeat-thread bot) (make-heartbeat-thread bot (/ heartbeat-interval 1000.0)))
-    (make-heartbeat-thread bot (/ heartbeat-interval 1000.0))
+    (setf (bot-heartbeat-thread bot)
+	  (make-heartbeat-thread bot (/ heartbeat-interval 1000.0)))
     ;; should be able to know whether to _identify_ anew or _resume_ here?
     (send-identify bot)))
 
@@ -95,7 +94,7 @@
       (10 (on-hello bot msg))
       (11 (format t "Received Heartbeat ACK~%"))
       (T ;; not sure if this should be an error to the user or not?
-       (error "Received invalid opcode! ~a~%" op)))))
+       (warn "Received invalid opcode! ~a~%" op)))))
 
 
 (defun connect (bot)
