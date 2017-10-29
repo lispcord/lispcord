@@ -21,7 +21,11 @@
 (defmacro doit (&rest forms)
   (let ((it (intern (symbol-name 'it))))
     `(let (,it)
-       ,@(mapcar (lambda (f) `(setf ,it ,f)) forms))))
+       ,@(mapcar (lambda (f)
+		   (if (eq :! (car f))
+		       (cdr f)
+		       `(setf ,it ,f)))
+		 forms))))
 
 (defmacro str-case (key-form &body clauses &aux (key (gensym)))
   `(let ((,key ,key-form))
@@ -30,3 +34,26 @@
 			   `(T ,@(cdr c))
 			   `((string= ,key ,(car c)) ,@(cdr c))))
 		     clauses))))
+
+
+;;; Set up a logging framework so bot authors can
+;;;  gather various levels of information
+(defparameter *debug-level* :info
+  "The debug level can be one of: :error, :warn, :info, :debug")
+
+(defvar *debug-levels*
+  (alist :error (lambda (l) (ecase l (:error t)))
+	 :warn (lambda (l) (ecase l ((:error :warn) t)))
+	 :info (lambda (l) (ecase l ((:error :warn :info) t)))
+	 :debug (lambda (l) (ecase l ((:error :warn :info :debug) t)))))
+
+(defun set-log-level (level)
+  (declare (type keyword level))
+  (ecase level
+    ((:info :error :warn :debug) (setf *debug-level* level))))
+
+
+;;unfortunately "log" is package locked
+(defun dprint (level message &rest arguments)
+  (when (funcall (aget *debug-level* *debug-levels*) level)
+    (apply #'format *error-output* message arguments)))

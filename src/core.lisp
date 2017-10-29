@@ -15,7 +15,7 @@
 
 (defparameter base-url "https://discordapp.com/api/v6/")
 (defun api-version (version)
-  (str-concat "https://discordapp.com/api/" version "/"))
+  (setf base-url (str-concat "https://discordapp.com/api/" version "/")))
 
 (defparameter api-suffix "/?v=6&encoding=json")
 
@@ -23,19 +23,17 @@
 (defun user-agent (bot)
   (str-concat "DiscordBot (" bot-url ", " (bot-version bot) ")"))
 
-;; i removed content length because i think it handles it automatically
 (defun headers (bot)
   (list (cons "Authorization" (str-concat "Bot " (bot-token bot)))
         (cons "User-Agent" (user-agent bot))))
 
 
-;; is 'get' reserved?
-(defun get-rq (endpoint &optional bot)
-  (dex:get (str-concat base-url "/" endpoint)
-	   :headers (if bot (headers bot))))
+(defun get-rq (endpoint &optional bot &aux (url (str-concat base-url endpoint)))
+  (dex:get url :headers (if bot (headers bot)))
+  (dprint :debug "~&HTTP-Get-Request to: ~a~%" url))
 
-;; i added -rq to make the name match get-rq for now
-(defun post-rq (endpoint &optional bot content)
-  (dex:post (str-concat base-url "/" endpoint)
-	    :headers (if bot (headers bot))
-	    :content content))
+(defun post-rq (endpoint &optional bot content
+			   &aux (url (str-concat base-url endpoint)))
+  (dex:post url :headers (if bot (headers bot))
+	    :content content)
+  (dprint :debug "~&HTTP-Post-Request to: ~a~%~@[   content: ~a~%" url content))

@@ -6,7 +6,10 @@
   (:export #:alist
 	   #:aget
 	   #:doit
-	   #:str-case))
+	   #:str-case
+
+	   #:set-debug-level
+	   #:dprint))
 
 (defpackage :lispcord.core
   (:use :cl :lispcord.util)
