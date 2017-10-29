@@ -18,6 +18,7 @@
 	   #:bot-version
 	   #:bot-seq
 	   #:bot-conn
+	   #:bot-heartbeat-thread
 	   
 	   #:bot-url
 	   #:base-url
@@ -31,8 +32,8 @@
   (:use :bordeaux-threads :cl ::lispcord.util :lispcord.core))
 
 (defpackage :lispcord.http
-  (:use :cl :lispcord.util :lispcord.core))
-
+  (:use :cl :lispcord.util :lispcord.core)
+  (:export :send))
 
 (defpackage :lispcord
   (:use :cl

@@ -9,6 +9,8 @@
 		      :version version))
 
 
+(defun reply (bot msg content)
+  (send bot (aget "channel_id" msg) content))
 
 
 

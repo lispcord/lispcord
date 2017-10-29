@@ -1,11 +1,5 @@
 (in-package :lispcord.gateway)
 
-(defun make-heartbeat-thread (bot seconds)
-  (make-thread (lambda ()
-		 (loop
-		   (send-heartbeat bot)
-		   (sleep seconds)))))
-
 (defun gateway-url ()
   (doit (get-rq "gateway")
 	(jparse it)
@@ -44,14 +38,12 @@
 (defun send-heartbeat (bot)
   (send-payload bot 1 (bot-seq bot)))
 
-; send a message!
-(defun send (bot channel-id content)
-  (post-rq (str-concat "channels/" channel-id "/messages") bot
-	   ;(jmake (list (cons "content" content)))))
-	   (list (cons "content" content))))
+(defun make-heartbeat-thread (bot seconds)
+  (make-thread (lambda ()
+		 (loop
+		   (send-heartbeat bot)
+		   (sleep seconds)))))
 
-(defun reply (bot msg content)
-  (send bot (aget "channel_id" msg) content))
 
 (defun on-message (bot msg)
   (format t "[Message] ~a: ~a~%" (aget "username" (aget "author" msg)) (aget "content" msg))
@@ -79,15 +71,13 @@
       ;; a message is deleted
       ("MESSAGE_DELETE" T)
       ;; changed from 'error' to avoid crashing on an undocumented event for now
-      (:else (format t "Received invalid event! ~a~%" event)))))
+      (:else (warn "Received invalid event! ~a~%" event)))))
 
 ;; opcode 10
 ;; not sure how we should actually be passing this bot arg around still ^^;
 (defun on-hello (bot msg)
   (let ((heartbeat-interval (aget "heartbeat_interval" (aget "d" msg))))
     (format t "Heartbeat Inverval: ~a~%" heartbeat-interval)
-    ;; setup heartbeat interval here
-    ;;(TODO): set up heartbeat things here; for now i want it all to compile xD
     ;; how to add a this thread to the bot struct?
     ;(setf (bot-heartbeat-thread bot) (make-heartbeat-thread bot (/ heartbeat-interval 1000.0)))
     (make-heartbeat-thread bot (/ heartbeat-interval 1000.0))
