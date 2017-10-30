@@ -13,15 +13,6 @@
 			  ((:file "package")
 			   (:file "util")
 			   (:file "core")
-			   (:module payloads
-				    :serial t
-				    :components
-				    ((:file roles)
-				     (:file user)
-				     (:file channel)
-				     (:file emoji)
-				     (:file guilds)
-				     (:file ready)))
 			   (:file "http")
 			   (:file "gateway")
 			   (:file "lispcord")))))
