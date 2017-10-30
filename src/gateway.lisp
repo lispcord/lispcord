@@ -18,7 +18,10 @@
 (defun dispatch-event (bot event payload)
   (let ((handler (gethash event (bot-callbacks bot))))
     (if handler
-      (handler payload)
+      ;; actually this doesnt work, how do you do this better? e_e
+;      (handler payload)
+      ;; is this the only/best way?
+      (apply (gethash event (bot-callbacks bot)) (list payload))
       (dprint :warn "~&Unhandled event ~a~%" event))))
 
 
