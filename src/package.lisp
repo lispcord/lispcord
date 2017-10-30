@@ -32,11 +32,21 @@
 	   #:get-rq
 	   #:post-rq))
 
+(defpackage :lispcord.payloads
+  (:use :cl :lispcord.core :lispcord.util))
+
 (defpackage :lispcord.gateway
-  (:use :bordeaux-threads :cl ::lispcord.util :lispcord.core))
+  (:use :bordeaux-threads
+	:cl
+	:lispcord.util
+	:lispcord.core
+	:lispcord.payloads))
 
 (defpackage :lispcord.http
-  (:use :cl :lispcord.util :lispcord.core)
+  (:use :cl
+	:lispcord.util
+	:lispcord.core
+	:lispcord.payloads)
   (:export :send))
 
 (defpackage :lispcord
@@ -44,4 +54,5 @@
 	:lispcord.util
 	:lispcord.gateway
 	:lispcord.http
-	:lispcord.core))
+	:lispcord.core
+	:lispcord.payloads))

@@ -1,21 +1,23 @@
 ;;;; The emoji object
 
+(in-package :lispcord.payloads)
+
 (defclass emoji ()
-  ((id             :init-arg :id
+  ((id             :initarg :id
                    :reader   id
                    :type     string)
-   (name           :init-arg :name
+   (name           :initarg :name
 	           :reader   name
 	           :type     string)
-   (roles          :init-arg :roles
+   (roles          :initarg :roles
 	           :reader   roles
 	           :type     (vector string))
-   (user           :init-arg :user
+   (user           :initarg :user
 	           :reader    user? ; could be nil!
 	           :type      (or null user))
-   (require-colons :init-arg :colons
+   (require-colons :initarg :colons
 		   :reader colonsp
 		   :type (or null t))
-   (managed        :init-arg :managed
+   (managed        :initarg :managed
 	           :reader   managedp
 	           :type     (or null t))))

@@ -1,16 +1,14 @@
 ;;;; The Ready Event Payload
 
+(in-package :lispcord.payloads)
 
 (defclass ready ()
-  ((v                :init-arg :version
-                     :reader   version
-                     :type     fixnum)
-   (user             :init-arg :user
+  ((user             :initarg :user
 	             :reader   user
 	             :type     user)
-   (private-channels :init-arg :pms
+   (private-channels :initarg :pms
 		     :reader   pms
 		     :type     (vector dm-channel))
-   (guilds           :init-arg :guilds
+   (guilds           :initarg :guilds
 	             :reader   :guilds
 	             :type     (vector guilds))))

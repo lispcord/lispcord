@@ -1,117 +1,119 @@
 ;;;; The Guild, Member & Partial-Guild Objects
 
-(defclass member ()
-  ((user      :init-arg :user
+(in-package :lispcord.payloads)
+
+(defclass gmember ()
+  ((user      :initarg :user
 	      :reader   user
 	      :type     user)
-   (nick      :init-arg :nick
+   (nick      :initarg :nick
 	      :reader   nick? ; could be nil!
 	      :type     (or null string))
-   (roles     :init-arg :roles
+   (roles     :initarg :roles
 	      :reader   roles
 	      :type     (vector role))
-   (joined-at :init-arg :joined-at
+   (joined-at :initarg :joined-at
 	      :reader   joined-at
 	      :type     string)
-   (deaf      :init-arg :deaf
+   (deaf      :initarg :deaf
 	      :reader   deafp
 	      :type     (or null t))
-   (mute      :init-arg :mute
+   (mute      :initarg :mute
 	      :reader   mutep
 	      :type     (or null t))))
 
 (defclass partial-guild ()
-  ((id          :init-arg :id
+  ((id          :initarg :id
                 :reader   id
                 :type     string)
-   (unavailable :init-arg :unavailable
+   (unavailable :initarg :unavailable
 		:reader   available?
 		:type     t))
   (:documentation
    "Discord sends this during the ready event for guilds that are offline or otherwise unavailable"))
 
 (defclass guild ()
-  ((id                            :init-arg :id
+  ((id                            :initarg :id
                                   :reader   id
                                   :type     string)
-   (name                          :init-arg :name
+   (name                          :initarg :name
 	                          :reader   name
 	                          :type     string)
-   (icon                          :init-arg :icon
+   (icon                          :initarg :icon
 	                          :reader   icon
 	                          :type     string)
-   (splash                        :init-arg :splash
+   (splash                        :initarg :splash
 	                          :reader   splash
 	                          :type     string)
-   (owner-id                      :init-arg :owner
+   (owner-id                      :initarg :owner
 	                          :reader   owner
 	                          :type     string)
-   (region                        :init-arg :region
+   (region                        :initarg :region
 	                          :reader   region
 	                          :type     string)
-   (afk-channel-id                :init-arg :afk-channel
+   (afk-channel-id                :initarg :afk-channel
 		                  :reader   afk-channel
 		                  :type     :string)
-   (afk-timeout                   :init-arg :afk-timeout
+   (afk-timeout                   :initarg :afk-timeout
 		                  :reader   afk-timeout
 		                  :type     fixnum)
-   (embed-enabled                 :init-arg :embed-enabled
+   (embed-enabled                 :initarg :embed-enabled
 		                  :reader   embed?
 		                  :type     (or null t))
-   (embed-channel-id              :init-arg :embed-channel
+   (embed-channel-id              :initarg :embed-channel
 		                  :reader   embed-channel
 		                  :type     string)
-   (verification-level            :init-arg :verification-level
+   (verification-level            :initarg :verification-level
 		                  :reader   verification-level
 		                  :type     fixnum)
-   (default-message-notifications :init-arg :default-notifications
+   (default-message-notifications :initarg :default-notifications
                                   :reader   default-notifications
                                   :type     fixnum)
-   (explicit-content-filter       :init-arg :content-filter
+   (explicit-content-filter       :initarg :content-filter
 			          :reader   content-filter
 			          :type     fixnum)
-   (roles                         :init-arg :roles
+   (roles                         :initarg :roles
 	                          :reader   roles
 	                          :type     (vector role))
-   (emojis                        :init-arg :emojis
+   (emojis                        :initarg :emojis
 	                          :reader   emojis
 	                          :type     (vector emoji))
-   (features                      :init-arg :features
+   (features                      :initarg :features
 	                          :reader   features
 	                          :type     (vector string))
-   (mfa-level                     :init-arg :mfa-level
+   (mfa-level                     :initarg :mfa-level
 	                          :reader   mfa-level
 	                          :type     fixnum)
-   (application-id                :init-arg :app-id
+   (application-id                :initarg :app-id
 		                  :reader   app-id? ; could be nil!
 		                  :type     (or null string))
-   (widget-enabled                :init-arg :widget
+   (widget-enabled                :initarg :widget
 		                  :reader   widgetp
 		                  :type     (or null t))
-   (widget-channel-id             :init-arg :widget-channel
+   (widget-channel-id             :initarg :widget-channel
 		                  :reader   widget-channel
 		                  :type     string)
    ;; The following fields are only send during a GUILD_CREATE EVENT
    ;; All of them may or may not be nil, but the user shouldn't know
    ;; that, and it should be handled through the unavailable flag
-   (joined-at                     :init-arg :joined-at
+   (joined-at                     :initarg :joined-at
 	                          :reader   joined-at
 	                          :type     string)
-   (large                         :init-arg :large
+   (large                         :initarg :large
 	                          :reader   largep
 	                          :type     (or null t))
    ;;why is this not just available? o.o
-   (unavailable                   :init-arg :unavailable
+   (unavailable                   :initarg :unavailable
 		                  :reader   unavailablep
 		                  :type     (or null t))
-   (member-count                  :init-arg :member-count
+   (gmember-count                  :initarg :member-count
 		                  :reader   member-count
 		                  :type     fixnum)
    ;; there should be a VOICE_STATES field here, but idk if we need it
-   (members                       :init-arg :members
-	                          :reader   members
-	                          :type     (vector member))
-   (channels                      :init-arg :channels
+   (gmembers                       :initarg :gmembers
+	                          :reader   gmembers
+	                          :type     (vector gmember))
+   (channels                      :initarg :channels
 	                          :reader   channels
 	                          :type     (vector channel))
    ;; again, here should be a PRESENCES field but meh

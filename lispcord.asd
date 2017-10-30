@@ -9,9 +9,19 @@
 		 :bordeaux-threads)
     :components ((:module src
 			  :serial t
-			  :components ((:file "package")
-				       (:file "util")
-				       (:file "core")
-				       (:file "http")
-				       (:file "gateway")
-				       (:file "lispcord")))))
+			  :components
+			  ((:file "package")
+			   (:file "util")
+			   (:file "core")
+			   (:module payloads
+				    :serial t
+				    :components
+				    ((:file roles)
+				     (:file user)
+				     (:file channel)
+				     (:file emoji)
+				     (:file guilds)
+				     (:file ready)))
+			   (:file "http")
+			   (:file "gateway")
+			   (:file "lispcord")))))

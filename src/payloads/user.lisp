@@ -1,28 +1,30 @@
 ;;;; The User Object
 
+(in-package :lispcord.payloads)
+
 (defclass user ()
-  ((id            :init-arg :id
+  ((id            :initarg :id
 		  :reader   id
 		  :type     string)
-   (username      :init-arg :username
+   (username      :initarg :username
 		  :reader   username
 		  :type     string)
-   (discriminator :init-arg :discrim
+   (discriminator :initarg :discrim
 		  :reader   discrim
 		  :type     string)
-   (avatar        :init-arg :avatar
+   (avatar        :initarg :avatar
 		  :reader   avatar
 		  :type     string)
-   (bot           :init-arg :bot
+   (bot           :initarg :bot
 		  :reader   bot?       ;could be nil!
 		  :type     (or null t))
-   (mfa-enabled   :init-arg :mfa
+   (mfa-enabled   :initarg :mfa
 		  :reader   mfa?       ;could be nil!
 		  :type     (or null t))
-   (verified      :init-arg :verified
+   (verified      :initarg :verified
 		  :reader   verified?  ;could be nil!
 		  :type     (or null t))
-   (email         :init-arg :email
+   (email         :initarg :email
 		  :reader   email?     ;could be nil!
 		  :type     (or null string)))
   (:documentation "Enduser facing USER object"))
