@@ -23,6 +23,7 @@
 	   #:bot-session-id
 	   #:bot-conn
 	   #:bot-heartbeat-thread
+	   #:bot-callbacks
 	   
 	   #:bot-url
 	   #:base-url
@@ -36,7 +37,8 @@
   (:use :bordeaux-threads
 	:cl
 	:lispcord.util
-	:lispcord.core))
+	:lispcord.core)
+  (:export :connect))
 
 (defpackage :lispcord.http
   (:use :cl
@@ -49,4 +51,13 @@
 	:lispcord.util
 	:lispcord.gateway
 	:lispcord.http
-	:lispcord.core))
+	:lispcord.core)
+  (:export :make-bot
+	   :connect-bot
+	   :reply
+	   :with-bot-message))
+
+(defpackage :lispcord.example
+  ;; core, for the botstruct, can we hide away the bot struct from the user?
+  (:use :cl :lispcord :lispcord.core)
+  (:export :example))

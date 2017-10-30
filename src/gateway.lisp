@@ -14,6 +14,13 @@
 
 
 
+;; dispatch events to user handler
+(defun dispatch-event (bot event payload)
+  (let ((handler (gethash event (bot-callbacks bot))))
+    (if handler
+      (handler payload)
+      (dprint :warn "~&Unhandled event ~a~%" event))))
+
 
 
 
@@ -28,7 +35,7 @@
 		       "compress" :false
 		       "large_threshold" 250
 		       "shard" '(0 1)
-		       "presence" (presence "hello there" "online"))))
+		       "presence" (presence))))
 
 (defun send-resume (bot)
   (dprint :info "~&Resuming connection for session ~a...~%"
@@ -44,22 +51,26 @@
 	  (aget "session_id" payload))
   (setf (bot-session-id bot) (aget "session_id" payload))
   ;dispatch event
-  )
+  (dispatch-event bot :ready payload))
 
 
 
 
 
-(defun presence (game-name &optional (status "online"))
-  (alist "game" (alist "name" game-name
-		       "type" 0)
+(defun presence (&optional game-name (status "online"))
+  (alist "game" (if game-name
+		  (alist "name" game-name
+		         "type" 0)
+		  :null)
         "status" status
-        "since" (get-universal-time)
+	;; apparently this can be null if not idle?
+;        "since" (get-universal-time)
+        "since" :null
         "afk" :false))
 
 
-(defun send-status-update (bot)
-  (send-payload bot 3 (presence "hello!" "online")))
+(defun send-status-update (bot &optional game-name (status "online"))
+  (send-payload bot 3 (presence game-name status)))
 
 
 
@@ -85,7 +96,7 @@
 	  (aget "username" (aget "author" msg))
 	  (aget "content" msg))
   ;;implement the user-facing event handling
-  )
+  (dispatch-event bot :message msg))
 
 
 
@@ -97,22 +108,15 @@
     (dprint :info "[Event] ~a~%" event)
     (dprint :debug "[Payload] ~a~%" msg)
     (str-case event
-      ;; on handshake
-      ("READY" (on-ready bot d))
-      ;; on resume
-      ("RESUME" (dprint :info "Connection resumed!"))
-      ;; someone starts typing somewhere
-      ("TYPING_START" T)
-      ;; existance of a channel is made known
-      ("CHANNEL_CREATE" T)
-      ;; existance of a guild is made known
-      ("GUILD_CREATE" T)
-      ;; a new message is received
-      ("MESSAGE_CREATE" (on-message bot d))
-      ;; a message is edited
-      ("MESSAGE_UPDATE" T)
-      ;; a message is deleted
-      ("MESSAGE_DELETE" T)
+      ("READY" (on-ready bot d))                           ;; on handshake
+      ("RESUME" (dprint :info "Connection resumed!"))      ;; on resume
+      ("TYPING_START" (dispatch-event bot :typing d))      ;; someone starts typing
+      ("CHANNEL_CREATE" (dispatch-event bot :channel d))   ;; channel made known
+      ("GUILD_CREATE" (dispatch-event bot :guild d))       ;; guild made known
+      ("MESSAGE_CREATE" (on-message bot d))                ;; received new message
+      ("MESSAGE_UPDATE" (dispatch-event bot :edit d))      ;; a message is edited
+      ("MESSAGE_DELETE" (dispatch-event bot :delete d))    ;; a message is deleted
+      ("PRESENCE_UPDATE" (dispatch-event bot :presence d)) ;; someone updates their presence
       (:else (dprint :warn "Received invalid event! ~a~%" event)))))
 
 
