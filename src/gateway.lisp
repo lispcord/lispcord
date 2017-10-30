@@ -1,11 +1,11 @@
 (in-package :lispcord.gateway)
 
 (defun gateway-url ()
-  (doit (get-rq "gateway")
-	(jparse it)
-	(aget "url" it)
-	(:! dprint :debug "~&Gateway-url: ~a~%" it)
-	(str-concat it api-suffix)))
+  (doit  (get-rq "gateway")
+	 (jparse it)
+	 (aget "url" it)
+	 (:! dprint :debug "~&Gateway-url: ~a~%" it)
+	 (str-concat it api-suffix)))
 
 (defun send-payload (bot op d)
   (doit (jmake (alist "op" op "d" d))

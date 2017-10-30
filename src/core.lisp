@@ -7,8 +7,8 @@
   (version "0.0.1" :type string)
   (seq 0 :type fixnum)
   (session-id nil :type (or null string))
-  heartbeat-thread
-  conn)
+  conn
+  heartbeat-thread)
 
 
 (defparameter bot-url "N/A")
@@ -31,12 +31,14 @@
         (cons "User-Agent" (user-agent bot))))
 
 
-(defun get-rq (endpoint &optional bot &aux (url (str-concat base-url endpoint)))
-  (dex:get url :headers (if bot (headers bot)))
-  (dprint :debug "~&HTTP-Get-Request to: ~a~%" url))
+(defun get-rq (endpoint &optional bot
+	       &aux (url (str-concat base-url endpoint)))
+  (dprint :debug "~&HTTP-Get-Request to: ~a~%" url)
+  (dex:get url :headers (if bot (headers bot))))
 
 (defun post-rq (endpoint &optional bot content
-			   &aux (url (str-concat base-url endpoint)))
+		&aux (url (str-concat base-url endpoint)))
+  (dprint :debug "~&HTTP-Post-Request to: ~a~%~@[   content: ~a~%"
+	  url content)
   (dex:post url :headers (if bot (headers bot))
-	    :content content)
-  (dprint :debug "~&HTTP-Post-Request to: ~a~%~@[   content: ~a~%" url content))
+	    :content content))
