@@ -57,3 +57,13 @@
 (defun dprint (level message &rest arguments)
   (when (funcall (aget *debug-level* *debug-levels*) level)
     (apply #'format *error-output* message arguments)))
+
+
+
+
+(defun time-passed (since &optional (unit :minute))
+  (let ((now (get-universal-time)))
+    (case unit
+      ((:second :seconds) (<= (1+ since) now))
+      ((:minute :minutes) (<= (+ since 60) now))
+      ((:hour :hours)     (<= (+ since 3600) now)))))

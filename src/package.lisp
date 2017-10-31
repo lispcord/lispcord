@@ -11,8 +11,18 @@
 	   #:set-debug-level
 	   #:dprint))
 
-(defpackage :lispcord.core
+(defpackage :lispcord.constants
   (:use :cl :lispcord.util)
+  (:export #:+os+
+	   #:+lib+
+	   #:+base-url+
+	   #:+api-suffix+
+	   #:+gw-rate-limit+
+	   #:+gw-rate-limit-connection+
+	   #:+gw-rate-limit-game-status+))
+
+(defpackage :lispcord.core
+  (:use :cl :lispcord.util :lispcord.constants)
   (:export #:bot
 	   #:primitive-make-bot
 	   #:bot-token
@@ -37,11 +47,13 @@
   (:use :bordeaux-threads
 	:cl
 	:lispcord.util
-	:lispcord.core)
+	:lispcord.core
+	:lispcord.constants)
   (:export :connect))
 
 (defpackage :lispcord.http
   (:use :cl
+	:lispcord.constants
 	:lispcord.util
 	:lispcord.core)
   (:export :send))
@@ -49,6 +61,7 @@
 (defpackage :lispcord
   (:use :cl
 	:lispcord.util
+	:lispcord.constants
 	:lispcord.gateway
 	:lispcord.http
 	:lispcord.core)

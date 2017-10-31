@@ -12,6 +12,7 @@
 			  :components
 			  ((:file "package")
 			   (:file "util")
+			   (:file "constants")
 			   (:file "core")
 			   (:file "http")
 			   (:file "gateway")
