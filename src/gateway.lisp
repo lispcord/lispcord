@@ -19,7 +19,7 @@
   (let ((handler (gethash event (bot-callbacks bot))))
     (if handler
 	(funcall handler payload)
-      (dprint :warn "~&Unhandled event ~a~%" event))))
+	(dprint :warn "~&Unhandled event ~a~%" event))))
 
 
 
@@ -108,15 +108,15 @@
     (dprint :info "[Event] ~a~%" event)
     (dprint :debug "[Payload] ~a~%" msg)
     (str-case event
-      ("READY" (on-ready bot d))                           ;; on handshake
-      ("RESUME" (dprint :info "Connection resumed!"))      ;; on resume
-      ("TYPING_START" (dispatch-event bot :typing d))      ;; someone starts typing
-      ("CHANNEL_CREATE" (dispatch-event bot :channel d))   ;; channel made known
-      ("GUILD_CREATE" (dispatch-event bot :guild d))       ;; guild made known
-      ("MESSAGE_CREATE" (on-message bot d))                ;; received new message
-      ("MESSAGE_UPDATE" (dispatch-event bot :edit d))      ;; a message is edited
-      ("MESSAGE_DELETE" (dispatch-event bot :delete d))    ;; a message is deleted
-      ("PRESENCE_UPDATE" (dispatch-event bot :presence d)) ;; someone updates their presence
+      ("READY" (on-ready bot d))                           ; on handshake
+      ("RESUME" (dprint :info "Connection resumed!"))      ; on resume
+      ("TYPING_START" (dispatch-event bot :typing d))      ; someone starts typing
+      ("CHANNEL_CREATE" (dispatch-event bot :channel d))   ; channel made known
+      ("GUILD_CREATE" (dispatch-event bot :guild d))       ; guild made known
+      ("MESSAGE_CREATE" (on-message bot d))                ; received new message
+      ("MESSAGE_UPDATE" (dispatch-event bot :edit d))      ; a message is edited
+      ("MESSAGE_DELETE" (dispatch-event bot :delete d))    ; a message is deleted
+      ("PRESENCE_UPDATE" (dispatch-event bot :presence d)) ; someone updates their presence
       (:else (dprint :warn "Received invalid event! ~a~%" event)))))
 
 
