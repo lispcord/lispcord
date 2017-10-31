@@ -8,6 +8,10 @@
   (primitive-make-bot :token token
 		      :version version))
 
+
+;; we can re-export #'connect, but i thought about making a defbot
+;; tbh, which would define various things á la defclass or defstruct
+;; -----
 ;; should this be here? so lispcord.gateway doesnt have to be exposed?
 (defun connect-bot (bot)
   (connect bot))
@@ -33,9 +37,6 @@
 ; :message is the event type
 ; payload is the parameter name for the payload in the body
 ; (with-bot-message (bot :message payload) ...)
-(defmacro with-bot-message (args &body body)
-  (let ((bot (first args))
-	(event (second args))
-	(payload-parameter (third args)))
-    `(setf (gethash ,event (bot-callbacks ,bot))
-	   (lambda (,payload-parameter) ,@body))))
+(defmacro with-bot-message ((bot event var) &body body)
+  `(setf (gethash ,event (bot-callbacks ,bot))
+	 (lambda (,var) ,@body)))
