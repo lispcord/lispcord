@@ -26,19 +26,12 @@
 
 
 ;;; event handler macro
-;; honestly not sure the best way to do this xD
-;; how should the payload parameter fit into this?
-;; also, were we supposed to have separate macros for each event?
-;; or one macro that just takes the event to register?
-;; and why is it saying 'payload is unbound' ? 
-
 ;; handle :message events like this:
 ; bot = bot instance
 ; :message is the event type
 ; payload is the parameter name for the payload in the body
 ; (with-bot-message (bot :message payload) ...)
 (defmacro with-bot-message (vars &body body)
-  (format t "SHOUTING")
   (destructuring-bind (bot event var) vars
     `(setf (gethash ,event (bot-callbacks ,bot))
     	   (lambda (,var) ,@body))))

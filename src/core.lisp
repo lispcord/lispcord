@@ -25,14 +25,25 @@
         (cons "User-Agent" (user-agent bot))))
 
 
-(defun get-rq (endpoint &optional bot
-	       &aux (url (str-concat +base-url+ endpoint)))
-  (dprint :debug "~&HTTP-Get-Request to: ~a~%" url)
-  (dex:get url :headers (if bot (headers bot))))
 
-(defun post-rq (endpoint &optional bot content
-		&aux (url (str-concat +base-url+ endpoint)))
-  (dprint :debug "~&HTTP-Post-Request to: ~a~%~@[   content: ~a~%"
-	  url content)
-  (dex:post url :headers (if bot (headers bot))
-	    :content content))
+
+(defun discord-req (endpoint &key bot content (type :get)
+		    &aux (url (str-concat +base-url+ endpoint)))
+  (dprint :debug "~&HTTP-~a-Request to: ~a~%~@[  content: ~a~%~]"
+	  type url content)
+  (let ((final (rl-buffer endpoint)))
+    (multiple-value-bind (b sta headers u str)
+	(dex:request url
+		     :method type
+		     :headers (if bot (headers bot))
+		     :content content)
+      (rl-parse final headers)
+      (values b sta headers u str))))
+
+(defun get-rq (endpoint &optional bot)
+  (discord-req endpoint :bot bot :type :get))
+
+(defun post-rq (endpoint &optional bot content)
+  (discord-req endpoint :bot bot :content content :type :post))
+
+

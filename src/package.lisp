@@ -23,10 +23,12 @@
 	   #:+gw-rate-limit-game-status+))
 
 (defpackage :lispcord.ratelimits
-  (:use :cl :lispcord.util :lispcord.constants))
+  (:use :cl :lispcord.util :lispcord.constants)
+  (:export #:rl-parse
+	   #:rl-buffer))
 
 (defpackage :lispcord.core
-  (:use :cl :lispcord.util :lispcord.constants)
+  (:use :cl :lispcord.util :lispcord.ratelimits :lispcord.constants)
   (:export #:bot
 	   #:primitive-make-bot
 	   #:bot-token

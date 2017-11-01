@@ -38,7 +38,7 @@
 
 ;;; Set up a logging framework so bot authors can
 ;;;  gather various levels of information
-(defparameter *debug-level* :info
+(defparameter *debug-level* :debug
   "The debug level can be one of: :error, :warn, :info, :debug")
 
 (defvar *debug-levels*
@@ -55,7 +55,7 @@
 
 ;;unfortunately "log" is package locked
 (defun dprint (level message &rest arguments)
-  (when (funcall (aget *debug-level* *debug-levels*) level)
+  (when (funcall (cdr (assoc *debug-level* *debug-levels*)) level)
     (apply #'format *error-output* message arguments)))
 
 
