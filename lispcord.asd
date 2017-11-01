@@ -12,6 +12,7 @@
 			  :components
 			  ((:file "package")
 			   (:file "util")
+			   (:file "ratelimits")
 			   (:file "constants")
 			   (:file "core")
 			   (:file "http")

@@ -67,3 +67,16 @@
       ((:second :seconds) (<= (1+ since) now))
       ((:minute :minutes) (<= (+ since 60) now))
       ((:hour :hours)     (<= (+ since 3600) now)))))
+
+
+
+
+(defun split-string (string &optional (delimiter #\space))
+  (declare (type string string)
+	   (type character delimiter)
+	   (optimize speed))
+  (let ((pos (position delimiter string)))
+    (if pos
+	(cons (subseq string 0 pos)
+	      (split-string (subseq string (1+ pos)) delimiter))
+	(list string))))

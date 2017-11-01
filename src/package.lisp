@@ -7,6 +7,7 @@
 	   #:aget
 	   #:doit
 	   #:str-case
+	   #:split-string
 
 	   #:set-debug-level
 	   #:dprint))
@@ -20,6 +21,9 @@
 	   #:+gw-rate-limit+
 	   #:+gw-rate-limit-connection+
 	   #:+gw-rate-limit-game-status+))
+
+(defpackage :lispcord.ratelimits
+  (:use :cl :lispcord.util :lispcord.constants))
 
 (defpackage :lispcord.core
   (:use :cl :lispcord.util :lispcord.constants)
