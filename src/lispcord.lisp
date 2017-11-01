@@ -11,12 +11,6 @@
 
 ;; we can re-export #'connect, but i thought about making a defbot
 ;; tbh, which would define various things á la defclass or defstruct
-;; -----
-;; should this be here? so lispcord.gateway doesnt have to be exposed?
-(defun connect-bot (bot)
-  (connect bot))
-
-
 
 ;;; useful functions
 
@@ -31,7 +25,6 @@
 ; :message is the event type
 ; payload is the parameter name for the payload in the body
 ; (with-bot-message (bot :message payload) ...)
-(defmacro with-bot-message (vars &body body)
-  (destructuring-bind (bot event var) vars
-    `(setf (gethash ,event (bot-callbacks ,bot))
-    	   (lambda (,var) ,@body))))
+(defmacro with-handler ((var bot event) &body body)
+  `(setf (gethash ,event (bot-callbacks ,bot))
+	 (lambda (,var) ,@body)))
