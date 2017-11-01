@@ -6,14 +6,9 @@
 (defun example (token)
   (let ((bot (make-bot token)))
     (connect-bot bot)
-        
-    ;; (setf (gethash :message (bot-callbacks bot))
-    ;; 	  (lambda (payload) (example-print "hi")))))
-
-; the above manual expansion works
-; why does this say "payload is unbound" ?
     (with-bot-message (bot :message payload)
-      (example-print "got message"))))
+      (example-print (format nil "got message! ~a" payload)))
+    bot))
 
 (defun example-print (msg)
   (format t "[Example Bot] ~a~%" msg))

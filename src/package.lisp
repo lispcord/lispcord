@@ -68,7 +68,7 @@
   (:export :make-bot
 	   :connect-bot
 	   :reply
-	   :with-bot-message))
+	   #:with-bot-message))
 
 (defpackage :lispcord.example
   ;; core, for the botstruct, can we hide away the bot struct from the user?

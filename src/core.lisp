@@ -6,37 +6,10 @@
   (version "0.0.1" :type string)
   (seq 0 :type fixnum)
   (session-id nil :type (or null string))
-  (ratelimit (cons +gw-rate-limit+ (get-universal-time))
-	     :type (cons fixnum integer))
-  (rl-game (cons +gw-rate-limit-game-status+ (get-universal-time))
-	   :type (cons fixnum integer))
-  (rl-conn (cons +gw-rate-limit-connection+ (get-universal-time))
-	   :type (cons fixnum integer))
   conn
   (callbacks (make-hash-table) :type hash-table)
   heartbeat-thread)
 
-(defvar *bucket* nil)
-
-(defmacro event-rate-limit (bot body)
-  `(let ((rl (bot-ratelimit ,bot)))
-     (cond ((> 1 (car rl))
-	    ,@body)
-
-	   ((time-passed (cdr rl) :minute)
-	    (setf (car (bot-ratelimit ,bot)) (1- +gw-rate-limit+)
-		  (cdr (bot-ratelimit ,bot)) (get-universal-time))
-	    ,@body)
-
-	   (T (dprint :warn "We are being ratelimited!~%")
-	      (setf *bucket* (append *bucket* (list (lambda () ,@body))))))))
-
-(defmacro with-rate-limit ((bot type) &body body)
-  (case type
-    (:http body) ; implement the http-ratelimits here
-
-    (:event `(event-rate-limit ,bot ,body))
-    ))
 
 
 (defparameter bot-url "N/A")

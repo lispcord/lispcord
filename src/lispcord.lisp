@@ -37,6 +37,7 @@
 ; :message is the event type
 ; payload is the parameter name for the payload in the body
 ; (with-bot-message (bot :message payload) ...)
-(defmacro with-bot-message ((bot event var) &body body)
-  `(setf (gethash ,event (bot-callbacks ,bot))
-	 (lambda (,var) ,@body)))
+(defmacro with-bot-message (vars &body body)
+  (destructuring-bind (bot event var) vars
+    `(setf (gethash ,event (bot-callbacks ,bot))
+    	   (lambda (,var) ,@body))))
