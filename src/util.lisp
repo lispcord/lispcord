@@ -4,7 +4,7 @@
   (apply #'concatenate 'string strings))
 
 (defun jparse (payload)
-  (jonathan:parse payload :as :alist))
+  (jonathan:parse payload :as :hash-table))
 
 (defun jmake (alist)
   (jonathan:to-json alist :from :alist))
@@ -15,8 +15,8 @@
 	    (apply #'alist (car pairs) (cadr pairs) (cddr pairs)))
       (list (cons car cdr))))
 
-(defun aget (key list)
-  (cdr (assoc key list :test #'equal)))
+(defun aget (key table)
+  (gethash key table))
 
 (defmacro doit (&rest forms)
   (let ((it (intern (symbol-name 'it))))
@@ -38,7 +38,7 @@
 
 ;;; Set up a logging framework so bot authors can
 ;;;  gather various levels of information
-(defparameter *debug-level* :info
+(defparameter *debug-level* :debug
   "The debug level can be one of: :error, :warn, :info, :debug")
 
 (defvar *debug-levels*
@@ -55,5 +55,28 @@
 
 ;;unfortunately "log" is package locked
 (defun dprint (level message &rest arguments)
-  (when (funcall (aget *debug-level* *debug-levels*) level)
+  (when (funcall (cdr (assoc *debug-level* *debug-levels*)) level)
     (apply #'format *error-output* message arguments)))
+
+
+
+
+(defun time-passed (since &optional (unit :minute))
+  (let ((now (get-universal-time)))
+    (case unit
+      ((:second :seconds) (<= (1+ since) now))
+      ((:minute :minutes) (<= (+ since 60) now))
+      ((:hour :hours)     (<= (+ since 3600) now)))))
+
+
+
+
+(defun split-string (string &optional (delimiter #\space))
+  (declare (type string string)
+	   (type character delimiter)
+	   (optimize speed))
+  (let ((pos (position delimiter string)))
+    (if pos
+	(cons (subseq string 0 pos)
+	      (split-string (subseq string (1+ pos)) delimiter))
+	(list string))))

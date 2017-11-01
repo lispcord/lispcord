@@ -5,7 +5,7 @@
 	 (jparse it)
 	 (aget "url" it)
 	 (:! dprint :debug "~&Gateway-url: ~a~%" it)
-	 (str-concat it api-suffix)))
+	 (str-concat it +api-suffix+)))
 
 (defun send-payload (bot op d)
   (doit (jmake (alist "op" op "d" d))
@@ -29,9 +29,9 @@
   (dprint :info "~&Send identify for ~a~%" (bot-token bot))
   (send-payload bot 2
 		(alist "token" (bot-token bot)
-		       "properties" (alist "$os" (bot-os bot)
-					   "$browser" (bot-lib bot)
-					   "$device" (bot-lib bot))
+		       "properties" (alist "$os" +os+
+					   "$browser" +lib+
+					   "$device" +lib+)
 		       "compress" :false
 		       "large_threshold" 250
 		       "shard" '(0 1)

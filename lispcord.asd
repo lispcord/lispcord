@@ -12,8 +12,10 @@
 			  :components
 			  ((:file "package")
 			   (:file "util")
+			   (:file "ratelimits")
+			   (:file "constants")
 			   (:file "core")
 			   (:file "http")
 			   (:file "gateway")
-			   (:file "example")
-			   (:file "lispcord")))))
+			   (:file "lispcord")
+			   (:file "example")))))
