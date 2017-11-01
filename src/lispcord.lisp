@@ -38,6 +38,7 @@
 ; payload is the parameter name for the payload in the body
 ; (with-bot-message (bot :message payload) ...)
 (defmacro with-bot-message (vars &body body)
+  (format t "SHOUTING")
   (destructuring-bind (bot event var) vars
     `(setf (gethash ,event (bot-callbacks ,bot))
     	   (lambda (,var) ,@body))))
