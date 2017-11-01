@@ -4,7 +4,7 @@
   (apply #'concatenate 'string strings))
 
 (defun jparse (payload)
-  (jonathan:parse payload :as :alist))
+  (jonathan:parse payload :as :hash-table))
 
 (defun jmake (alist)
   (jonathan:to-json alist :from :alist))
@@ -15,8 +15,8 @@
 	    (apply #'alist (car pairs) (cadr pairs) (cddr pairs)))
       (list (cons car cdr))))
 
-(defun aget (key list)
-  (cdr (assoc key list :test #'equal)))
+(defun aget (key table)
+  (gethash key table))
 
 (defmacro doit (&rest forms)
   (let ((it (intern (symbol-name 'it))))
