@@ -7,6 +7,7 @@
   (seq 0 :type fixnum)
   (session-id nil :type (or null string))
   conn
+  (done nil :type (or null t))
   (callbacks (make-hash-table) :type hash-table)
   heartbeat-thread)
 
