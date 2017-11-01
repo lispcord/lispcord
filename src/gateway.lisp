@@ -83,7 +83,7 @@
 (defun make-heartbeat-thread (bot seconds)
   (dprint :info "~&Initiating heartbeat every ~d seconds~%" seconds)
   (make-thread (lambda ()
-		 (loop :until *done*
+		 (loop :until *done* :do
 		   (send-heartbeat bot)
 		   (sleep seconds)))))
 
