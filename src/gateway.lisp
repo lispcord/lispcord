@@ -1,7 +1,5 @@
 (in-package :lispcord.gateway)
 
-(defvar *done* nil)
-
 (defun gateway-url ()
   (doit  (get-rq "gateway")
 	 (jparse it)
@@ -83,7 +81,7 @@
 (defun make-heartbeat-thread (bot seconds)
   (dprint :info "~&Initiating heartbeat every ~d seconds~%" seconds)
   (make-thread (lambda ()
-		 (loop :until *done* :do
+		 (loop :until (bot-done bot) :do
 		   (send-heartbeat bot)
 		   (sleep seconds)))))
 
@@ -174,5 +172,5 @@
 
 (defun disconnect (bot)
   (wsd:close-connection (bot-conn bot))
-  (setf *done* t)
+  (setf (bot-done bot) t)
   (setf (bot-heartbeat-thread bot) nil))
