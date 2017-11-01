@@ -1,5 +1,7 @@
 (in-package :lispcord.gateway)
 
+(defvar *done* nil)
+
 (defun gateway-url ()
   (doit  (get-rq "gateway")
 	 (jparse it)
@@ -81,7 +83,7 @@
 (defun make-heartbeat-thread (bot seconds)
   (dprint :info "~&Initiating heartbeat every ~d seconds~%" seconds)
   (make-thread (lambda ()
-		 (loop
+		 (loop :until *done*
 		   (send-heartbeat bot)
 		   (sleep seconds)))))
 
@@ -170,3 +172,7 @@
 	  (lambda (&key code reason)
 	    (dprint :info "Websocket closed with code: ~a~%Reason: ~a~%" code reason))))
 
+(defun disconnect (bot)
+  (wsd:close-connection (bot-conn bot))
+  (setf *done* t)
+  (setf (bot-heartbeat-thread bot) nil))
