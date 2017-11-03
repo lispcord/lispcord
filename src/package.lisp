@@ -61,14 +61,14 @@
 	:lispcord.util
 	:lispcord.core
 	:lispcord.constants)
-  (:export :connect))
+  (:export #:connect))
 
 (defpackage :lispcord.http
   (:use :cl
 	:lispcord.constants
 	:lispcord.util
 	:lispcord.core)
-  (:export :send))
+  (:export #:send))
 
 (defpackage :lispcord
   (:use :cl
@@ -77,12 +77,12 @@
 	:lispcord.gateway
 	:lispcord.http
 	:lispcord.core)
-  (:export :make-bot
-	   :connect-bot
-	   :reply
+  (:export #:make-bot
+	   #:connect
+	   #:reply
 	   #:with-bot-message))
 
 (defpackage :lispcord.example
   ;; core, for the botstruct, can we hide away the bot struct from the user?
   (:use :cl :lispcord :lispcord.core)
-  (:export :example))
+  (:export #:start))
