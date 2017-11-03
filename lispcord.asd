@@ -15,6 +15,7 @@
 			   (:file "ratelimits")
 			   (:file "constants")
 			   (:file "core")
+			   (:file "cache")
 			   (:file "http")
 			   (:file "gateway")
 			   (:file "lispcord")

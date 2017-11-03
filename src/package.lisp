@@ -49,6 +49,9 @@
 	   #:get-rq
 	   #:post-rq))
 
+(defpackage :lispcord.cache
+  (:use :cl :lispcord.util))
+
 (defpackage :lispcord.gateway
   (:use :bordeaux-threads
 	:cl
