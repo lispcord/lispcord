@@ -50,7 +50,10 @@
 	   #:post-rq))
 
 (defpackage :lispcord.cache
-  (:use :cl :lispcord.util))
+  (:use :cl :lispcord.util)
+  (:export #:cache-guild
+	   #:cache-channel
+	   #:cache-user))
 
 (defpackage :lispcord.gateway
   (:use :bordeaux-threads
