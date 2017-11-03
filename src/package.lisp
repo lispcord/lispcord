@@ -38,6 +38,7 @@
 	   #:bot-seq
 	   #:bot-session-id
 	   #:bot-conn
+	   #:bot-done
 	   #:bot-heartbeat-thread
 	   #:bot-callbacks
 	   
@@ -60,6 +61,7 @@
 	:cl
 	:lispcord.util
 	:lispcord.core
+	:lispcord.cache
 	:lispcord.constants)
   (:export #:connect))
 
@@ -79,8 +81,9 @@
 	:lispcord.core)
   (:export #:make-bot
 	   #:connect
+	   #:disconnect
 	   #:reply
-	   #:with-bot-message))
+	   #:with-handler))
 
 (defpackage :lispcord.example
   ;; core, for the botstruct, can we hide away the bot struct from the user?

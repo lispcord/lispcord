@@ -24,7 +24,7 @@
 ; bot = bot instance
 ; :message is the event type
 ; payload is the parameter name for the payload in the body
-; (with-bot-message (bot :message payload) ...)
+; (with-handler (payload bot :message) ...)
 (defmacro with-handler ((var bot event) &body body)
   `(setf (gethash ,event (bot-callbacks ,bot))
 	 (lambda (,var) ,@body)))

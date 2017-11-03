@@ -40,3 +40,13 @@ it be shared across instances?")
 (defun cache-channel (channel)
   (cache-obj :channel channel))
 
+(defun print-hash (hash)
+  (maphash (lambda (key val)
+	     (format t "~&  ~30@a <- ~a~%"
+		     key
+		     (cond ((hash-table-p val) "<hashtable>")
+			   ((stringp val) val)
+			   ((vectorp val) "<vector>")
+			   ((listp val) "<list>")
+			   (T val))))
+	   hash))
