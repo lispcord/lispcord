@@ -91,7 +91,6 @@
 
 
 (defun on-message (bot msg)
-  (declare (ignorable bot))
   (dprint :info "[Message] ~a: ~a~%"
 	  (aget "username" (aget "author" msg))
 	  (aget "content" msg))
@@ -108,16 +107,112 @@
     (dprint :info "[Event] ~a~%" event)
     (dprint :debug "[Payload] ~a~%" msg)
     (str-case event
-      ("READY" (on-ready bot d))                           ; on handshake
-      ("RESUME" (dprint :info "Connection resumed!"))      ; on resume
-      ("TYPING_START" (dispatch-event bot :typing d))      ; someone starts typing
-      ("CHANNEL_CREATE" (dispatch-event bot :channel d))   ; channel made known
-      ("GUILD_CREATE" (dispatch-event bot :guild d))       ; guild made known
-      ("MESSAGE_CREATE" (on-message bot d))                ; received new message
-      ("MESSAGE_UPDATE" (dispatch-event bot :edit d))      ; a message is edited
-      ("MESSAGE_DELETE" (dispatch-event bot :delete d))    ; a message is deleted
-      ("PRESENCE_UPDATE" (dispatch-event bot :presence d)) ; someone updates their presence
-      (:else (dprint :warn "Received invalid event! ~a~%" event)))))
+      ;; on handshake
+      ("READY" (on-ready bot d))                           
+
+      ;; on resume
+      ("RESUME" (dispatch-event bot :resume))
+
+      ;; someone starts typing
+      ("TYPING_START" (dispatch-event bot :typing d))
+
+      ("USER_UPDATE"
+       (cache-user d)
+       (dispatch-event bot :user-update d))
+
+      ;; channel made known
+      ("CHANNEL_CREATE"
+       ;; maybe use setc here?
+       (cache-channel d)
+       (dispatch-event bot :channel-create d))
+
+      ("CHANNEL_UPDATE"
+       (cache-channel d)
+       (dispatch-event bot :channel-update d))
+
+      ("CHANNEL_DELETE"
+       ;;should we decache the channel here?
+       (dispatch-event bot :channel-delete d))
+
+      ("CHANNEL_PINS_UPDATE"
+       (dispatch-event bot :channel-pin d))
+
+      ;; guild made known
+      ("GUILD_CREATE"
+       (cache-guild d)
+       (dispatch-event bot :guild-create d))
+
+      ("GUILD_UPDATE"
+       (cache-guild d)
+       (dispatch-event bot :guild-update d))
+
+      ("GUILD_DELETE"
+       (dispatch-event bot :guild-delete d))
+
+      ("GUILD_BAN_ADD"
+       (dispatch-event bot :guild-ban d))
+
+      ("GUILD_BAN_REMOVE"
+       (dispatch-event bot :guild-ban-remove d))
+
+      ("GUILD_EMOJIS_UPDATE"
+       (dispatch-event bot :emoji-update d))
+
+      ("GUILD_INTEGRATIONS_UPDATE"
+       (dispatch-event bot :integration-update d))
+
+      ("GUILD_MEMBER_ADD"
+       ;;we need to do some special parsing here!!
+       (dispatch-event bot :member-add d))
+
+      ("GUILD_MEMBER_REMOVE"
+       (dispatch-event bot :member-remove d))
+
+      ("GUILD_MEMBER_UPDATE"
+       (dispatch-event bot :member-update d))
+
+      ("GUILD_MEMBERS_CHUNK"
+       ;;this is for us and doesn't need to be exposed to
+       ;; the users. See above for special parsing etc.
+       nil)
+
+      ("GUILD_ROLE_CREATE"
+       ;;Same as with member!
+       (dispatch-event bot :role-create d))
+
+      ("GUILD_ROLE_DELETE"
+       (dispatch-event bot :role-delete d))
+
+      ("GUILD_ROLE_UPDATE"
+       (dispatch-event bot :role-update d))
+
+      ;; received new message
+      ("MESSAGE_CREATE" (on-message bot d))
+
+      ;; a message is edited
+      ("MESSAGE_UPDATE" (dispatch-event bot :message-update d))
+
+      ;; a message is deleted
+      ("MESSAGE_DELETE" (dispatch-event bot :message-delete d))
+
+      ("MESSAGE_DELETE_BULK"
+       ;;does the user need this? idk, possibly.
+       (dispatch-event bot :message-delete-bulk d))
+
+      ("MESSAGE_REACTION_ADD"
+       (dispatch-event bot :reaction-add d))
+
+      ("MESSAGE_REACTION_REMOVE"
+       (dispatch-event bot :reaction-remove d))
+
+      ("MESSAGE_REACTION_REMOVE_ALL"
+       (dispatch-event bot :reaction-purge d))
+      
+      ;; someone updates their presence
+      ("PRESENCE_UPDATE" (dispatch-event bot :presence d))
+
+      ;; unrecognised event!
+      (:else (dprint :warn "unrecognised event! ~a~%" event)))))
 
 
 

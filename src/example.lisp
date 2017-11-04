@@ -8,7 +8,7 @@
 (defun start (token)
   (setf *client* (make-bot token))
   (connect *client*)
-  (with-handler (msg bot :message)
+  (with-handler (msg *client* :message)
     (example-print (format nil "got message! ~a" msg))))
 
 (defun example-print (msg)
