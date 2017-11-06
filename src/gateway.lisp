@@ -111,7 +111,7 @@
       ("READY" (on-ready bot d))                           
 
       ;; on resume
-      ("RESUME" (dispatch-event bot :resume))
+      ("RESUME" (dispatch-event bot :resume d))
 
       ;; someone starts typing
       ("TYPING_START" (dispatch-event bot :typing d))

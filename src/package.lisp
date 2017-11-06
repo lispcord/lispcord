@@ -8,6 +8,8 @@
 	   #:doit
 	   #:str-case
 	   #:split-string
+	   #:curry
+	   #:sethash
 
 	   #:set-debug-level
 	   #:dprint))
@@ -69,6 +71,7 @@
   (:use :cl
 	:lispcord.constants
 	:lispcord.util
+	:lispcord.cache
 	:lispcord.core)
   (:export #:send))
 

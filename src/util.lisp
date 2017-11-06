@@ -69,7 +69,9 @@
       ((:hour :hours)     (<= (+ since 3600) now)))))
 
 
-
+(defmacro curry ((f &rest args))
+  (let ((curry (gensym)))
+    `(lambda (,curry) (,f ,@args ,curry))))
 
 (defun split-string (string &optional (delimiter #\space))
   (declare (type string string)
@@ -80,3 +82,7 @@
 	(cons (subseq string 0 pos)
 	      (split-string (subseq string (1+ pos)) delimiter))
 	(list string))))
+
+
+(defun sethash (key hash val)
+  (setf (gethash key hash) val))
