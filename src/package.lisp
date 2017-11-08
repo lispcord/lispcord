@@ -10,6 +10,7 @@
 	   #:split-string
 	   #:curry
 	   #:sethash
+	   #:nonce
 
 	   #:set-debug-level
 	   #:dprint))
@@ -49,6 +50,7 @@
 	   #:api-suffix
 	   #:user-agent ;check if this can be private
 	   #:headers    ;this too
+	   #:discord-req
 	   #:get-rq
 	   #:post-rq))
 

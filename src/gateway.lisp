@@ -102,7 +102,9 @@
 
 ;; opcode 0
 (defun on-dispatch (bot msg)
-  (let ((event (aget "t" msg)) (seq (aget "s" msg)) (d (aget "d" msg)))
+  (let ((event (aget "t" msg))
+	(seq (aget "s" msg))
+	(d (aget "d" msg)))
     (setf (bot-seq bot) seq)
     (dprint :info "[Event] ~a~%" event)
     (dprint :debug "[Payload] ~a~%" msg)
@@ -114,11 +116,10 @@
       ("RESUME" (dispatch-event bot :resume d))
 
       ;; someone starts typing
-      ("TYPING_START" (dispatch-event bot :typing d))
+      ("TYPING_START" (dispatch-event bot :typing-start d))
 
-      ("USER_UPDATE"
-       (cache-user d)
-       (dispatch-event bot :user-update d))
+      ("USER_UPDATE" (cache-user d)
+		     (dispatch-event bot :user-update d))
 
       ;; channel made known
       ("CHANNEL_CREATE"
@@ -268,4 +269,5 @@
 (defun disconnect (bot)
   (wsd:close-connection (bot-conn bot))
   (setf (bot-done bot) t)
+  (setf (bot-seq bot) nil)
   (setf (bot-heartbeat-thread bot) nil))

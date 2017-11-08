@@ -86,3 +86,9 @@
 
 (defun sethash (key hash val)
   (setf (gethash key hash) val))
+
+
+(let ((cnt 0))
+  (defun nonce ()
+    (format nil "~d" (+ (* (get-universal-time) 1000000)
+			(incf cnt)))))
