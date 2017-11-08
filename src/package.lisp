@@ -1,9 +1,9 @@
 (defpackage :lispcord.util
   (:use :cl)
-  (:export #:str-concat)
-  (:export #:jparse)
-  (:export #:jmake)
-  (:export #:alist
+  (:export #:str-concat
+	   #:jparse
+	   #:jmake
+	   #:alist
 	   #:aget
 	   #:doit
 	   #:str-case
@@ -11,9 +11,22 @@
 	   #:curry
 	   #:sethash
 	   #:nonce
+	   #:mapf
 
 	   #:set-debug-level
 	   #:dprint))
+
+(defpackage :lispcord.pipes
+  (:use :cl :lispcord.util)
+  (:export #:make-pipe
+	   #:pipep
+	   #:pipe-along
+	   #:watch
+	   #:watch-do
+	   #:drop
+	   #:pmap
+	   #:pfilter
+	   #:pjoin))
 
 (defpackage :lispcord.constants
   (:use :cl :lispcord.util)
@@ -48,14 +61,12 @@
 	   #:bot-url
 	   #:base-url
 	   #:api-suffix
-	   #:user-agent ;check if this can be private
-	   #:headers    ;this too
 	   #:discord-req
 	   #:get-rq
 	   #:post-rq))
 
 (defpackage :lispcord.cache
-  (:use :cl :lispcord.util)
+  (:use :cl :lispcord.util :lispcord.pipes)
   (:export #:cache-guild
 	   #:cache-channel
 	   #:cache-user))
@@ -64,6 +75,7 @@
   (:use :bordeaux-threads
 	:cl
 	:lispcord.util
+	:lispcord.pipes
 	:lispcord.core
 	:lispcord.cache
 	:lispcord.constants)

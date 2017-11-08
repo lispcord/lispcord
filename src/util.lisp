@@ -92,3 +92,6 @@
   (defun nonce ()
     (format nil "~d" (+ (* (get-universal-time) 1000000)
 			(incf cnt)))))
+
+(defmacro mapf (list args &body body)
+  `(mapcar (lambda ,args ,@body) ,list))

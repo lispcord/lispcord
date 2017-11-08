@@ -12,6 +12,7 @@
 			  :components
 			  ((:file "package")
 			   (:file "util")
+			   (:file "pipes")
 			   (:file "ratelimits")
 			   (:file "constants")
 			   (:file "core")
