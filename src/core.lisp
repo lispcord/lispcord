@@ -3,6 +3,7 @@
 
 (defstruct (bot (:constructor primitive-make-bot))
   (token "" :type string :read-only t)
+  (user nil :type (or null string))
   (version "0.0.1" :type string)
   (seq 0 :type fixnum)
   (session-id nil :type (or null string))

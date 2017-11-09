@@ -9,12 +9,6 @@
 (defun jmake (alist)
   (jonathan:to-json alist :from :alist))
 
-(defun alist (car cdr &rest pairs)
-  (if pairs
-      (cons (cons car cdr)
-	    (apply #'alist (car pairs) (cadr pairs) (cddr pairs)))
-      (list (cons car cdr))))
-
 (defun aget (key table)
   (gethash key table))
 
@@ -95,3 +89,17 @@
 
 (defmacro mapf (list args &body body)
   `(mapcar (lambda ,args ,@body) ,list))
+
+
+(defmacro with-table ((table &rest pairs) &body body)
+  (labels ((partition (list)
+	     (unless (evenp (length list)) (error "Uneven pair list!"))
+	     (values (loop :for i :in list :counting i :into c
+			:if (oddp c) :collect i)
+		     (loop :for i :in list :counting i :into c
+			:if (evenp c) :collect i)))
+	   (key-vals (list)
+	     (loop :for i :in list :collect `(gethash ,i ,table))))
+    (multiple-value-bind (vars keys) (partition pairs)
+      `(multiple-value-bind ,vars (values ,@(key-vals keys))
+	 ,@body))))

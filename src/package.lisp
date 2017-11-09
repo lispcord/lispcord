@@ -12,6 +12,7 @@
 	   #:sethash
 	   #:nonce
 	   #:mapf
+	   #:with-table
 
 	   #:set-debug-level
 	   #:dprint))
