@@ -7,10 +7,25 @@
 	      (* counter (get-universal-time))))))
 
 
+(defstruct (cargo (:constructor primitive-make-cargo))
+  (tag :nil :type keyword)
+  (origin "" :type string)
+  (body nil :type t))
+
+(defun make-cargo (tag body &optional origin)
+  (primitive-make-cargo :tag tag :body body :origin origin))
+
+(defun open-cargo (cargo)
+  (let ((tag (cargo-tag cargo))
+	(body (cargo-body cargo))
+	(origin (cargo-origin cargo)))
+    (values tag body origin)))
+
+
 (defstruct handler
   (id (generate-id) :type fixnum)
-  (fun (lambda (type payload) (declare (ignore type payload)))
-       :type (function (keyword t))))
+  (fun (lambda (type cargo) (declare (ignore type cargo)))
+       :type (function (cargo))))
 
 
 (defclass pipe ()
@@ -27,9 +42,9 @@
 (defun pipep (obj)
   (typep obj 'pipe))
 
-(defun pipe-along (pipe key payload)
+(defun pipe-along (pipe cargo)
   "Pipes the event along to the watchers of that pipe"
-  (map nil (lambda (h) (funcall (handler-fun h) key payload))
+  (map nil (lambda (h) (funcall (handler-fun h) cargo))
        (handlers pipe)))
 
 (defun watch (pipe fun)
@@ -51,16 +66,16 @@
 (defun pmap (pipe fun)
   "For a pipe p with events e and a function f, returns a new pipe q whose elements are (f e)"
   (let* ((q (make-instance (class-of pipe)))
-	 (h (watch-do pipe (key val)
-	      (pipe-along q key (funcall fun val)))))
+	 (h (watch-do pipe (val)
+	      (pipe-along q (funcall fun val)))))
     (values q h)))
 
 
 (defun pfilter (pipe pred)
   "For a pipe p with events k;e, returns a new pipe q whose elements satisfy predicate(k, e)"
   (let* ((q (make-instance (class-of pipe)))
-	 (h (watch-do pipe (key val)
-	      (if (funcall pred key val) (pipe-along q key val)))))
+	 (h (watch-do pipe (val)
+	      (if (funcall pred val) (pipe-along q val)))))
     (values q h)))
 
 
@@ -68,6 +83,15 @@
   "For any amount of pipes, returns a new pipe which is the union of the base pipes"
   (let* ((q (make-instance (class-of (car pipes))))
 	 (hs (mapf pipes (p)
-		   (watch-do p (key val)
-		     (pipe-along q key val)))))
+		   (watch-do p (val)
+		     (pipe-along q val)))))
     (values q hs)))
+
+
+
+(defmacro with-cargo ((cargo tag body &optional origin) &body progn)
+  `(multiple-value-bind (,tag ,body ,origin) (open-cargo ,cargo)
+     ,@progn))
+
+(defun cargo-send (pipe tag body &optional origin)
+  (pipe-along pipe (make-cargo tag body origin)))

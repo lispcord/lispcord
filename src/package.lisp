@@ -26,7 +26,12 @@
 	   #:drop
 	   #:pmap
 	   #:pfilter
-	   #:pjoin))
+	   #:pjoin
+
+	   #:make-cargo
+	   #:open-cargo
+	   #:with-cargo
+	   #:cargo-send))
 
 (defpackage :lispcord.constants
   (:use :cl :lispcord.util)
