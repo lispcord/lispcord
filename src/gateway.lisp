@@ -10,40 +10,9 @@
 
 
 (defun send-payload (bot &key op data)
-  (if (or ()))
-  (doit (jmake (alist "op" op "d" data))
+  (doit (jmake `(("op" . ,op) ("d" . ,data)))
 	(:! dprint :debug "~&Send payload: ~a~%" it)
 	(wsd:send (bot-conn bot) it)))
-
-
-
-;; dispatch events to user handler
-(defun dispatch-event (bot event payload)
-  (let ((handler (gethash event (bot-callbacks bot))))
-    (if handler
-	(funcall handler payload)
-	(dprint :warn "~&Unhandled event ~a~%" event))))
-
-
-;;; Set up the various event pipes
-;;; By (my) convention, they should be named ">'name'>"
-
-(defvar >status> (make-pipe)
-  "The generic event pipe")
-
-(defvar >user> (make-pipe)
-  "Dispatches user specific events")
-
-(defvar >channel> (make-pipe)
-  "Dispatches channel specific events")
-
-(defvar >guild> (make-pipe)
-  "Dispatches guild specific events")
-
-(defvar >message> (make-pipe)
-  "Dispatches message specific events")
-
-
 
 
 
@@ -51,7 +20,7 @@
   `(("game" . ,(if game-name
 		   `(("name" . ,game-name) ("type" . 0))
 		   :null))
-    ("status" . status)
+    ("status" . ,status)
     ("since" . :null)
     ("afk" . :false)))
 
@@ -91,13 +60,17 @@
 
 
 (defun send-status-update (bot &optional game-name (status "online"))
-  (send-payload bot 3 (presence game-name status)))
+  (send-payload bot
+		:op 3
+		:data (presence game-name status)))
 
 
 
 
 (defun send-heartbeat (bot)
-  (send-payload bot 1 (bot-seq bot)))
+  (send-payload bot
+		:op 1
+		:data (bot-seq bot)))
 
 (defun make-heartbeat-thread (bot seconds)
   (dprint :info "~&Initiating heartbeat every ~d seconds~%" seconds)
@@ -283,12 +256,13 @@
   
   (wsd:on :close (bot-conn bot)
 	  (lambda (&key code reason)
+	    (cargo-send >status> :close (list code reason) (bot-user bot))
 	    (dprint :warn "Websocket closed with code: ~a~%Reason: ~a~%" code reason))))
 
 (defun disconnect (bot)
   (wsd:close-connection (bot-conn bot))
   (setf (bot-done bot) t)
-  (setf (bot-seq bot) nil)
+  (setf (bot-seq bot) 0)
   (setf (bot-session-id bot) nil)
-  (setf (bot-user user) nil)
+  (setf (bot-user bot) nil)
   (setf (bot-heartbeat-thread bot) nil))

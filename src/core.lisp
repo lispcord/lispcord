@@ -14,6 +14,28 @@
 
 
 
+;;; Set up the various event pipes
+;;; By (my) convention, they should be named ">'name'>"
+
+(defvar >status> (make-pipe)
+  "The generic event pipe")
+
+(defvar >user> (make-pipe)
+  "Dispatches user specific events")
+
+(defvar >channel> (make-pipe)
+  "Dispatches channel specific events")
+
+(defvar >guild> (make-pipe)
+  "Dispatches guild specific events")
+
+(defvar >message> (make-pipe)
+  "Dispatches message specific events")
+
+
+
+
+
 (defparameter bot-url "N/A")
 (defun bot-url (url)
   (setf bot-url url))

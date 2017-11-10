@@ -90,8 +90,29 @@
 
 
 (defmacro with-cargo ((cargo tag body &optional origin) &body progn)
-  `(multiple-value-bind (,tag ,body ,origin) (open-cargo ,cargo)
+  `(multiple-value-bind ,(if origin
+			     (list tag body origin)
+			     (list tag body))
+       (open-cargo ,cargo)
      ,@progn))
+
+(defun unwrap (cargo)
+  (with-cargo (cargo _ body)
+    (declare (ignore _))
+    body))
 
 (defun cargo-send (pipe tag body &optional origin)
   (pipe-along pipe (make-cargo tag body origin)))
+
+
+(defun taggedp (tag cargo)
+  (with-cargo (cargo ctag body)
+    (declare (ignore body))
+    (when (eq tag ctag) t)))
+
+(defun from-origin-p (origin cargo)
+  (with-cargo (cargo _ __ corigin)
+    (declare (ignore _ __))
+    (when (equal corigin origin))))
+
+

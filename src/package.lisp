@@ -50,7 +50,11 @@
 	   #:rl-buffer))
 
 (defpackage :lispcord.core
-  (:use :cl :lispcord.util :lispcord.ratelimits :lispcord.constants)
+  (:use :cl
+	:lispcord.util
+	:lispcord.pipes
+	:lispcord.ratelimits
+	:lispcord.constants)
   (:export #:bot
 	   #:primitive-make-bot
 	   #:bot-token
@@ -63,6 +67,13 @@
 	   #:bot-done
 	   #:bot-heartbeat-thread
 	   #:bot-callbacks
+	   #:bot-user
+
+	   #:>message>
+	   #:>user>
+	   #:>guild>
+	   #:>status>
+	   #:>channel>
 	   
 	   #:bot-url
 	   #:base-url
@@ -101,7 +112,8 @@
 	:lispcord.constants
 	:lispcord.gateway
 	:lispcord.http
-	:lispcord.core)
+	:lispcord.core
+	:lispcord.pipes)
   (:export #:make-bot
 	   #:connect
 	   #:disconnect
@@ -110,5 +122,5 @@
 
 (defpackage :lispcord.example
   ;; core, for the botstruct, can we hide away the bot struct from the user?
-  (:use :cl :lispcord :lispcord.core)
+  (:use :cl :lispcord :lispcord.core :lispcord.pipes)
   (:export #:start))
