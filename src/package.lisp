@@ -29,9 +29,13 @@
 	   #:pfilter
 	   #:pjoin
 
+	   #:taggedp
+	   #:from-origin-p
+
 	   #:make-cargo
 	   #:open-cargo
 	   #:with-cargo
+	   #:watch-with-cargo
 	   #:cargo-send))
 
 (defpackage :lispcord.constants
@@ -83,7 +87,7 @@
 	   #:post-rq))
 
 (defpackage :lispcord.cache
-  (:use :cl :lispcord.util :lispcord.pipes)
+  (:use :cl :lispcord.util :lispcord.pipes :lispcord.core)
   (:export #:cache-guild
 	   #:cache-channel
 	   #:cache-user))

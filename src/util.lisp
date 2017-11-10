@@ -36,10 +36,10 @@
   "The debug level can be one of: :error, :warn, :info, :debug")
 
 (defvar *debug-levels*
-  (alist :error (lambda (l) (case l (:error t)))
-	 :warn (lambda (l) (case l ((:error :warn) t)))
-	 :info (lambda (l) (case l ((:error :warn :info) t)))
-	 :debug (lambda (l) (case l ((:error :warn :info :debug) t)))))
+  `((:error . ,(lambda (l) (case l (:error t))))
+    (:warn . ,(lambda (l) (case l ((:error :warn) t))))
+    (:info . ,(lambda (l) (case l ((:error :warn :info) t))))
+    (:debug . ,(lambda (l) (case l ((:error :warn :info :debug) t))))))
 
 (defun set-log-level (level)
   (declare (type keyword level))
@@ -103,3 +103,5 @@
     (multiple-value-bind (vars keys) (partition pairs)
       `(multiple-value-bind ,vars (values ,@(key-vals keys))
 	 ,@body))))
+
+

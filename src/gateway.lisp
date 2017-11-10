@@ -196,7 +196,7 @@
       
       ;; someone updates their presence
       ("PRESENCE_UPDATE"
-       (cargo-send >user> :presence data origin))
+       (cargo-send >guild> :presence data origin))
 
       ;; unrecognised event!
       (:else

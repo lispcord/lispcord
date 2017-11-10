@@ -96,10 +96,23 @@
        (open-cargo ,cargo)
      ,@progn))
 
+(defmacro watch-with-cargo ((pipe tag body &optional origin) &body progn)
+  (let ((c (gensym)))
+    `(watch-do ,pipe (,c)
+       (with-cargo (,c ,tag ,body ,origin)
+	 ,@progn))))
+
 (defun unwrap (cargo)
   (with-cargo (cargo _ body)
     (declare (ignore _))
     body))
+
+
+(defmacro watch-with-case ((pipe body &optional origin) &body progn)
+  (let ((tag (gensym)))
+    `(watch-with-cargo (,pipe ,tag ,body ,origin)
+       (case ,tag
+	 ,@progn))))
 
 (defun cargo-send (pipe tag body &optional origin)
   (pipe-along pipe (make-cargo tag body origin)))
