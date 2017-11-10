@@ -9,6 +9,29 @@ it be shared across instances?")
 ;; lift emojis/roles etc. into the global cache?
 
 
+;;; Setting up relevant subpipes for things that need to be cached
+
+(defvar >gcache>
+  (pfilter >guild> (lambda (c) (or (taggedp :create c)
+				   (taggedp :update c)
+				   (taggedp :emojis-update c)))))
+
+(defvar >rcache>
+  (pfilter >guild> (lambda (c) (or (taggedp :role-create c)
+				   (taggedp :role-update c)))))
+
+(defvar >mcache>
+  (pfilter >guild> (lambda (c) (or (taggedp :member-add c)
+				   (taggedp :member-update c)))))
+
+(defvar >pcache> (pfilter >guild> (curry (taggedp :presence))))
+
+(defvar >ccache>
+  (pfilter >channel> (lambda (c) (or (taggedp :create c)
+				     (taggedp :update c)))))
+
+(defvar >ucache> (pfilter >user> (curry (taggedp :update))))
+
 (defun wipe-cache ()
   (setf *cache* (make-hash-table :test #'equal :size 100)))
 
@@ -41,29 +64,46 @@ it be shared across instances?")
   (remc (gethash "id" obj)))
 
 
+(defun cache (obj)
+  (if (cachedp obj)
+      (updatec (gethash "id" obj) obj)
+      (setc (gethash "id" obj) obj)))
 
-(defun cache-user (user)
+(watch-with-cargo (>ucache> tag user)
   (sethash "tag" user :user)
-  (if (cachedp user)
-      (updatec (gethash "id" user) user)
-      (setc (gethash "id" user) user)))
+  (cache user))
 
-(defun cache-presence (presence)
-  (updatec (gethash "id" (gethash "user" presence))
-	   (progn (remhash "user" presence) presence)))
+(watch-with-cargo (>pcache> tag presence)
+  (let ((id (gethash "id" (gethash "user" presence))))
+    (sethash "status" (getc id) (gethash "status" presence))
+    (sethash "game" (getc id) (gethash "game" presence))))
 
-(defun cache-channel (channel)
+
+(watch-with-cargo (>ccache> tag channel)
+  (declare (ignore tag))
   (sethash "tag" channel :channel)
   (if (gethash "recipients" channel)
-      (sethash "recipients"
-	       channel
-	       (mapcar (lambda (u)
-			 (cache-user u)
-			 (gethash "id" u))
-		       (gethash "recipients" channel))))
-  (if (cachedp channel)
-      (updatec (gethash "id" channel) channel)
-      (setc (gethash "id" channel) channel)))
+      (sethash "recipients" channel 
+	       (mapf (gethash "recipients" channel) (u)
+		 (cargo-send >ucache> :update u)
+		 (gethash "id" u))))
+  (cache channel))
+
+(watch-with-cargo (>rcache> tag payload)
+  (declare (ignore tag))
+  (with-table (payload role "role" gid "guild_id")
+    (sethash (gethash "id" role) (gethash "roles" (getc gid))
+	     role)))
+
+(watch-with-cargo (>mcache> tag member)
+  (declare (ignore tag))
+  (let ((uid (gethash "id" (gethash "user" member)))
+	(gid (gethash "guild_id" member)))
+    (cargo-send >ucache> :update (gethash "user" member))
+    (sethash "user" member uid)
+    (sethash "members" (getc gid)
+	     (cons member (gethash "members" (getc gid))))))
+
 
 ;; Caching guilds is not that easy, especially since we
 ;; need to extract the channels and users and such to avoid
@@ -71,14 +111,6 @@ it be shared across instances?")
 
 (defun find-id (id list)
   (find-if (lambda (p) (equal id (gethash "id" p))) list))
-
-(defun gcache-obj (guild-id tag obj)
-  (sethash "guild_id" obj guild-id)
-  (sethash "tag" obj tag)
-  (unless (equal (gethash "id" obj) guild-id)
-    (if (cachedp obj)
-	(updatec (gethash "id" obj) obj)
-	(setc (gethash "id" obj) obj))))
 
 (defun parse-member (member)
   (let ((user (gethash "user" member)))
@@ -89,13 +121,16 @@ it be shared across instances?")
     member))
 
 (defun cache-guild (guild)
-  (let ((gid (gethash "id" guild)))
-    (mapc (curry (gcache-obj gid :role))
-	  (gethash "roles" guild))
-    (sethash "role"
-	     guild
-	     (find-id gid (gethash "roles" guild)))
-    (remhash "roles" guild)
+  (with-table (guild gid "id"
+		     roles "roles"
+		     channels "channels"
+		     members "members")
+
+    (sethash "roles" guild
+	     (let ((ht (make-hash-table :test #'equal
+					:size (length roles))))
+	       (mapf roles (r) (sethash (gethash "id" r) ht r))
+	       ht))
     
     (mapc (curry (gcache-obj gid :channel))
 	  (gethash "channels" guild))

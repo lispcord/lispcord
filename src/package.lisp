@@ -1,9 +1,9 @@
 (defpackage :lispcord.util
   (:use :cl)
-  (:export #:str-concat)
-  (:export #:jparse)
-  (:export #:jmake)
-  (:export #:alist
+  (:export #:str-concat
+	   #:jparse
+	   #:jmake
+	   #:alist
 	   #:aget
 	   #:doit
 	   #:str-case
@@ -11,9 +11,32 @@
 	   #:curry
 	   #:sethash
 	   #:nonce
+	   #:mapf
+	   #:with-table
 
 	   #:set-debug-level
 	   #:dprint))
+
+(defpackage :lispcord.pipes
+  (:use :cl :lispcord.util)
+  (:export #:make-pipe
+	   #:pipep
+	   #:pipe-along
+	   #:watch
+	   #:watch-do
+	   #:drop
+	   #:pmap
+	   #:pfilter
+	   #:pjoin
+
+	   #:taggedp
+	   #:from-origin-p
+
+	   #:make-cargo
+	   #:open-cargo
+	   #:with-cargo
+	   #:watch-with-cargo
+	   #:cargo-send))
 
 (defpackage :lispcord.constants
   (:use :cl :lispcord.util)
@@ -31,7 +54,11 @@
 	   #:rl-buffer))
 
 (defpackage :lispcord.core
-  (:use :cl :lispcord.util :lispcord.ratelimits :lispcord.constants)
+  (:use :cl
+	:lispcord.util
+	:lispcord.pipes
+	:lispcord.ratelimits
+	:lispcord.constants)
   (:export #:bot
 	   #:primitive-make-bot
 	   #:bot-token
@@ -44,18 +71,23 @@
 	   #:bot-done
 	   #:bot-heartbeat-thread
 	   #:bot-callbacks
+	   #:bot-user
+
+	   #:>message>
+	   #:>user>
+	   #:>guild>
+	   #:>status>
+	   #:>channel>
 	   
 	   #:bot-url
 	   #:base-url
 	   #:api-suffix
-	   #:user-agent ;check if this can be private
-	   #:headers    ;this too
 	   #:discord-req
 	   #:get-rq
 	   #:post-rq))
 
 (defpackage :lispcord.cache
-  (:use :cl :lispcord.util)
+  (:use :cl :lispcord.util :lispcord.pipes :lispcord.core)
   (:export #:cache-guild
 	   #:cache-channel
 	   #:cache-user))
@@ -64,6 +96,7 @@
   (:use :bordeaux-threads
 	:cl
 	:lispcord.util
+	:lispcord.pipes
 	:lispcord.core
 	:lispcord.cache
 	:lispcord.constants)
@@ -83,7 +116,8 @@
 	:lispcord.constants
 	:lispcord.gateway
 	:lispcord.http
-	:lispcord.core)
+	:lispcord.core
+	:lispcord.pipes)
   (:export #:make-bot
 	   #:connect
 	   #:disconnect
@@ -92,5 +126,5 @@
 
 (defpackage :lispcord.example
   ;; core, for the botstruct, can we hide away the bot struct from the user?
-  (:use :cl :lispcord :lispcord.core)
+  (:use :cl :lispcord :lispcord.core :lispcord.pipes)
   (:export #:start))

@@ -5,11 +5,14 @@
 
 (defvar *client*)
 
+
 (defun start (token)
   (setf *client* (make-bot token))
   (connect *client*)
-  (with-handler (msg *client* :message)
-    (example-print (format nil "got message! ~a" msg))))
+  (watch-do >message> (cargo)
+    (with-cargo (cargo tag content)
+      (if (eq tag :create)
+	  (example-print (gethash "content" content))))))
 
 (defun example-print (msg)
-  (format t "[Example Bot] ~a~%" msg))
+  (format t "Got message :D~% ~a~%" msg))

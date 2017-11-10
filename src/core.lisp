@@ -3,6 +3,7 @@
 
 (defstruct (bot (:constructor primitive-make-bot))
   (token "" :type string :read-only t)
+  (user nil :type (or null string))
   (version "0.0.1" :type string)
   (seq 0 :type fixnum)
   (session-id nil :type (or null string))
@@ -10,6 +11,28 @@
   (done nil :type (or null t))
   (callbacks (make-hash-table) :type hash-table)
   heartbeat-thread)
+
+
+
+;;; Set up the various event pipes
+;;; By (my) convention, they should be named ">'name'>"
+
+(defvar >status> (make-pipe)
+  "The generic event pipe")
+
+(defvar >user> (make-pipe)
+  "Dispatches user specific events")
+
+(defvar >channel> (make-pipe)
+  "Dispatches channel specific events")
+
+(defvar >guild> (make-pipe)
+  "Dispatches guild specific events")
+
+(defvar >message> (make-pipe)
+  "Dispatches message specific events")
+
+
 
 
 
