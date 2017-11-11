@@ -28,7 +28,6 @@
 
 ;;; (defclass obj ()
 ;;;   ((field :initarg :field
-;;;           :reader/accessor field
 ;;;           :type typespec)))
 ;;;
 ;;; (defmethod %to-json ((o obj))

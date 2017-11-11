@@ -13,6 +13,7 @@
 	   #:nonce
 	   #:mapf
 	   #:with-table
+	   #:instance-from-table
 
 	   #:set-debug-level
 	   #:dprint))

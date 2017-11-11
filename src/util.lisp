@@ -1,5 +1,9 @@
 (in-package :lispcord.util)
 
+;; this type allows us to later potentially convert the IDs to numbers
+;; without needing to rewrite all the type declerations!
+(deftype snowflake () 'string)
+
 (defun str-concat (&rest strings)
   (apply #'concatenate 'string strings))
 
@@ -104,4 +108,11 @@
       `(multiple-value-bind ,vars (values ,@(key-vals keys))
 	 ,@body))))
 
+
+(defmacro instance-from-table ((table class) &body pairs)
+  `(make-instance ,class
+		  ,@(loop :for e :in pairs :counting e :into c
+		       :when (evenp c)
+		       :do (setf e `(gethash ,e ,table))
+		       :collect e)))
 

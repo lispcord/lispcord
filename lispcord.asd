@@ -13,11 +13,12 @@
 			  ((:file "package")
 			   (:file "util")
 			   (:file "pipes")
-			   (module classes
-				   :serial t
-				   :components
-				   ((:file "package")
-				    (:file "core")))
+			   (:module classes
+				    :serial t
+				    :components
+				    ((:file "package")
+				     (:file "core")
+				     (:file "user")))
 			   (:file "ratelimits")
 			   (:file "constants")
 			   (:file "core")

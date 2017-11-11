@@ -1,6 +1,7 @@
 (in-package :lispcord.core)
 
 
+
 (defstruct (bot (:constructor primitive-make-bot))
   (token "" :type string :read-only t)
   (user nil :type (or null string))
