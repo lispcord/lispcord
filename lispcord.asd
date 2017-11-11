@@ -18,7 +18,8 @@
 				    :components
 				    ((:file "package")
 				     (:file "core")
-				     (:file "user")))
+				     (:file "user")
+				     (:file "guild")))
 			   (:file "ratelimits")
 			   (:file "constants")
 			   (:file "core")
