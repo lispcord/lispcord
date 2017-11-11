@@ -19,6 +19,7 @@
 				    ((:file "package")
 				     (:file "core")
 				     (:file "user")
+				     (:file "channel")
 				     (:file "guild")))
 			   (:file "ratelimits")
 			   (:file "constants")

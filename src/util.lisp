@@ -113,6 +113,8 @@
   `(make-instance ,class
 		  ,@(loop :for e :in pairs :counting e :into c
 		       :when (evenp c)
-		       :do (setf e `(gethash ,e ,table))
-		       :collect e)))
+		       :collect (if (listp e)
+				    e
+				    `(gethash ,e ,table))
+		       :else :collect e)))
 

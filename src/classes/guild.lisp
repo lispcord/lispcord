@@ -41,7 +41,7 @@
     (write-key-value "managed" (!! r managed))
     (write-key-value "mentionable" (!! r mentionable))))
 
-(defclass member ()
+(defclass guild-member ()
   ;; I'm not really sure, but it should be possible to link this to a
   ;; specific object right?
   ((user      :initarg :user
@@ -58,7 +58,7 @@
 	      :type t)))
 
 ;;The Modify and Add Member REST-calls can use this
-(defmethod %to-json ((m member))
+(defmethod %to-json ((m guild-member))
   (with-object
     (write-key-value "user" (!! m user))
     (write-key-value "nick" (!! m nick))
@@ -67,8 +67,8 @@
     (write-key-value "mute" (!! m mute))
     (write-key-value "deaf" (!! m deaf))))
 
-(defmethod from-json ((c (eql :member)) (table hash-table))
-  (instance-from-table (table 'member)
+(defmethod from-json ((c (eql :guild-member)) (table hash-table))
+  (instance-from-table (table 'guild-member)
     :user "user"
     :nick "nick"
     :roles "roles"
