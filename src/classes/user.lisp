@@ -1,22 +1,22 @@
 (in-package :lispcord.classes.user)
 
 (defclass user ()
-  (id            :initarg :id
-                 :type snowflake)
-  (username      :initarg :username
-	         :type string)
-  (discriminator :initarg :discrim
-		 :type string)
-  (avatar        :initarg :avatar
-		 :type string)
-  (bot           :initarg :bot
-		 :type t)
-  (mfa           :initarg :mfa
-		 :type t)
-  (verified      :initarg :verified
-		 :type t)
-  (email         :initarg :email
-		 :type t))
+  ((id            :initarg :id
+		  :type snowflake)
+   (username      :initarg :username
+		  :type string)
+   (discriminator :initarg :discrim
+		  :type string)
+   (avatar        :initarg :avatar
+		  :type string)
+   (bot           :initarg :bot
+		  :type t)
+   (mfa           :initarg :mfa
+		  :type t)
+   (verified      :initarg :verified
+		  :type t)
+   (email         :initarg :email
+		  :type t)))
 
 (defmethod %to-json ((u user))
   (with-object
