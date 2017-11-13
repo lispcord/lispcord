@@ -18,6 +18,7 @@
 				    :components
 				    ((:file "package")
 				     (:file "core")
+				     (:file "emoji")
 				     (:file "user")
 				     (:file "channel")
 				     (:file "guild")))
