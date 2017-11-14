@@ -81,7 +81,7 @@
     :guild-id "guild_id"
     :name "name"
     :position "position"
-    :overwrites (map 'vector #'from-json
+    :overwrites (map 'vector (curry #'from-json :overwrite)
 		     (gethash "permission_overwrites" table))
     :nsfw "nsfw"
     :topic "topic"
@@ -94,7 +94,7 @@
     :guild-id "guild_id"
     :name "name"
     :position "position"
-    :overwrites (map 'vector #'from-json
+    :overwrites (map 'vector (curry #'from-json :overwrite)
 		     (gethash "permission_overwrites" table))
     :bitrate "bitrate"
     :user-limit "user_limit"
@@ -110,14 +110,15 @@
   (instance-from-table (table 'group-dm)
     :id "id"
     :name "name"
-    :recipients "recipients"
+    :recipients (map 'vector (curry #'from-json :user)
+		     (gethash "recipients" table))
     :last-message "last_message_id"
     :owner "owner_id"))
 
 (defun %guild-category-fj (table)
   (instance-from-table (table 'category)
     :id "id"
-    :overwrites (map 'vector #'from-json
+    :overwrites (map 'vector (curry #'from-json :overwrite)
 		     (gethash "permission_overwrites" table))
     :name "name"
     :parent-id "parent_id"

@@ -67,9 +67,8 @@
       ((:hour :hours)     (<= (+ since 3600) now)))))
 
 
-(defmacro curry ((f &rest args))
-  (let ((curry (gensym)))
-    `(lambda (,curry) (,f ,@args ,curry))))
+(defun curry (f &rest args)
+  (lambda (arg) (apply f args arg)))
 
 (defun split-string (string &optional (delimiter #\space))
   (declare (type string string)
