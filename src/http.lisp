@@ -5,7 +5,7 @@
 (defun send (bot channel-id content)
   (post-rq (str-concat "channels/" channel-id "/messages")
 	   bot
-	   (alist "content" content)))
+	   `(("content" . ,content))))
 
 (defun create-msg (bot channel-id message &aux (nonce (nonce)))
   (let* ((response (jparse
@@ -13,8 +13,8 @@
 		     (str-concat "channels/" channel-id "/messages")
 		     :bot bot
 		     :type :post
-		     :content (alist "content" message
-				     "nonce" nonce))))
+		     :content `(("content" . ,message)
+				("nonce" . ,nonce)))))
 	 (reply-nonce (gethash "nonce" response)))
     (if (equal reply-nonce nonce)
 	response

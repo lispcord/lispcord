@@ -18,7 +18,7 @@
   (instance-from-table (table 'emoji)
     :id "id"
     :name "name"
-    :roles (map 'vector #'id (gethash "roles" table))
+    :roles (map 'vector #'identity (gethash "roles" table))
     :user "user"
     :colons? "require_colons"
     :managed "managed"))

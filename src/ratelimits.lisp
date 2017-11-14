@@ -12,10 +12,10 @@
   (make-hash-table :test #'equal))
 
 (defun clear (final)
-  (doit (gethash final *ratelimits*)
-	(if (<= it 1)
-	    (setf (gethash final *ratelimitsrems*)
-		  (gethash final *ratelimitlimits*)))))
+  (let ((it (gethash final *ratelimitsresets*)))
+    (if (<= it 1)
+	(setf (gethash final *ratelimitsrems*)
+	      (gethash final *ratelimitlimits*)))))
 
 
 (defun rl-buffer (endpoint)

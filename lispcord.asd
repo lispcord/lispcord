@@ -22,6 +22,7 @@
 				     (:file "user")
 				     (:file "channel")
 				     (:file "guild")
+				     (:file "embed")
 				     (:file "message")))
 			   (:file "ratelimits")
 			   (:file "constants")

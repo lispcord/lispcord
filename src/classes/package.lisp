@@ -25,6 +25,13 @@
   (:use :cl :lispcord.util :lispcord.classes.core :jonathan))
 
 
+(defpackage :lispcord.classes.embed
+  (:use :cl
+	:lispcord.util
+	:lispcord.classes.core
+	:jonathan)
+  (:export #:embed))
+
 (defpackage :lispcord.classes.message
   (:use :cl
 	:lispcord.util

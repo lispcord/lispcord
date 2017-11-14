@@ -24,13 +24,13 @@ it be shared across instances?")
   (pfilter >guild> (lambda (c) (or (taggedp :member-add c)
 				   (taggedp :member-update c)))))
 
-(defvar >pcache> (pfilter >guild> (curry (taggedp :presence))))
+(defvar >pcache> (pfilter >guild> (curry #'taggedp :presence)))
 
 (defvar >ccache>
   (pfilter >channel> (lambda (c) (or (taggedp :create c)
 				     (taggedp :update c)))))
 
-(defvar >ucache> (pfilter >user> (curry (taggedp :update))))
+(defvar >ucache> (pfilter >user> (curry #'taggedp :update)))
 
 (defun wipe-cache ()
   (setf *cache* (make-hash-table :test #'equal :size 100)))
@@ -70,10 +70,12 @@ it be shared across instances?")
       (setc (gethash "id" obj) obj)))
 
 (watch-with-cargo (>ucache> tag user)
+  (declare (ignore tag))
   (sethash "tag" user :user)
   (cache user))
 
 (watch-with-cargo (>pcache> tag presence)
+  (declare (ignore tag))
   (let ((id (gethash "id" (gethash "user" presence))))
     (sethash "status" (getc id) (gethash "status" presence))
     (sethash "game" (getc id) (gethash "game" presence))))
@@ -120,37 +122,37 @@ it be shared across instances?")
     (sethash "user" member (gethash "id" user))
     member))
 
-(defun cache-guild (guild)
-  (with-table (guild gid "id"
-		     roles "roles"
-		     channels "channels"
-		     members "members")
+;; (defun cache-guild (guild)
+;;   (with-table (guild gid "id"
+;; 		     roles "roles"
+;; 		     channels "channels"
+;; 		     members "members")
 
-    (sethash "roles" guild
-	     (let ((ht (make-hash-table :test #'equal
-					:size (length roles))))
-	       (mapf roles (r) (sethash (gethash "id" r) ht r))
-	       ht))
+;;     (sethash "roles" guild
+;; 	     (let ((ht (make-hash-table :test #'equal
+;; 					:size (length roles))))
+;; 	       (mapf roles (r) (sethash (gethash "id" r) ht r))
+;; 	       ht))
     
-    (mapc (curry (gcache-obj gid :channel))
-	  (gethash "channels" guild))
-    (sethash "channel"
-	     guild
-	     (find-id gid (gethash "channels" guild)))
-    (remhash "channels" guild)
+;;     (mapc (curry #'gcache-obj gid :channel)
+;; 	  (gethash "channels" guild))
+;;     (sethash "channel"
+;; 	     guild
+;; 	     (find-id gid (gethash "channels" guild)))
+;;     (remhash "channels" guild)
     
-    (mapc (curry (gcache-obj gid :emoji))
-	  (gethash "emojis" guild))
-    ;; i don't think there's a "base" emoji so we'll skip this
-    (remhash "emojis" guild)
+;;     (mapc (curry #'gcache-obj gid :emoji)
+;; 	  (gethash "emojis" guild))
+;;     ;; i don't think there's a "base" emoji so we'll skip this
+;;     (remhash "emojis" guild)
 
-    (sethash "members" guild
-	  (mapcar #'parse-member (gethash "members" guild)))
-    (sethash "tag" guild :guild)
+;;     (sethash "members" guild
+;; 	  (mapcar #'parse-member (gethash "members" guild)))
+;;     (sethash "tag" guild :guild)
 
-    (if (cachedp guild)
-	(updatec gid guild)
-	(setc gid guild))))
+;;     (if (cachedp guild)
+;; 	(updatec gid guild)
+;; 	(setc gid guild))))
 
 
 
