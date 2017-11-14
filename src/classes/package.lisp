@@ -39,4 +39,5 @@
 	:lispcord.classes.user
 	:lispcord.classes.emoji
 	:lispcord.classes.guild
+	:lispcord.classes.embed
 	:jonathan))

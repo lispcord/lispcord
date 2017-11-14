@@ -1,7 +1,5 @@
 (in-package :lispcord.classes.message)
 
-(deftype embeds () nil)
-
 (deftype message-type () `(integer 0 7))
 
 (defclass attachement ()
