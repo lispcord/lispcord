@@ -105,3 +105,68 @@
    (members            :initarg :members    :type (vector guild-member))
    (channels           :initarg :channels   :type (vector channel))
    (presences          :initarg :presences  :type (vector presence))))
+
+(defmethod %to-json ((g guild))
+  (with-object
+    (write-key-value "id" (!! g id))
+    (write-key-value "name" (!! g name))
+    (write-key-value "icon" (!! g icon))
+    (write-key-value "joined_at" (!! g joined-at))
+    (write-key-value "splash" (!! g splash))
+    (write-key-value "owner_id" (!! g owner))
+    (write-key-value "region" (!! g region))
+    (write-key-value "afk_channel_id" (!! g afk-id))
+    (write-key-value "afk_timeout" (!! g afk-to))
+    (write-key-value "embed_enabled" (!! g embed?))
+    (write-key-value "embed_channel_id" (!! g embed-id))
+    (write-key-value "verification_level" (!! g verification-level))
+    (write-key-value "default_message_notification" (!! g notification-leve))
+    (write-key-value "explicit_content_filter" (!! g content-filter))
+    (write-key-value "roles" (!! g roles))
+    (write-key-value "emojis" (!! g emojis))
+    (write-key-value "features" (!! g features))
+    (write-key-value "mfa_level" (!! g mfa-level))
+    (write-key-value "application_id" (!! g application-id))
+    (write-key-value "widget_enabled" (!! g widget-enabled))
+    (write-key-value "widget_channel_id" (!! g widget-channel-id))
+    (write-key-value "large" (!! g large))
+    (write-key-value "unavailable" (!! g unavailable))
+    (write-key-value "member_count" (!! g member-count))
+    (write-key-value "members" (!! g members))
+    (write-key-value "channels" (!! g channels))
+    (write-key-value "presences" (!! g presences))))
+
+(defmethod from-json ((c (eql :class)) (table hash-table))
+  (instance-from-table (table 'guild)
+    :id "id"
+    :name "name"
+    :icon "icon"
+    :splash "splash"
+    :owner "owner_id"
+    :region "region"
+    :afk-id "afk_channel_id"
+    :afk-to "afk_timeout"
+    :embed? "embed_enabled"
+    :embed-id "embed_channel_id"
+    :verify-l "verification_level"
+    :notify-l "default_message_notifications"
+    :content "explicit_content_filter"
+    :roles (map 'vector (curry #'from-json :role)
+		(gethash "roles" table))
+    :emojis (map 'vector (curry #'from-json :emoji)
+		 (gethash "emojis" table))
+    :features (coerce (gethash "features" table) '(vector string))
+    :mfa "mfa_level"
+    :app-id "application_id"
+    :widget? "widget_enabled"
+    :widget-id "widget_channel_id"
+    :joined-at "joined_at"
+    :large "large"
+    :available "unavailable"
+    :member-cnt "member_count"
+    :members (map 'vector (curry #'from-json :g-member)
+		  (gethash "members" table))
+    :channels (map 'vector (curry #'from-json :channel)
+		   (gethash "channels" table))
+    :presences (map 'vector (curry #'from-json :presence)
+		    (gethash "presences" table))))
