@@ -6,7 +6,8 @@
 
 (defpackage :lispcord.classes.user
   (:use :cl :lispcord.util :lispcord.classes.core :jonathan)
-  (:export #:user))
+  (:export #:user
+	   #:presence))
 
 (defpackage :lispcord.classes.emoji
   (:use :cl
@@ -18,11 +19,18 @@
 
 (defpackage :lispcord.classes.channel
   (:use :cl :lispcord.util :lispcord.classes.core :jonathan)
-  (:export #:role))
+  (:export #:channel))
 
 
 (defpackage :lispcord.classes.guild
-  (:use :cl :lispcord.util :lispcord.classes.core :jonathan))
+  (:use :cl
+	:lispcord.util
+	:lispcord.classes.core
+	:lispcord.classes.user
+	:jonathan)
+  (:export #:role
+	   #:guild
+	   #:guild-member))
 
 
 (defpackage :lispcord.classes.embed
