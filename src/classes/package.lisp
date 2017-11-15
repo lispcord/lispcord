@@ -7,7 +7,21 @@
 (defpackage :lispcord.classes.user
   (:use :cl :lispcord.util :lispcord.classes.core :jonathan)
   (:export #:user
-	   #:presence))
+	   #:presence
+
+	   #:from-json
+	   #:%to-json))
+
+(defpackage :lispcord.classes.integration
+  (:use :cl
+	:lispcord.util
+	:lispcord.classes.core
+	:lispcord.classes.user
+	:jonathan)
+  (:export #:integration
+
+	   #:from-json
+	   #:%to-json))
 
 (defpackage :lispcord.classes.emoji
   (:use :cl
@@ -15,11 +29,17 @@
 	:lispcord.classes.core
 	:lispcord.classes.user
 	:jonathan)
-  (:export #:emoji))
+  (:export #:emoji
+
+	   #:from-json
+	   #:%to-json))
 
 (defpackage :lispcord.classes.channel
   (:use :cl :lispcord.util :lispcord.classes.core :jonathan)
-  (:export #:channel))
+  (:export #:channel
+
+	   #:from-json
+	   #:%to-json))
 
 
 (defpackage :lispcord.classes.guild
@@ -30,7 +50,10 @@
 	:jonathan)
   (:export #:role
 	   #:guild
-	   #:guild-member))
+	   #:guild-member
+
+	   #:from-json
+	   #:%to-json))
 
 
 (defpackage :lispcord.classes.embed
@@ -38,7 +61,10 @@
 	:lispcord.util
 	:lispcord.classes.core
 	:jonathan)
-  (:export #:embed))
+  (:export #:embed
+
+	   #:from-json
+	   #:%to-json))
 
 (defpackage :lispcord.classes.message
   (:use :cl
@@ -48,4 +74,10 @@
 	:lispcord.classes.emoji
 	:lispcord.classes.guild
 	:lispcord.classes.embed
-	:jonathan))
+	:jonathan)
+  (:export #:attachement
+	   #:reaction
+	   #:message
+
+	   #:from-json
+	   #:%to-json))

@@ -20,6 +20,7 @@
 				     (:file "core")
 				     (:file "emoji")
 				     (:file "user")
+				     (:file "integration")
 				     (:file "channel")
 				     (:file "guild")
 				     (:file "embed")
