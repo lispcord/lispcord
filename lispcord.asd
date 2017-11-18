@@ -31,5 +31,4 @@
 			   ;(:file "cache")
 			   (:file "http")
 			   (:file "gateway")
-			   (:file "lispcord")
-			   (:file "example")))))
+			   (:file "lispcord")))))

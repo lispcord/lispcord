@@ -19,6 +19,7 @@
 	   #:open-cargo
 	   #:with-cargo
 	   #:watch-with-cargo
+	   #:watch-with-case
 	   #:cargo-send))
 
 
@@ -100,6 +101,7 @@
 (defpackage :lispcord
   (:use :cl
 	:lispcord.util
+	:lispcord.classes
 	:lispcord.constants
 	:lispcord.gateway
 	:lispcord.http
@@ -109,9 +111,8 @@
 	   #:connect
 	   #:disconnect
 	   #:reply
-	   #:with-handler))
+	   #:with-handler
+	   #:watch-with-case
+	   #:!!))
 
-(defpackage :lispcord.example
-  ;; core, for the botstruct, can we hide away the bot struct from the user?
-  (:use :cl :lispcord :lispcord.core :lispcord.pipes)
-  (:export #:start))
+
