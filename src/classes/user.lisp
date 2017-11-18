@@ -17,7 +17,9 @@
    (verified      :initarg :verified
 		  :type t)
    (email         :initarg :email
-		  :type t)))
+		  :type t)
+   (guild-id      :initarg :gid
+		  :type (or null snowflake))))
 
 (defmethod %to-json ((u user))
   (with-object
@@ -39,13 +41,14 @@
     :bot "bot"
     :mfa "mfa"
     :verified "verified"
-    :email "email"))
+    :email "email"
+    :gid "guild_id"))
 
 
 (defclass game ()
   ((name :initarg :name :type string)
    (type :initarg :type :type (integer 0 1))
-   (url  :initarg :url  :type string)))
+   (url  :initarg :url  :type (or null string))))
 
 (defmethod from-json ((c (eql :game)) (table hash-table))
   (instance-from-table (table 'game)
@@ -59,16 +62,19 @@
     (write-key-value "type" (!! g type))
     (write-key-value "url" (!! g url))))
 
+(defun make-game (game-name &optional (type 0) (url nil))
+  (make-instance 'game :name game-name :type type :url url))
+
 (defclass presence ()
-  ((user     :initarg :user     :type user)
-   (roles    :initarg :roles    :type (vector role))
+  ((user     :initarg :user     :type snowflake)
+   (roles    :initarg :roles    :type (or null (vector role)))
    (game     :initarg :game     :type (or null game))
-   (guild-id :initarg :guild-id :type snowflake)
-   (status   :initarg :status   :type string)))
+   (guild-id :initarg :guild-id :type (or null snowflake))
+   (status   :initarg :status   :type (or null string))))
 
 (defmethod from-json ((c (eql :presence)) (table hash-table))
   (instance-from-table (table 'presence)
-    :user (from-json :user (gethash "user" table))
+    :user (gethash "id" (gethash "user" table))
     :roles (map 'vector (curry #'from-json :role)
 		(gethash "roles" table))
     :game (from-json :game (gethash "game" table))
@@ -82,3 +88,7 @@
     (write-key-value "game" (!! p game))
     (write-key-value "guild_id" (!! p guild-id))
     (write-key-value "status" (!! p status))))
+
+(defun derive-string (symbol)
+  (string-downcase (string symbol)))
+

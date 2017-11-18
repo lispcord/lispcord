@@ -10,7 +10,9 @@
 	   #:presence
 
 	   #:from-json
-	   #:%to-json))
+	   #:%to-json
+
+	   #:make-game))
 
 (defpackage :lispcord.classes.integration
   (:use :cl
@@ -81,3 +83,33 @@
 
 	   #:from-json
 	   #:%to-json))
+
+
+(defpackage :lispcord.classes
+  (:use :cl
+	:lispcord.classes.core
+	:lispcord.classes.user
+	:lispcord.classes.integration
+	:lispcord.classes.emoji
+	:lispcord.classes.channel
+	:lispcord.classes.guild
+	:lispcord.classes.embed
+	:lispcord.classes.message)
+  
+  (:export #:%to-json
+	   #:from-json
+
+	   #:!!
+
+	   #:user
+	   #:presence
+	   #:integration
+	   #:emoji
+	   #:channel
+	   #:role
+	   #:guild
+	   #:guild-member
+	   #:embed
+	   #:attachement
+	   #:reaction
+	   #:message))

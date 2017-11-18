@@ -4,13 +4,13 @@
 
 (defstruct (bot (:constructor primitive-make-bot))
   (token "" :type string :read-only t)
-  (user nil :type (or null string))
+  (user nil :type (or null user))
   (version "0.0.1" :type string)
   (seq 0 :type fixnum)
   (session-id nil :type (or null string))
+  (afk-since nil :type (or null fixnum))
   conn
   (done nil :type (or null t))
-  (callbacks (make-hash-table) :type hash-table)
   heartbeat-thread)
 
 

@@ -14,16 +14,15 @@
 	(:! dprint :debug "~&Send payload: ~a~%" it)
 	(wsd:send (bot-conn bot) it)))
 
-
-
-(defun presence (&optional game-name (status "online"))
-  `(("game" . ,(if game-name
-		   `(("name" . ,game-name) ("type" . 0))
-		   :null))
-    ("status" . ,status)
-    ("since" . :null)
-    ("afk" . :false)))
-
+(defun make-status (bot status game afk
+		    &aux (since (if afk (if (bot-afk-since bot)
+					    (bot-afk-since bot)
+					    (setf (bot-afk-since bot)
+						  (unix-epoch))))))
+  `(("since" . ,since)
+    ("game" . ,game)
+    ("afk" . ,afk)
+    ("status" . ,(string-downcase (string status)))))
 
 (defun send-identify (bot)
   (dprint :info "~&Send identify for ~a~%" (bot-token bot))
@@ -36,7 +35,10 @@
 			("compress" . :false)
 			("large_threshold" . 250)
 			("shard" . (0 1))
-			("presence" . ,(presence)))))
+			("presence" . ,(make-status bot
+						    :online
+						    nil
+						    nil)))))
 
 (defun send-resume (bot)
   (dprint :info "~&Resuming connection for session ~a...~%"
@@ -52,17 +54,17 @@
   (dprint :info "~&Ready payload received; Session-id: ~a~%"
 	  (aget "session_id" payload))
   (setf (bot-session-id bot) (aget "session_id" payload))
-  (setf (bot-user bot) (aget "id" (aget "user" payload)))
+  (setf (bot-user bot) (aget "user" payload))
   ;dispatch event
-  (cargo-send >status> :ready payload (bot-user bot)))
+  (cargo-send >status> :ready payload (!! (bot-user bot) id)))
 
 
 
 
-(defun send-status-update (bot &optional game-name (status "online"))
+(defun send-status-update (bot &optional game (status :online))
   (send-payload bot
 		:op 3
-		:data (presence game-name status)))
+		:data (make-status bot status game nil)))
 
 
 
@@ -88,13 +90,35 @@
       (cargo-send >guild> :member-add m origin))))
 
 
+(defun on-emoji-update (data origin)
+  (with-table (data emojis "emojis")
+    (sethash "emojis" data
+	  (map 'vector (curry #'from-json :emoji) emojis))
+    (cargo-send >guild> :emojis-update data origin)))
+
+
+(defun on-member-remove (data origin)
+  (let ((user (from-json :user (gethash "user" data))))
+    (setf (slot-value user 'guild-id) (gethash "guild_id" data))
+    (cargo-send >guild> :member-remove user origin)))
+
+(defun on-member-update (data origin)
+  (let ((member (from-json :g-member data)))
+    (cargo-send >guild> :member-update member origin)))
+
+(defun on-role-* (data origin kind)
+  (let ((role (from-json :role (gethash "role" data))))
+    (setf (slot-value role 'guild-id) (gethash "guild_id" data))
+    (cargo-send >guild> kind origin)))
+
+
 
 ;; opcode 0
 (defun on-dispatch (bot msg)
   (let ((event (aget "t" msg))
 	(seq (aget "s" msg))
 	(data (aget "d" msg))
-	(origin (bot-user bot)))
+	(origin (!! (bot-user bot) id)))
     (setf (bot-seq bot) seq)
     (dprint :info "[Event] ~a~%" event)
     (dprint :debug "[Payload] ~a~%" msg)
@@ -105,90 +129,96 @@
 
       ;; on resume
       ("RESUMED"
-       (cargo-send >status> :resumed data origin))
+       (cargo-send >status> :resumed nil origin))
 
       ;; someone starts typing
       ("TYPING_START"
        (cargo-send >status> :typing-start data origin))
 
       ("USER_UPDATE" 
-       (cargo-send >user> :update data origin))
+       (cargo-send >user> :update (from-json :user data) origin))
 
       ;; channel made known
       ("CHANNEL_CREATE"
-       (cargo-send >channel> :create data origin))
+       (cargo-send >channel> :create (from-json :channel data) origin))
 
       ("CHANNEL_UPDATE"
-       (cargo-send >channel> :update data origin))
+       (cargo-send >channel> :update (from-json :channel data) origin))
 
       ("CHANNEL_DELETE"
-       (cargo-send >channel> :delete data origin))
+       (cargo-send >channel> :delete (from-json :channel data) origin))
 
       ("CHANNEL_PINS_UPDATE"
        (cargo-send >channel> :pins-update data origin))
 
       ;; guild made known
       ("GUILD_CREATE"
-       (cargo-send >guild> :create data origin))
+       (cargo-send >guild> :create (from-json :guild data) origin))
 
       ("GUILD_UPDATE"
-       (cargo-send >guild> :update data origin))
+       (cargo-send >guild> :update (from-json :guild data) origin))
 
       ("GUILD_DELETE"
-       (cargo-send >guild> :delete data origin))
+       (cargo-send >guild> :delete (from-json :guild data) origin))
 
       ("GUILD_BAN_ADD"
-       (cargo-send >user> :banned data origin))
+       (cargo-send >user> :banned (from-json :user data) origin))
 
       ("GUILD_BAN_REMOVE"
-       (cargo-send >user> :unbanned data origin))
+       (cargo-send >user> :unbanned (from-json :user data) origin))
 
       ("GUILD_EMOJIS_UPDATE"
-       (cargo-send >guild> :emojis-update data origin))
+       (on-emoji-update data origin))
 
       ("GUILD_INTEGRATIONS_UPDATE"
-       (cargo-send >guild> :integrations-update data origin))
+       (cargo-send >guild>
+		   :integrations-update
+		   (gethash "guild_id" data)
+		   origin))
 
       ("GUILD_MEMBER_ADD"
-       (cargo-send >guild> :member-add data origin))
+       (cargo-send >guild> :member-add (from-json :g-member data) origin))
 
       ("GUILD_MEMBER_REMOVE"
-       (cargo-send >guild> :member-remove data origin))
+       (on-guild-member-remove data origin))
 
       ("GUILD_MEMBER_UPDATE"
-       (cargo-send >guild> :member-update data origin))
+       (on-member-update data origin))
 
       ("GUILD_MEMBERS_CHUNK"
        (on-members-chunk data origin))
 
       ("GUILD_ROLE_CREATE"
-       (cargo-send >guild> :role-create data origin))
+       (on-role-* data origin :role-create))
 
       ("GUILD_ROLE_DELETE"
        (cargo-send >guild> :role-delete data origin))
 
       ("GUILD_ROLE_UPDATE"
-       (cargo-send >guild> :role-update data origin))
+       (on-role-* data origin :role-update))
 
       ;; received new message
       ("MESSAGE_CREATE"
-       (cargo-send >message> :create data origin))
+       (cargo-send >message> :create (from-json :message data) origin))
 
       ;; a message is edited
       ("MESSAGE_UPDATE"
-       (cargo-send >message> :update data origin))
+       (cargo-send >message> :update (from-json :message data) origin))
 
       ;; a message is deleted
       ("MESSAGE_DELETE"
        (cargo-send >message> :delete data origin))
 
       ("MESSAGE_DELETE_BULK"
+       (sethash "ids" data (coerce (gethash "ids" data) 'vector))
        (cargo-send >message> :delete-bulk data origin))
 
       ("MESSAGE_REACTION_ADD"
+       (sethash "emoji" data (from-json :emoji (gethash "emoji" data)))
        (cargo-send >message> :reaction-add data origin))
 
       ("MESSAGE_REACTION_REMOVE"
+       (sethash "emoji" data (from-json :emoji (gethash "emoji" data)))
        (cargo-send >message> :reaction-remove data origin))
 
       ("MESSAGE_REACTION_REMOVE_ALL"
@@ -196,14 +226,12 @@
       
       ;; someone updates their presence
       ("PRESENCE_UPDATE"
-       (cargo-send >guild> :presence data origin))
+       (cargo-send >guild> :presence (from-json :presence data) origin))
 
       ;; unrecognised event!
       (:else
-       (dprint :warn "unrecognised event! ~a~%" event)))))
-
-
-
+       (dprint :warn "unrecognised event! ~a~%" event)
+       (cargo-send >status> :unrecognised-event nil origin)))))
 
 
 ;; opcode 10

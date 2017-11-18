@@ -10,9 +10,7 @@
     :components ((:module src
 			  :serial t
 			  :components
-			  ((:file "package")
-			   (:file "util")
-			   (:file "pipes")
+			  ((:file "util")
 			   (:module classes
 				    :serial t
 				    :components
@@ -25,10 +23,12 @@
 				     (:file "guild")
 				     (:file "embed")
 				     (:file "message")))
+			   (:file "package")
+			   (:file "pipes")
 			   (:file "ratelimits")
 			   (:file "constants")
 			   (:file "core")
-			   (:file "cache")
+			   ;(:file "cache")
 			   (:file "http")
 			   (:file "gateway")
 			   (:file "lispcord")

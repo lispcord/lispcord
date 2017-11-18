@@ -17,7 +17,9 @@
    (managed     :initarg :managed
 		:type t)
    (mentionable :initarg :mentionable
-		:type t)))
+		:type t)
+   (guild-id    :initarg :gid
+		:type (or null snowflake))))
 
 (defmethod from-json ((c (eql :role)) (table hash-table))
   (instance-from-table (table 'role)
@@ -28,7 +30,8 @@
 		       :pos "position"
 		       :perms "permissions"
 		       :managed "managed"
-		       :mentionable "mentionable"))
+		       :mentionable "mentionable"
+		       :gid "guild_id"))
 
 (defmethod %to-json ((r role))
   (with-object
@@ -51,11 +54,13 @@
    (roles     :initarg :roles
 	      :type (vector role))
    (joined-at :initarg :joined-at
-	      :type string)
+	      :type (or null string))
    (deaf      :initarg :deaf
-	      :type t)
+	      :type (or null t))
    (mute      :initarg :mute
-	      :type t)))
+	      :type (or null t))
+   (guild-id  :initarg :gid
+	      :type (or null snowflake))))
 
 ;;The Modify and Add Member REST-calls can use this
 (defmethod %to-json ((m guild-member))
@@ -67,14 +72,15 @@
     (write-key-value "mute" (!! m mute))
     (write-key-value "deaf" (!! m deaf))))
 
-(defmethod from-json ((c (eql :guild-member)) (table hash-table))
+(defmethod from-json ((c (eql :g-member)) (table hash-table))
   (instance-from-table (table 'guild-member)
     :user "user"
     :nick "nick"
     :roles "roles"
     :joined-at "joined_at"
     :mute "mute"
-    :deaf "deaf"))
+    :deaf "deaf"
+    :gid "guild_id"))
 
 
 (defclass guild ()

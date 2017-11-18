@@ -1,22 +1,4 @@
-(defpackage :lispcord.util
-  (:use :cl)
-  (:export #:str-concat
-	   #:jparse
-	   #:jmake
-	   #:alist
-	   #:aget
-	   #:doit
-	   #:str-case
-	   #:split-string
-	   #:curry
-	   #:sethash
-	   #:nonce
-	   #:mapf
-	   #:with-table
-	   #:instance-from-table
 
-	   #:set-debug-level
-	   #:dprint))
 
 (defpackage :lispcord.pipes
   (:use :cl :lispcord.util)
@@ -38,6 +20,8 @@
 	   #:with-cargo
 	   #:watch-with-cargo
 	   #:cargo-send))
+
+
 
 (defpackage :lispcord.constants
   (:use :cl :lispcord.util)
@@ -73,6 +57,7 @@
 	   #:bot-heartbeat-thread
 	   #:bot-callbacks
 	   #:bot-user
+	   #:bot-afk-since
 
 	   #:>message>
 	   #:>user>
@@ -100,6 +85,7 @@
 	:lispcord.pipes
 	:lispcord.core
 	:lispcord.cache
+	:lispcord.classes
 	:lispcord.constants)
   (:export #:connect))
 

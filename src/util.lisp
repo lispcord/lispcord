@@ -1,3 +1,24 @@
+(defpackage :lispcord.util
+  (:use :cl)
+  (:export #:str-concat
+	   #:jparse
+	   #:jmake
+	   #:alist
+	   #:aget
+	   #:doit
+	   #:str-case
+	   #:split-string
+	   #:curry
+	   #:sethash
+	   #:nonce
+	   #:mapf
+	   #:with-table
+	   #:instance-from-table
+	   #:unix-epoch
+
+	   #:set-debug-level
+	   #:dprint))
+
 (in-package :lispcord.util)
 
 ;; this type allows us to later potentially convert the IDs to numbers
@@ -57,7 +78,9 @@
     (apply #'format *error-output* message arguments)))
 
 
-
+(defun unix-epoch ()
+  (- (get-universal-time)
+     (encode-universal-time 0 0 0 1 1 1970)))
 
 (defun time-passed (since &optional (unit :minute))
   (let ((now (get-universal-time)))
@@ -116,4 +139,6 @@
 				    e
 				    `(gethash ,e ,table))
 		       :else :collect e)))
+
+
 
