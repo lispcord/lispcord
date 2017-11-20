@@ -5,9 +5,6 @@
   "The global cache object. It should be persistent, but should
 it be shared across instances?")
 
-;; we need to somehow parse the channels out of guild now
-;; lift emojis/roles etc. into the global cache?
-
 
 ;;; Setting up relevant subpipes for things that need to be cached
 

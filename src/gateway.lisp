@@ -2,7 +2,6 @@
 
 (defun gateway-url ()
   (doit  (get-rq "gateway")
-	 (jparse it)
 	 (aget "url" it)
 	 (:! dprint :debug "~&Gateway-url: ~a~%" it)
 	 (str-concat it +api-suffix+)))
@@ -12,23 +11,22 @@
 (defun send-payload (bot &key op data)
   (doit (jmake `(("op" . ,op) ("d" . ,data)))
 	(:! dprint :debug "~&Send payload: ~a~%" it)
-	(wsd:send (bot-conn bot) it)))
+	(wsd:send (conn bot) it)))
 
-(defun make-status (bot status game afk
-		    &aux (since (if afk (if (bot-afk-since bot)
-					    (bot-afk-since bot)
-					    (setf (bot-afk-since bot)
-						  (unix-epoch))))))
-  `(("since" . ,since)
-    ("game" . ,game)
-    ("afk" . ,afk)
-    ("status" . ,(string-downcase (string status)))))
+(defun make-status (bot status game afk)
+  (let ((since (if afk (if (afk-since bot)
+			   (afk-since bot)
+			   (setf (afk-since bot) (unix-epoch))))))
+    `(("since" . ,since)
+      ("game" . ,game)
+      ("afk" . ,afk)
+      ("status" . ,(string-downcase (string status))))))
 
 (defun send-identify (bot)
-  (dprint :info "~&Send identify for ~a~%" (bot-token bot))
+  (dprint :info "~&Send identify for ~a~%" (token bot))
   (send-payload bot
 		:op 2
-		:data `(("token" . ,(bot-token bot))
+		:data `(("token" . ,(str-concat "Bot " (token bot)))
 			("properties" . (("$os" . ,+os+)
 					 ("$browser" . ,+lib+)
 					 ("$device" . ,+lib+)))
@@ -42,21 +40,21 @@
 
 (defun send-resume (bot)
   (dprint :info "~&Resuming connection for session ~a...~%"
-	  (bot-session-id bot))
+	  (session-id bot))
   (send-payload bot
 		:op 6
-		:data `(("token" . ,(bot-token bot))
-			("session_id" . ,(bot-session-id bot))
-			("seq" . ,(bot-seq bot)))))
+		:data `(("token" . ,(token bot))
+			("session_id" . ,(session-id bot))
+			("seq" . ,(seq bot)))))
 
 
 (defun on-ready (bot payload)
   (dprint :info "~&Ready payload received; Session-id: ~a~%"
 	  (aget "session_id" payload))
-  (setf (bot-session-id bot) (aget "session_id" payload))
-  (setf (bot-user bot) (aget "user" payload))
+  (setf (session-id bot) (aget "session_id" payload))
+  (setf (user bot) (from-json :user (aget "user" payload)))
   ;dispatch event
-  (cargo-send >status> :ready payload (!! (bot-user bot) id)))
+  (cargo-send >status> :ready payload (id (user bot))))
 
 
 
@@ -72,12 +70,12 @@
 (defun send-heartbeat (bot)
   (send-payload bot
 		:op 1
-		:data (bot-seq bot)))
+		:data (seq bot)))
 
 (defun make-heartbeat-thread (bot seconds)
   (dprint :info "~&Initiating heartbeat every ~d seconds~%" seconds)
   (make-thread (lambda ()
-		 (loop :until (bot-done bot) :do
+		 (loop :until (done bot) :do
 		   (send-heartbeat bot)
 		   (sleep seconds)))))
 
@@ -99,7 +97,7 @@
 
 (defun on-member-remove (data origin)
   (let ((user (from-json :user (gethash "user" data))))
-    (setf (slot-value user 'guild-id) (gethash "guild_id" data))
+    (setf (lc:guild-id user) (gethash "guild_id" data))
     (cargo-send >guild> :member-remove user origin)))
 
 (defun on-member-update (data origin)
@@ -108,7 +106,7 @@
 
 (defun on-role-* (data origin kind)
   (let ((role (from-json :role (gethash "role" data))))
-    (setf (slot-value role 'guild-id) (gethash "guild_id" data))
+    (setf (lc:guild-id role) (gethash "guild_id" data))
     (cargo-send >guild> kind origin)))
 
 
@@ -118,8 +116,8 @@
   (let ((event (aget "t" msg))
 	(seq (aget "s" msg))
 	(data (aget "d" msg))
-	(origin (!! (bot-user bot) id)))
-    (setf (bot-seq bot) seq)
+	(origin (if (user bot) (lc:id (user bot)))))
+    (setf (seq bot) seq)
     (dprint :info "[Event] ~a~%" event)
     (dprint :debug "[Payload] ~a~%" msg)
     (str-case event
@@ -180,7 +178,7 @@
        (cargo-send >guild> :member-add (from-json :g-member data) origin))
 
       ("GUILD_MEMBER_REMOVE"
-       (on-guild-member-remove data origin))
+       (on-member-remove data origin))
 
       ("GUILD_MEMBER_UPDATE"
        (on-member-update data origin))
@@ -238,9 +236,9 @@
 (defun on-hello (bot msg)
   (let ((heartbeat-interval (aget "heartbeat_interval" (aget "d" msg))))
     (dprint :debug "Heartbeat Inverval: ~a~%" heartbeat-interval)
-    (setf (bot-heartbeat-thread bot)
+    (setf (heartbeat-thread bot)
 	  (make-heartbeat-thread bot (/ heartbeat-interval 1000.0)))
-    (if (bot-session-id bot)
+    (if (session-id bot)
 	(send-resume bot)
 	(send-identify bot))))
 
@@ -267,30 +265,30 @@
 
 
 (defun connect (bot)
-  (setf (bot-conn bot) (wsd:make-client (gateway-url)))
-  (wsd:start-connection (bot-conn bot))
+  (setf (conn bot) (wsd:make-client (gateway-url)))
+  (wsd:start-connection (conn bot))
   
-  (wsd:on :open (bot-conn bot)
+  (wsd:on :open (conn bot)
 	  (lambda ()
 	    (dprint :info "Connected!~%")))
   
-  (wsd:on :message (bot-conn bot)
+  (wsd:on :message (conn bot)
 	  (lambda (message)
 	    (on-recv bot (jparse message))))
   
-  (wsd:on :error (bot-conn bot)
+  (wsd:on :error (conn bot)
 	  (lambda (error)
 	    (dprint :error "Websocket error: ~a~%" error)))
   
-  (wsd:on :close (bot-conn bot)
+  (wsd:on :close (conn bot)
 	  (lambda (&key code reason)
-	    (cargo-send >status> :close (list code reason) (bot-user bot))
+	    (cargo-send >status> :close (list code reason) (lc:id (user bot)))
 	    (dprint :warn "Websocket closed with code: ~a~%Reason: ~a~%" code reason))))
 
 (defun disconnect (bot)
-  (wsd:close-connection (bot-conn bot))
-  (setf (bot-done bot) t)
-  (setf (bot-seq bot) 0)
-  (setf (bot-session-id bot) nil)
-  (setf (bot-user bot) nil)
-  (setf (bot-heartbeat-thread bot) nil))
+  (wsd:close-connection (conn bot))
+  (setf (done bot) t)
+  (setf (seq bot) 0)
+  (setf (session-id bot) nil)
+  (setf (user bot) nil)
+  (setf (heartbeat-thread bot) nil))

@@ -10,11 +10,13 @@
 	   #:split-string
 	   #:curry
 	   #:sethash
-	   #:nonce
+	   #:make-nonce
 	   #:mapf
 	   #:with-table
 	   #:instance-from-table
 	   #:unix-epoch
+
+	   #:snowflake
 
 	   #:set-debug-level
 	   #:dprint))
@@ -91,7 +93,7 @@
 
 
 (defun curry (f &rest args)
-  (lambda (arg) (apply f args arg)))
+  (lambda (arg) (apply f (append args (list arg)))))
 
 (defun split-string (string &optional (delimiter #\space))
   (declare (type string string)
@@ -109,7 +111,7 @@
 
 
 (let ((cnt 0))
-  (defun nonce ()
+  (defun make-nonce ()
     (format nil "~d" (+ (* (get-universal-time) 1000000)
 			(incf cnt)))))
 
@@ -139,6 +141,7 @@
 				    e
 				    `(gethash ,e ,table))
 		       :else :collect e)))
+
 
 
 

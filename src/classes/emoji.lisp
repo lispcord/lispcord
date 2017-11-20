@@ -1,18 +1,26 @@
-(in-package :lispcord.classes.emoji)
+(in-package :lispcord.classes)
+
 
 (defclass emoji ()
   ((id      :initarg :id
-	    :type snowflake)
+	    :type snowflake
+	    :accessor id)
    (name    :initarg :name
-	    :type string)
+	    :type string
+	    :accessor name)
    (roles   :initarg :roles
-	    :type (vector snowflake))
+	    :type (vector snowflake)
+	    :accessor roles)
    (user    :initarg :user
-	    :type user)
+	    :type user
+	    :accessor user)
    (colons? :initarg :colons?
-	    :type t)
+	    :type t
+	    :accessor colonsp)
    (managed :initarg :managed
-	    :type t)))
+	    :type t
+	    :accessor managedp)))
+
 
 (defmethod from-json ((c (eql :emoji)) (table hash-table))
   (instance-from-table (table 'emoji)
@@ -25,8 +33,10 @@
 
 (defmethod %to-json ((e emoji))
   (with-object
-    (write-key-value "id" (!! e id))
-    (write-key-value "name" (!! e name))
-    (write-key-value "roles" (!! e roles))
-    (write-key-value "require_colons" (!! e colons?))
-    (write-key-value "managed" (!! e managed))))
+    (write-key-value "id" (id e))
+    (write-key-value "name" (name e))
+    (write-key-value "roles" (roles e))
+    (write-key-value "require_colons" (colonsp e))
+    (write-key-value "managed" (managedp e))))
+
+

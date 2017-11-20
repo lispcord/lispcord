@@ -1,8 +1,13 @@
-(in-package :lispcord.classes.integration)
+(in-package :lispcord.classes)
+
 
 (defclass account ()
-  ((id   :initarg :id   :type snowflake)
-   (name :initarg :name :type string)))
+  ((id   :initarg :id
+	 :type snowflake
+	 :accessor id)
+   (name :initarg :name
+	 :type string
+	 :accessor name)))
 
 (defmethod from-json ((c (eql :account)) (table hash-table))
   (instance-from-table (table 'account)
@@ -11,21 +16,43 @@
 
 (defmethod %to-json ((a account))
   (with-object
-    (write-key-value "id" (!! a id))
-    (write-key-value "name" (!! a name))))
+    (write-key-value "id" (id a))
+    (write-key-value "name" (name a))))
 
-(defclass integration ()
-  ((id               :initarg :id         :type snowflake)
-   (name             :initarg :name       :type string)
-   (type             :initarg :type       :type string)
-   (enabled          :initarg :enabled    :type t)
-   (syncing          :initarg :syncing    :type t)
-   (role-id          :initarg :role-id    :type snowflake)
-   (expire-behavior  :initarg :e-behavior :type fixnum)
-   (expire-grace     :initarg :e-grace    :type fixnum)
-   (user             :initarg :user       :type user)
-   (account          :initarg :account    :type account)
-   (synced-at        :initarg :synced-at  :type string)))
+(defclass integration (integration-object)
+  ((id               :initarg :id
+		     :type snowflake
+		     :accessor id)
+   (name             :initarg :name
+		     :type string
+		     :accessor name)
+   (type             :initarg :type
+		     :type string
+		     :accessor type)
+   (enabled          :initarg :enabled
+		     :type t
+		     :accessor enabledp)
+   (syncing          :initarg :syncing
+		     :type t
+		     :accessor syncingp)
+   (role-id          :initarg :role-id
+		     :type snowflake
+		     :accessor role-id)
+   (expire-behavior  :initarg :e-behavior
+		     :type fixnum
+		     :accessor expire-behaviour)
+   (expire-grace     :initarg :e-grace
+		     :type fixnum
+		     :accessor expire-grace)
+   (user             :initarg :user
+		     :type user
+		     :accessor user)
+   (account          :initarg :account
+		     :type account
+		     :accessor account)
+   (synced-at        :initarg :synced-at
+		     :type string
+		     :accessor synced-at)))
 
 (defmethod from-json ((c (eql :integration)) (table hash-table))
   (instance-from-table (table 'integration)

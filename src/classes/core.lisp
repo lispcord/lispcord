@@ -1,13 +1,7 @@
-(in-package :lispcord.classes.core)
+(in-package :lispcord.classes)
 
 (defgeneric from-json (class-symbol obj)
   (:documentation "Converts a json object to the specified class"))
-
-(defmacro !! (instance &rest slot-path)
-  "Retrieves the value of the given slot path"
-  (reduce (lambda (a b) `(slot-value ,a ',b))
-	  (cdr slot-path)
-	  :initial-value `(slot-value ,instance ',(car slot-path))))
 
 
 ;;; When working on a class, please comment on the relevant github issue

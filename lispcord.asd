@@ -28,7 +28,11 @@
 			   (:file "ratelimits")
 			   (:file "constants")
 			   (:file "core")
-			   ;(:file "cache")
-			   (:file "http")
+			   ;;(:file "cache")
+			   (:module http
+				    :serial t
+				    :components
+				    ((:file "core")
+				     (:file "channel")))
 			   (:file "gateway")
 			   (:file "lispcord")))))

@@ -47,18 +47,17 @@
 	:lispcord.constants)
   (:export #:bot
 	   #:primitive-make-bot
-	   #:bot-token
-	   #:bot-os
-	   #:bot-lib
-	   #:bot-version
-	   #:bot-seq
-	   #:bot-session-id
-	   #:bot-conn
-	   #:bot-done
-	   #:bot-heartbeat-thread
-	   #:bot-callbacks
-	   #:bot-user
-	   #:bot-afk-since
+	   #:string-slot
+
+	   #:token
+	   #:user
+	   #:version
+	   #:seq
+	   #:session-id
+	   #:afk-since
+	   #:conn
+	   #:done
+	   #:heartbeat-thread
 
 	   #:>message>
 	   #:>user>
@@ -86,9 +85,12 @@
 	:lispcord.pipes
 	:lispcord.core
 	:lispcord.cache
-	:lispcord.classes
 	:lispcord.constants)
-  (:export #:connect))
+  (:import-from :lispcord.classes
+		#:from-json
+		#:%to-json)
+  (:export #:connect
+	   #:disconnect))
 
 (defpackage :lispcord.http
   (:use :cl
@@ -101,7 +103,6 @@
 (defpackage :lispcord
   (:use :cl
 	:lispcord.util
-	:lispcord.classes
 	:lispcord.constants
 	:lispcord.gateway
 	:lispcord.http
@@ -113,6 +114,7 @@
 	   #:reply
 	   #:with-handler
 	   #:watch-with-case
-	   #:!!))
+
+	   #:>message>))
 
 

@@ -1,36 +1,45 @@
-(in-package :lispcord.classes.user)
+(in-package :lispcord.classes)
 
 
 (defclass user ()
   ((id            :initarg :id
-		  :type snowflake)
+		  :type snowflake
+		  :accessor id)
    (username      :initarg :username
-		  :type string)
+		  :type string
+		  :accessor username)
    (discriminator :initarg :discrim
-		  :type string)
+		  :type string
+		  :accessor discrim)
    (avatar        :initarg :avatar
-		  :type string)
+		  :type string
+		  :accessor avatar)
    (bot           :initarg :bot
-		  :type t)
+		  :type t
+		  :accessor botp)
    (mfa           :initarg :mfa
-		  :type t)
+		  :type t
+		  :accessor mfa-p)
    (verified      :initarg :verified
-		  :type t)
+		  :type t
+		  :accessor verifiedp)
    (email         :initarg :email
-		  :type t)
+		  :type t
+		  :accessor emailp)
    (guild-id      :initarg :gid
-		  :type (or null snowflake))))
+		  :type (or null snowflake)
+		  :accessor guild-id)))
 
 (defmethod %to-json ((u user))
   (with-object
-    (write-key-value "id" (!! u id))
-    (write-key-value "username" (!! u username))
-    (write-key-value "discriminator" (!! u discriminator))
-    (write-key-value "avatar" (!! u avatar))
-    (write-key-value "bot" (!! u bot))
-    (write-key-value "mfa" (!! u mfa))
-    (write-key-value "verified" (!! u verified))
-    (write-key-value "email" (!! u email))))
+    (write-key-value "id" (id u))
+    (write-key-value "username" (username u))
+    (write-key-value "discriminator" (discrim u))
+    (write-key-value "avatar" (avatar u))
+    (write-key-value "bot" (botp u))
+    (write-key-value "mfa" (mfa-p u))
+    (write-key-value "verified" (verifiedp u))
+    (write-key-value "email" (emailp u))))
 
 (defmethod from-json ((c (eql :user)) (table hash-table))
   (instance-from-table (table 'user)
@@ -45,50 +54,4 @@
     :gid "guild_id"))
 
 
-(defclass game ()
-  ((name :initarg :name :type string)
-   (type :initarg :type :type (integer 0 1))
-   (url  :initarg :url  :type (or null string))))
-
-(defmethod from-json ((c (eql :game)) (table hash-table))
-  (instance-from-table (table 'game)
-    :name "name"
-    :type "type"
-    :url "url"))
-
-(defmethod %to-json ((g game))
-  (with-object
-    (write-key-value "name" (!! g name))
-    (write-key-value "type" (!! g type))
-    (write-key-value "url" (!! g url))))
-
-(defun make-game (game-name &optional (type 0) (url nil))
-  (make-instance 'game :name game-name :type type :url url))
-
-(defclass presence ()
-  ((user     :initarg :user     :type snowflake)
-   (roles    :initarg :roles    :type (or null (vector role)))
-   (game     :initarg :game     :type (or null game))
-   (guild-id :initarg :guild-id :type (or null snowflake))
-   (status   :initarg :status   :type (or null string))))
-
-(defmethod from-json ((c (eql :presence)) (table hash-table))
-  (instance-from-table (table 'presence)
-    :user (gethash "id" (gethash "user" table))
-    :roles (map 'vector (curry #'from-json :role)
-		(gethash "roles" table))
-    :game (from-json :game (gethash "game" table))
-    :guild-id "guild_id"
-    :status "status"))
-
-(defmethod %to-json ((p presence))
-  (with-object
-    (write-key-value "name" (!! p name))
-    (write-key-value "roles" (!! p roles))
-    (write-key-value "game" (!! p game))
-    (write-key-value "guild_id" (!! p guild-id))
-    (write-key-value "status" (!! p status))))
-
-(defun derive-string (symbol)
-  (string-downcase (string symbol)))
 
