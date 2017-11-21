@@ -14,13 +14,13 @@
 	(wsd:send (conn bot) it)))
 
 (defun make-status (bot status game afk)
-  (let ((since (if afk (if (afk-since bot)
-			   (afk-since bot)
-			   (setf (afk-since bot) (unix-epoch))))))
+  (let ((since (when afk (if (afk-since bot)
+			     (afk-since bot)
+			     (setf (afk-since bot) (unix-epoch))))))
     `(("since" . ,since)
       ("game" . ,game)
       ("afk" . ,afk)
-      ("status" . ,(string-downcase (string status))))))
+      ("status" . ,status))))
 
 (defun send-identify (bot)
   (dprint :info "~&Send identify for ~a~%" (token bot))
@@ -34,7 +34,7 @@
 			("large_threshold" . 250)
 			("shard" . (0 1))
 			("presence" . ,(make-status bot
-						    :online
+						    "online"
 						    nil
 						    nil)))))
 
@@ -54,7 +54,7 @@
   (setf (session-id bot) (aget "session_id" payload))
   (setf (user bot) (from-json :user (aget "user" payload)))
   ;dispatch event
-  (cargo-send >status> :ready payload (id (user bot))))
+  (cargo-send >status> :ready payload (lc:id (user bot))))
 
 
 
@@ -287,6 +287,7 @@
 
 (defun disconnect (bot)
   (wsd:close-connection (conn bot))
+  (setf (conn bot) nil)
   (setf (done bot) t)
   (setf (seq bot) 0)
   (setf (session-id bot) nil)

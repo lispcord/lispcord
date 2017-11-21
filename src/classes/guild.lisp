@@ -114,6 +114,9 @@
     :type "type"
     :url "url"))
 
+(defmethod from-json ((c (eql :game)) (n null))
+  nil)
+
 (defmethod %to-json ((g game))
   (with-object
     (write-key-value "name" (name g))
@@ -128,7 +131,7 @@
 	     :type snowflake
 	     :accessor user)
    (roles    :initarg :roles
-	     :type (or null (vector role))
+	     :type (or null (vector snowflake))
 	     :accessor roles)
    (game     :initarg :game
 	     :type (or null game)
@@ -143,8 +146,7 @@
 (defmethod from-json ((c (eql :presence)) (table hash-table))
   (instance-from-table (table 'presence)
     :user (gethash "id" (gethash "user" table))
-    :roles (map 'vector (curry #'from-json :role)
-		(gethash "roles" table))
+    :roles (coerce (gethash "roles" table) 'vector)
     :game (from-json :game (gethash "game" table))
     :guild-id "guild_id"
     :status "status"))
@@ -159,7 +161,7 @@
 
 
 
-(defclass guild (guild-object)
+(defclass guild ()
   ((id                 :initarg :id
 		       :type snowflake
 		       :accessor id)
@@ -272,7 +274,7 @@
     (write-key-value "channels" (channels g))
     (write-key-value "presences" (presences g))))
 
-(defmethod from-json ((c (eql :class)) (table hash-table))
+(defmethod from-json ((c (eql :guild)) (table hash-table))
   (instance-from-table (table 'guild)
     :id "id"
     :name "name"

@@ -46,7 +46,7 @@
     (write-key-value "height" (height a))
     (write-key-value "width" (width a))))
 
-(defclass reaction (msg-obj)
+(defclass reaction ()
   ((count :initarg :count
 	  :type fixnum
 	  :accessor count)
@@ -63,7 +63,7 @@
     :me "me"
     :emoji (from-json :emoji (gethash "emoji" table))))
 
-(defclass message (msg-obj)
+(defclass message ()
   ((id            :initarg :id
 		  :type snowflake
 		  :accessor id)

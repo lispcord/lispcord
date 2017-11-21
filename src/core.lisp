@@ -4,7 +4,7 @@
 (defstruct (bot (:constructor primitive-make-bot)
 		:conc-name)
   (token "" :type string :read-only t)
-  (user nil :type (or null user))
+  (user nil :type (or null lc:user))
   (version "0.0.1" :type string)
   (seq 0 :type fixnum)
   (session-id nil :type (or null string))
@@ -42,10 +42,10 @@
 
 
 (defun user-agent (bot)
-  (str-concat "DiscordBot (" bot-url ", " (bot-version bot) ")"))
+  (str-concat "DiscordBot (" bot-url ", " (version bot) ")"))
 
 (defun headers (bot)
-  (list (cons "Authorization" (str-concat "Bot " (bot-token bot)))
+  (list (cons "Authorization" (str-concat "Bot " (token bot)))
         (cons "User-Agent" (user-agent bot))))
 
 

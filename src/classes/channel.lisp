@@ -58,7 +58,10 @@
 		  :type (or null snowflake)
 		  :accessor parent-id)))
 
-(defclass category (guild-channel) nil)
+(defclass category (guild-channel)
+  ((nsfw :initarg :nsfw
+	 :type t
+	 :accessor nsfw-p)))
 
 (defclass text-channel (guild-channel)
   ((nsfw         :initarg :nsfw
@@ -147,7 +150,7 @@
     :parent-id "parent_id"
     :nsfw "nsfw"
     :pos "position"
-    :guild-id "guild_id"))
+    :g-id "guild_id"))
 
 (defmethod from-json ((c (eql :channel)) (table hash-table))
   (case (gethash "type" table)
@@ -166,7 +169,7 @@
     (write-key-value "name" (name gtc))
     (write-key-value "permission_overwrites" (overwrites gtc))
     (write-key-value "parent_id" (parent-id gtc))
-    (write-key-value "nsfw" (nsfw gtc))
+    (write-key-value "nsfw" (nsfw-p gtc))
     (write-key-value "topic" (topic gtc))
     (write-key-value "last_message_id" (last-message gtc))))
 

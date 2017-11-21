@@ -1,5 +1,3 @@
-(declaim (optimize debug safety))
-
 (ql:quickload :lispcord)
 (use-package :lispcord)
 
