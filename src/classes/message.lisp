@@ -1,22 +1,30 @@
-(in-package :lispcord.classes.message)
+(in-package :lispcord.classes)
+
 
 (deftype message-type () `(integer 0 7))
 
 (defclass attachement ()
   ((id        :initarg :id
-	      :type snowflake)
+	      :type snowflake
+	      :accessor id)
    (filename  :initarg :file
-	      :type string)
+	      :type string
+	      :accessor filename)
    (size      :initarg :size
-	      :type fixnum)
+	      :type fixnum
+	      :accessor size)
    (url       :initarg :url
-	      :type string)
+	      :type string
+	      :accessor url)
    (proxy-url :initarg :proxy
-	      :type string)
+	      :type string
+	      :accessor proxy-url)
    (height    :initarg :height
-	      :type (or null fixnum))
+	      :type (or null fixnum)
+	      :accessor height)
    (width     :initarg :width
-	      :type (or null fixnum))))
+	      :type (or null fixnum)
+	      :accessor width)))
 
 (defmethod from-json ((c (eql :attachement)) (table hash-table))
   (instance-from-table (table 'attachement)
@@ -30,21 +38,24 @@
 
 (defmethod %to-json ((a attachement))
   (with-object
-    (write-key-value "id" (!! a id))
-    (write-key-value "filename" (!! a filename))
-    (write-key-value "size" (!! a size))
-    (write-key-value "url" (!! a url))
-    (write-key-value "proxy_url" (!! a proxy-url))
-    (write-key-value "height" (!! a height))
-    (write-key-value "width" (!! a width))))
+    (write-key-value "id" (id a))
+    (write-key-value "filename" (filename a))
+    (write-key-value "size" (size a))
+    (write-key-value "url" (url a))
+    (write-key-value "proxy_url" (proxy-url a))
+    (write-key-value "height" (height a))
+    (write-key-value "width" (width a))))
 
 (defclass reaction ()
   ((count :initarg :count
-	  :type fixnum)
+	  :type fixnum
+	  :accessor count)
    (me    :initarg :me
-	  :type t)
+	  :type t
+	  :accessor mep)
    (emoji :initarg :emoji
-	  :type emoji)))
+	  :type emoji
+	  :accessor emoji)))
 
 (defmethod from-json ((c (eql :reaction)) (table hash-table))
   (instance-from-table (table 'reaction)
@@ -54,39 +65,56 @@
 
 (defclass message ()
   ((id            :initarg :id
-		  :type snowflake)
+		  :type snowflake
+		  :accessor id)
    (channel-id    :initarg :channel-id
-		  :type snowflake)
+		  :type snowflake
+		  :accessor channel-id)
    (author        :initarg :author
-		  :type user)
+		  :type user
+		  :accessor user)
    (content       :initarg :content
-		  :type string)
+		  :type string
+		  :accessor content)
    (timestamp     :initarg :timestamp
-		  :type string)
+		  :type string
+		  :accessor timestamp)
    (edited-at     :initarg :edited-at
-		  :type (or null string))
+		  :type (or null string)
+		  :accessor editedp)
    (tts           :initarg :tts
-		  :type t)
+		  :type t
+		  :accessor tts-p)
    (mention-all   :initarg :mention-all
-		  :type t)
+		  :type t
+		  :accessor mention-all-p)
    (mentions      :initarg :mentions
-		  :type (vector user))
+		  :type (vector user)
+		  :accessor mentions)
    (mention-roles :initarg :mention-roles
-		  :type (vector role))
+		  :type (vector role)
+		  :accessor mention-roles)
    (attachements  :initarg :attachements
-		  :type (vector attachement))
+		  :type (vector attachement)
+		  :accessor attachements)
    (embeds        :initarg :embeds
-		  :type (vector embeds))
+		  :type (vector embed)
+		  :accessor embeds)
    (reactions     :initarg :reactions
-		  :type (or null (vector reaction)))
+		  :type (or null (vector reaction))
+		  :accessor reactions)
    (nonce         :initarg :nonce
-		  :type (or null snowflake))
+		  :type (or null snowflake)
+		  :accessor nonce)
    (pinned        :initarg :pinned
-		  :type t)
+		  :type t
+		  :accessor pinnedp)
    (webhook-id    :initarg :webhook-id
-		  :type (or null snowflake))
+		  :type (or null snowflake)
+		  :accessor webhook-id)
    (type          :initarg :type
-		  :type message-type)))
+		  :type message-type
+		  :accessor type)))
 
 (defmethod from-json ((c (eql :message)) (table hash-table))
   (instance-from-table (table 'message)
@@ -115,20 +143,20 @@
 
 (defmethod %to-json ((m message))
   (with-object
-    (write-key-value "id" (!! m id))
-    (write-key-value "channel_id" (!! m channel-id))
-    (write-key-value "author" (!! m author))
-    (write-key-value "content" (!! m content))
-    (write-key-value "timestampt" (!! m timestamp))
-    (write-key-value "edited_timestamp" (!! m edited_at))
-    (write-key-value "tts" (!! m tts))
-    (write-key-value "mention_everyone" (!! m mention-all))
-    (write-key-value "mentions" (!! m mentions))
-    (write-key-value "mention_roles" (!! m mention-roles))
-    (write-key-value "attachements" (!! m attachements))
-    (write-key-value "embeds" (!! m embeds))
-    (write-key-value "reactions" (!! m reactions))
-    (write-key-value "nonce" (!! m nonce))
-    (write-key-value "pinned" (!! m pinned))
-    (write-key-value "webhook_id" (!! m webhook-id))
-    (write-key-value "type" (!! m type))))
+    (write-key-value "id" (id m))
+    (write-key-value "channel_id" (channel-id m))
+    (write-key-value "author" (author m))
+    (write-key-value "content" (content m))
+    (write-key-value "timestampt" (timestamp m))
+    (write-key-value "edited_timestamp" (editedp m))
+    (write-key-value "tts" (tts-p m))
+    (write-key-value "mention_everyone" (mention-all-p m))
+    (write-key-value "mentions" (mentions m))
+    (write-key-value "mention_roles" (mention-roles m))
+    (write-key-value "attachements" (attachements m))
+    (write-key-value "embeds" (embeds m))
+    (write-key-value "reactions" (reactions m))
+    (write-key-value "nonce" (nonce m))
+    (write-key-value "pinned" (pinnedp m))
+    (write-key-value "webhook_id" (webhook-id m))
+    (write-key-value "type" (type m))))

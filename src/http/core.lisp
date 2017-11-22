@@ -7,6 +7,7 @@
 	   bot
 	   `(("content" . ,content))))
 
+
 (defun create-msg (bot channel-id message &aux (nonce (nonce)))
   (let* ((response (jparse
 		    (discord-req
@@ -20,3 +21,7 @@
 	response
 	(error "Could not send message, nonce failure of ~a ~a"
 	       nonce reply-nonce))))
+
+
+(defgeneric from-id (object &optional bot)
+  (:documentation "Retrieves the given object type via ID, either from the cache or through a REST call"))

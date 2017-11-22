@@ -1,10 +1,10 @@
 (in-package :lispcord.core)
 
 
-
-(defstruct (bot (:constructor primitive-make-bot))
+(defstruct (bot (:constructor primitive-make-bot)
+		:conc-name)
   (token "" :type string :read-only t)
-  (user nil :type (or null user))
+  (user nil :type (or null lc:user))
   (version "0.0.1" :type string)
   (seq 0 :type fixnum)
   (session-id nil :type (or null string))
@@ -12,7 +12,6 @@
   conn
   (done nil :type (or null t))
   heartbeat-thread)
-
 
 
 ;;; Set up the various event pipes
@@ -43,27 +42,29 @@
 
 
 (defun user-agent (bot)
-  (str-concat "DiscordBot (" bot-url ", " (bot-version bot) ")"))
+  (str-concat "DiscordBot (" bot-url ", " (version bot) ")"))
 
 (defun headers (bot)
-  (list (cons "Authorization" (str-concat "Bot " (bot-token bot)))
+  (list (cons "Authorization" (str-concat "Bot " (token bot)))
         (cons "User-Agent" (user-agent bot))))
 
 
 
 
 (defun discord-req (endpoint &key bot content (type :get)
-		    &aux (url (str-concat +base-url+ endpoint)))
+		    &aux
+		      (url (str-concat +base-url+ endpoint))
+		      (final (rl-buffer endpoint)))
   (dprint :debug "~&HTTP-~a-Request to: ~a~%~@[  content: ~a~%~]"
 	  type url content)
-  (let ((final (rl-buffer endpoint)))
-    (multiple-value-bind (b sta headers u str)
-	(dex:request url
-		     :method type
-		     :headers (if bot (headers bot))
-		     :content content)
-      (rl-parse final headers)
-      (values b sta headers u str))))
+  (multiple-value-bind (b sta headers u str)
+      (dex:request url
+		   :method type
+		   :headers (if bot (headers bot))
+		   :content content)
+    (declare (ignore sta u str))
+    (rl-parse final headers)
+    (jparse b)))
 
 (defun get-rq (endpoint &optional bot)
   (discord-req endpoint :bot bot :type :get))

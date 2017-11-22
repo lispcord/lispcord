@@ -31,8 +31,8 @@
 (defclass pipe ()
   ((handlers :initarg :handlers
 	     :accessor handlers
-	     :initform nil
-	     :type (cons handler)))
+	     :initform '()
+	     :type (or null (cons handler))))
   (:documentation "The default pipe class. Used to handle events"))
 
 

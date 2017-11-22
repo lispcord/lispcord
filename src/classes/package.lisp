@@ -1,115 +1,144 @@
-
-(defpackage :lispcord.classes.core
-  (:use :cl :lispcord.util :jonathan)
-  (:export #:from-json
-	   #:!!))
-
-(defpackage :lispcord.classes.user
-  (:use :cl :lispcord.util :lispcord.classes.core :jonathan)
-  (:export #:user
-	   #:presence
-
-	   #:from-json
-	   #:%to-json
-
-	   #:make-game))
-
-(defpackage :lispcord.classes.integration
-  (:use :cl
-	:lispcord.util
-	:lispcord.classes.core
-	:lispcord.classes.user
-	:jonathan)
-  (:export #:integration
-
-	   #:from-json
-	   #:%to-json))
-
-(defpackage :lispcord.classes.emoji
-  (:use :cl
-	:lispcord.util
-	:lispcord.classes.core
-	:lispcord.classes.user
-	:jonathan)
-  (:export #:emoji
-
-	   #:from-json
-	   #:%to-json))
-
-(defpackage :lispcord.classes.channel
-  (:use :cl :lispcord.util :lispcord.classes.core :jonathan)
-  (:export #:channel
-
-	   #:from-json
-	   #:%to-json))
-
-
-(defpackage :lispcord.classes.guild
-  (:use :cl
-	:lispcord.util
-	:lispcord.classes.core
-	:lispcord.classes.user
-	:jonathan)
-  (:export #:role
-	   #:guild
-	   #:guild-member
-
-	   #:from-json
-	   #:%to-json))
-
-
-(defpackage :lispcord.classes.embed
-  (:use :cl
-	:lispcord.util
-	:lispcord.classes.core
-	:jonathan)
-  (:export #:embed
-
-	   #:from-json
-	   #:%to-json))
-
-(defpackage :lispcord.classes.message
-  (:use :cl
-	:lispcord.util
-	:lispcord.classes.core
-	:lispcord.classes.user
-	:lispcord.classes.emoji
-	:lispcord.classes.guild
-	:lispcord.classes.embed
-	:jonathan)
-  (:export #:attachement
-	   #:reaction
-	   #:message
-
-	   #:from-json
-	   #:%to-json))
-
-
 (defpackage :lispcord.classes
+  (:nicknames :lc)
   (:use :cl
-	:lispcord.classes.core
-	:lispcord.classes.user
-	:lispcord.classes.integration
-	:lispcord.classes.emoji
-	:lispcord.classes.channel
-	:lispcord.classes.guild
-	:lispcord.classes.embed
-	:lispcord.classes.message)
+	:jonathan
+	:lispcord.util)
+  (:shadow #:type
+	   #:position
+	   #:inline
+	   #:count
+	   #:member)
   
   (:export #:%to-json
 	   #:from-json
 
-	   #:!!
-
+	   #:make-game
+	   
+	   #:overwrite
 	   #:user
-	   #:presence
+	   #:account
 	   #:integration
 	   #:emoji
 	   #:channel
+	   #:guild-channel
+	   #:category
+	   #:text-channel
+	   #:voice-channel
+	   #:dm-channel
+	   #:group-dm
 	   #:role
 	   #:guild
-	   #:guild-member
+	   #:member
 	   #:embed
+	   #:embed-footer
+	   #:embed-image
+	   #:embed-thumbnail
+	   #:embed-video
+	   #:embed-provider
+	   #:embed-author
+	   #:embed-field
+	   #:game
+	   #:presence
 	   #:attachement
 	   #:reaction
-	   #:message))
+	   #:message
+
+	   #:id
+	   #:username
+	   #:discrim
+	   #:avatar
+	   #:botp
+	   #:mfa-p
+	   #:verifiedp
+	   #:emailp
+	   #:guild-id
+	   #:type
+	   #:allow
+	   #:deny
+	   #:name
+	   #:position
+	   #:overwrites
+	   #:parent-id
+	   #:nsfw-p
+	   #:topic
+	   #:last-message
+	   #:bitrate
+	   #:user-limit
+	   #:recipients
+	   #:icon
+	   #:owner
+	   #:text
+	   #:icon-proxy
+	   #:url
+	   #:proxy-url
+	   #:height
+	   #:width
+	   #:value
+	   #:inline
+	   #:title
+	   #:description
+	   #:timestamp
+	   #:color
+	   #:footer
+	   #:image
+	   #:thumbnail
+	   #:video
+	   #:provider
+	   #:author
+	   #:fields
+	   #:roles
+	   #:user
+	   #:colonsp
+	   #:managedp
+	   #:hoistp
+	   #:permissions
+	   #:mentionablep
+	   #:nick
+	   #:deafp
+	   #:mutep
+	   #:game
+	   #:status
+	   #:splash
+	   #:region
+	   #:afk-id
+	   #:afk-to
+	   #:embedp
+	   #:embed-id
+	   #:verify-level
+	   #:notify-level
+	   #:content-filter
+	   #:emojis
+	   #:features
+	   #:mfa-level
+	   #:app-id
+	   #:widgetp
+	   #:widget-id
+	   #:largep
+	   #:availablep
+	   #:member-count
+	   #:members
+	   #:channels
+	   #:presences
+	   #:enabledp
+	   #:syncingp
+	   #:role-id
+	   #:expire-behaviour
+	   #:expire-grace
+	   #:account
+	   #:synced-at
+	   #:filename
+	   #:size
+	   #:channel-id
+	   #:content
+	   #:editedp
+	   #:tts-p
+	   #:mention-all-p
+	   #:mentions
+	   #:mention-roles
+	   #:attachements
+	   #:embeds
+	   #:reactions
+	   #:nonce
+	   #:pinnedp
+	   #:webhook-id
+	   #:type))
