@@ -5,6 +5,21 @@
   "The global cache object. It should be persistent, but should
 it be shared across instances?")
 
+(defstruct (cache :conc-name) 
+  (guilds
+   (make-hash-table :test optimal-snowflake-compare))
+  (users
+   (make-hash-table :test optimal-snowflake-compare))
+  (channels
+   (make-hash-table :test optimal-snowflake-compare))
+  (roles
+   (make-hash-table :test optimal-snowflake-compare))
+  (emojis
+   (make-hash-table :test optimal-snowflake-compare))
+  (integrations
+   (make-hash-table :test optimal-snowflake-compare)))
+
+(defvar *cache* (make-cache))
 
 ;;; Setting up relevant subpipes for things that need to be cached
 
@@ -29,70 +44,37 @@ it be shared across instances?")
 
 (defvar >ucache> (pfilter >user> (curry #'taggedp :update)))
 
-(defun wipe-cache ()
-  (setf *cache* (make-hash-table :test #'equal :size 100)))
+(defun wipe-cache () (setf *cache* (make-cache)))
+
+(defmacro getcache (obj kind)
+  `(gethash (id ,obj) (,kind *cache*)))
+
+(defmacro setcache (obj kind)
+  `(setf (gethash (id ,obj) (,kind *cache*)) obj))
 
 
 
-(defun getc (id)
-  (gethash id *cache*))
 
-;;maybe we just want to pass new-val here and extract the ID?
-(defun setc (id new-val)
-  (sethash id *cache* new-val))
-
-(defun remc (id)
-  (remhash id *cache*))
-
-;;We don't want to clobber fields which were set before
-(defmacro update-hash (place new-val)
-  `(maphash (lambda (key val)
-	      (sethash key ,place val))
-	    ,new-val))
-
-(defun updatec (id new-val)
-  (update-hash (getc id) new-val))
-
-(defun cachedp (obj)
-  (and (hash-table-p obj)
-       (getc (gethash "id" obj))))
-
-(defun decache (obj)
-  (remc (gethash "id" obj)))
-
-
-(defun cache (obj)
-  (if (cachedp obj)
-      (updatec (gethash "id" obj) obj)
-      (setc (gethash "id" obj) obj)))
 
 (watch-with-cargo (>ucache> tag user)
   (declare (ignore tag))
-  (sethash "tag" user :user)
-  (cache user))
+  (setcache user users))
 
 (watch-with-cargo (>pcache> tag presence)
   (declare (ignore tag))
-  (let ((id (gethash "id" (gethash "user" presence))))
-    (sethash "status" (getc id) (gethash "status" presence))
-    (sethash "game" (getc id) (gethash "game" presence))))
+  (setf (game (getcache (user presence))) (game presence))
+  (setf (status (getcache (user presence))) (status presence)))
 
 
 (watch-with-cargo (>ccache> tag channel)
   (declare (ignore tag))
-  (sethash "tag" channel :channel)
-  (if (gethash "recipients" channel)
-      (sethash "recipients" channel 
-	       (mapf (gethash "recipients" channel) (u)
-		 (cargo-send >ucache> :update u)
-		 (gethash "id" u))))
-  (cache channel))
+  (when (typep channel lc:guild-channel)
+    ())
+  (setcache channel channels))
 
-(watch-with-cargo (>rcache> tag payload)
+(watch-with-cargo (>rcache> tag role)
   (declare (ignore tag))
-  (with-table (payload role "role" gid "guild_id")
-    (sethash (gethash "id" role) (gethash "roles" (getc gid))
-	     role)))
+  (setcache payload))
 
 (watch-with-cargo (>mcache> tag member)
   (declare (ignore tag))

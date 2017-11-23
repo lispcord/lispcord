@@ -17,6 +17,8 @@
 	   #:unix-epoch
 
 	   #:snowflake
+	   #:parse-snowflake
+	   #:optimal-snowflake-compare
 
 	   #:set-debug-level
 	   #:dprint))
@@ -26,6 +28,11 @@
 ;; this type allows us to later potentially convert the IDs to numbers
 ;; without needing to rewrite all the type declerations!
 (deftype snowflake () 'string)
+
+(defun parse-snowflake (snowflake-string)
+  snowflake-string)
+
+(defparameter optimal-snowflake-compare #'equal)
 
 (defun str-concat (&rest strings)
   (apply #'concatenate 'string strings))

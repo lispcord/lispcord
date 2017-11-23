@@ -96,9 +96,10 @@
 
 
 (defun on-member-remove (data origin)
-  (let ((user (from-json :user (gethash "user" data))))
-    (setf (lc:guild-id user) (gethash "guild_id" data))
-    (cargo-send >guild> :member-remove user origin)))
+  (let ((user (from-json :user (gethash "user" data)))
+	(g-id (parse-snowflake (gethash "guild_id" data))))
+    (cargo-send >guild> :member-remove (list g-id user)
+		origin)))
 
 (defun on-member-update (data origin)
   (let ((member (from-json :g-member data)))

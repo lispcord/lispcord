@@ -3,7 +3,7 @@
 
 (defclass account ()
   ((id   :initarg :id
-	 :type snowflake
+	 :type string
 	 :accessor id)
    (name :initarg :name
 	 :type string

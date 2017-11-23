@@ -1,6 +1,36 @@
 (in-package :lispcord.classes)
 
 
+(defclass game ()
+  ((name :initarg :name
+	 :type string
+	 :accessor name)
+   (type :initarg :type
+	 :type (integer 0 1)
+	 :accessor type)
+   (url  :initarg :url
+	 :type (or null string)
+	 :accessor url)))
+
+(defmethod from-json ((c (eql :game)) (table hash-table))
+  (instance-from-table (table 'game)
+    :name "name"
+    :type "type"
+    :url "url"))
+
+(defmethod from-json ((c (eql :game)) (n null))
+  nil)
+
+(defmethod %to-json ((g game))
+  (with-object
+    (write-key-value "name" (name g))
+    (write-key-value "type" (type g))
+    (write-key-value "url" (url g))))
+
+(defun make-game (game-name &optional (type 0) (url nil))
+  (make-instance 'game :name game-name :type type :url url))
+
+
 (defclass user ()
   ((id            :initarg :id
 		  :type snowflake
@@ -26,9 +56,10 @@
    (email         :initarg :email
 		  :type t
 		  :accessor emailp)
-   (guild-id      :initarg :gid
-		  :type (or null snowflake)
-		  :accessor guild-id)))
+   (status        :type (or null string)
+		  :accessor status)
+   (game          :type (or null game)
+		  :accessor game)))
 
 (defmethod %to-json ((u user))
   (with-object
@@ -50,8 +81,7 @@
     :bot "bot"
     :mfa "mfa"
     :verified "verified"
-    :email "email"
-    :gid "guild_id"))
+    :email "email"))
 
 
 
