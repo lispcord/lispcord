@@ -13,6 +13,6 @@
 ;;set up a handler waiting for "message_create" events
 (watch-with-case (>message> msg)
 		 (:create (format t "Got message :D~%~a~%"
-				  (slot-value msg 'content))))
+				  (lc:content msg))))
 
 
