@@ -16,6 +16,7 @@
 				    :components
 				    ((:file "package")
 				     (:file "core")
+				     (:file "cache")
 				     (:file "emoji")
 				     (:file "user")
 				     (:file "integration")
@@ -28,7 +29,6 @@
 			   (:file "ratelimits")
 			   (:file "constants")
 			   (:file "core")
-			   ;;(:file "cache")
 			   (:module http
 				    :serial t
 				    :components

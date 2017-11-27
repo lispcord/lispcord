@@ -12,6 +12,10 @@
   (:export #:%to-json
 	   #:from-json
 
+	   #:getcache-id
+	   #:cache
+	   #:decache-id
+	   
 	   #:make-game
 	   
 	   #:overwrite
@@ -42,6 +46,7 @@
 	   #:attachement
 	   #:reaction
 	   #:message
+	   
 
 	   #:id
 	   #:username
@@ -55,6 +60,7 @@
 	   #:type
 	   #:allow
 	   #:deny
+	   #:me-p
 	   #:name
 	   #:position
 	   #:overwrites
@@ -140,5 +146,6 @@
 	   #:reactions
 	   #:nonce
 	   #:pinnedp
-	   #:webhook-id
-	   #:type))
+	   #:type
+	   #:system-channel-id
+	   #:last-pinned))

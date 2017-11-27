@@ -72,23 +72,19 @@
 	   #:get-rq
 	   #:post-rq))
 
-(defpackage :lispcord.cache
-  (:use :cl :lispcord.util :lispcord.pipes :lispcord.core)
-  (:export #:cache-guild
-	   #:cache-channel
-	   #:cache-user))
-
 (defpackage :lispcord.gateway
   (:use :bordeaux-threads
 	:cl
 	:lispcord.util
 	:lispcord.pipes
 	:lispcord.core
-	:lispcord.cache
 	:lispcord.constants)
   (:import-from :lispcord.classes
 		#:from-json
-		#:%to-json)
+		#:%to-json
+		#:cache
+		#:getcache-id
+		#:decache-id)
   (:export #:connect
 	   #:disconnect))
 
@@ -96,7 +92,6 @@
   (:use :cl
 	:lispcord.constants
 	:lispcord.util
-	:lispcord.cache
 	:lispcord.core)
   (:export #:send))
 

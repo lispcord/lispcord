@@ -1,6 +1,7 @@
 (defpackage :lispcord.util
   (:use :cl)
-  (:export #:str-concat
+  (:export #:mapvec
+	   #:str-concat
 	   #:jparse
 	   #:jmake
 	   #:alist
@@ -15,17 +16,29 @@
 	   #:with-table
 	   #:instance-from-table
 	   #:unix-epoch
+	   #:vec-extend
+	   #:new-hash-table
+	   #:vecrem
 
 	   #:snowflake
+	   #:parse-snowflake
+	   #:optimal-id-compare
 
 	   #:set-debug-level
 	   #:dprint))
 
 (in-package :lispcord.util)
 
+
+
 ;; this type allows us to later potentially convert the IDs to numbers
 ;; without needing to rewrite all the type declerations!
 (deftype snowflake () 'string)
+
+(defun parse-snowflake (snowflake-string)
+  snowflake-string)
+
+(defvar optimal-id-compare #'equal)
 
 (defun str-concat (&rest strings)
   (apply #'concatenate 'string strings))
@@ -142,6 +155,21 @@
 				    `(gethash ,e ,table))
 		       :else :collect e)))
 
+(defun vec-extend (obj vec)
+  (declare (type array vec))
+  (let ((buf (make-array (1+ (length vec))
+			 :element-type (array-element-type vec))))
+    (dotimes (i (length vec)) (setf (aref buf i) (aref vec i)))
+    (setf (aref buf (length vec)) obj)
+    buf))
 
+(defun mapvec (conversion-fun seq)
+  (map 'vector conversion-fun seq))
 
+(defun vecrem (predicate seq)
+  (delete-if predicate seq :from-end t))
 
+(defun new-hash-table (&rest pairs)
+  (let ((table (make-hash-table :test #'equal)))
+    (loop :for (key val) :in pairs :do (setf (gethash key table) val))
+    table))

@@ -1,18 +1,11 @@
 (in-package :lispcord.classes)
 
-(defun overwrite-type-p (s)
-  (and (stringp s) (or (string= s "member") (string= s "role"))))
-
-(deftype overwrite-type ()
-  `(and string
-	(satisfies overwrite-type-p)))
-
 (defclass overwrite ()
   ((id    :initarg :id
 	  :type snowflake
 	  :accessor id)
    (type  :initarg :type
-	  :type overwrite-type
+	  :type string
 	  :accessor type)
    (allow :initarg :allow
 	  :type fixnum
@@ -21,10 +14,9 @@
 	  :type fixnum
 	  :accessor deny)))
 
-
 (defmethod from-json ((c (eql :overwrite)) (table hash-table))
   (instance-from-table (table 'overwrite)
-    :id "id"
+    :id (parse-snowflake (gethash "id" table))
     :type "type"
     :allow "allow"
     :deny "deny"))
@@ -43,7 +35,7 @@
 
 (defclass guild-channel (channel)
   ((guild-id      :initarg :g-id
-		  :type snowflake
+		  :type (or null snowflake)
 		  :accessor guild-id)
    (name          :initarg :name
 		  :type string
@@ -52,7 +44,7 @@
 		  :type fixnum
 		  :accessor position)
    (overwrites    :initarg :overwrites
-		  :type (array overwrite)
+		  :type (vector overwrite)
 		  :accessor overwrites)
    (parent-id     :initarg :parent-id
 		  :type (or null snowflake)
@@ -68,11 +60,14 @@
 		 :type t
 		 :accessor nsfw-p)
    (topic        :initarg :topic
-		 :type string
+		 :type (or null string)
 		 :accessor topic)
    (last-message :initarg :last-message
-		 :type snowflake
-		 :accessor last-message)))
+		 :type (or null snowflake)
+		 :accessor last-message)
+   (last-pinned  :initarg :last-pinned
+		 :type (or null string)
+		 :accessor last-pinned)))
 
 (defclass voice-channel (guild-channel)
   ((bitrate    :initarg :bitrate
@@ -84,11 +79,14 @@
 
 (defclass dm-channel (channel)
   ((last-message :initarg :last-message
-		 :type snowflake
+		 :type (or null snowflake)
 		 :accessor last-message)
    (recipients   :initarg :last-message
 		 :type (vector user)
-		 :accessor recipients)))
+		 :accessor recipients)
+   (last-pinned  :initarg :last-pinned
+		 :type string
+		 :accessor last-pinned)))
 
 (defclass group-dm (dm-channel)
   ((name     :initarg :name
@@ -103,54 +101,58 @@
 
 (defun %guild-text-fj (table)
   (instance-from-table (table 'text-channel)
-    :id "id"
-    :g-id "guild_id"
+    :id (parse-snowflake (gethash "id" table))
+    :g-id (parse-snowflake (gethash "guild_id" table))
     :name "name"
     :pos "position"
-    :overwrites (map 'vector (curry #'from-json :overwrite)
+    :overwrites (mapvec (curry #'from-json :overwrite)
 		     (gethash "permission_overwrites" table))
     :nsfw "nsfw"
     :topic "topic"
-    :last-message "last_message_id"
-    :parent-id "parent_id"))
+    :last-message (parse-snowflake (gethash "last_message_id" table))
+    :parent-id (parse-snowflake (gethash "parent_id" table))
+    :last-pinned "last_pin_timestamp"))
 
 (defun %guild-voice-fj (table)
   (instance-from-table (table 'voice-channel)
-    :id "id"
-    :g-id "guild_id"
+    :id (parse-snowflake (gethash "id" table))
+    :g-id (parse-snowflake (gethash "guild_id" table))
     :name "name"
     :pos "position"
-    :overwrites (map 'vector (curry #'from-json :overwrite)
+    :overwrites (mapvec (curry #'from-json :overwrite)
 		     (gethash "permission_overwrites" table))
     :bitrate "bitrate"
     :user-limit "user_limit"
-    :parent-id "parent_id"))
+    :parent-id (parse-snowflake (gethash "parent_id" table))))
 
 (defun %dm-fj (table)
   (instance-from-table (table 'dm-channel)
-    :last-message "last_message_id"
-    :id "id"
-    :recipients "recipients"))
+    :last-message (parse-snowflake (gethash "last_message_id" table))
+    :id (parse-snowflake (gethash "id" table))
+    :recipients (mapvec (curry #'cache :user)
+			(gethash "recipients" table))
+    :last-pinned "last_pin_timestamp"))
 
 (defun %group-dm-fj (table)
   (instance-from-table (table 'group-dm)
-    :id "id"
+    :id (parse-snowflake (gethash "id" table))
     :name "name"
-    :recipients (map 'vector (curry #'from-json :user)
+    :recipients (mapvec (curry #'cache :user)
 		     (gethash "recipients" table))
-    :last-message "last_message_id"
-    :owner "owner_id"))
+    :last-message (parse-snowflake (gethash "last_message_id" table))
+    :owner (parse-snowflake (gethash "owner_id" table))
+    :last-pinned "last_pin_timestamp"))
 
 (defun %guild-category-fj (table)
   (instance-from-table (table 'category)
-    :id "id"
-    :overwrites (map 'vector (curry #'from-json :overwrite)
+    :id (parse-snowflake (gethash "id" table))
+    :overwrites (mapvec (curry #'from-json :overwrite)
 		     (gethash "permission_overwrites" table))
     :name "name"
-    :parent-id "parent_id"
+    :parent-id (parse-snowflake (gethash "parent_id" table))
     :nsfw "nsfw"
     :pos "position"
-    :g-id "guild_id"))
+    :g-id (parse-snowflake (gethash "guild_id" table))))
 
 (defmethod from-json ((c (eql :channel)) (table hash-table))
   (case (gethash "type" table)
@@ -161,6 +163,30 @@
     (4 (%guild-category-fj table))
     (otherwise (dprint :error "Channel type not recognised!~%This should only happen if discord creates a new channel type and lispcord wasn't updated yet~%Please file an issue at https://github.com/MegaLoler/lispcord/issues"))))
 
+(defmethod update ((table hash-table) (c channel))
+  (from-table-update (table data)
+    ("id" (id c) (parse-snowflake data))
+    ("guild_id" (guild-id c) (parse-snowflake data))
+    ("position" (position c) data)
+    ("permission_overwrites"
+     (overwrites c) (mapvec (curry #'from-json :overwrite)
+			    data))
+    ("name" (name c) data)
+    ("topic" (topic c) data)
+    ("nsfw" (nsfw-p c) data)
+    ("last_message_id"
+     (last-message c) (parse-snowflake data))
+    ("bitrate" (bitrate c) data)
+    ("user_limit" (user-limit c) data)
+    ("recipients"
+     (recipients c) (mapvec (curry #'cache :user)
+			    data))
+    ("icon" (icon c) data)
+    ("owner_id" (owner c) (parse-snowflake data))
+    ("application_id" (app-id c) (parse-snowflake data))
+    ("parent_id" (parent-id c) (parse-snowflake data))
+    ("last_pin_timestamp" (last-pinned c) data))
+  c)
 
 (defmethod %to-json ((gtc text-channel))
   (with-object
@@ -171,7 +197,8 @@
     (write-key-value "parent_id" (parent-id gtc))
     (write-key-value "nsfw" (nsfw-p gtc))
     (write-key-value "topic" (topic gtc))
-    (write-key-value "last_message_id" (last-message gtc))))
+    (write-key-value "last_message_id" (last-message gtc))
+    (write-key-value "last_pin_timestamp" (last-pinned gtc))))
 
 (defmethod %to-json ((gvc voice-channel))
   (with-object

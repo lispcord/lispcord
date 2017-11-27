@@ -12,7 +12,7 @@
 	    :type (vector snowflake)
 	    :accessor roles)
    (user    :initarg :user
-	    :type user
+	    :type (or null user)
 	    :accessor user)
    (colons? :initarg :colons?
 	    :type t
@@ -24,12 +24,21 @@
 
 (defmethod from-json ((c (eql :emoji)) (table hash-table))
   (instance-from-table (table 'emoji)
-    :id "id"
+    :id (parse-snowflake (gethash "id" table))
     :name "name"
-    :roles (map 'vector #'identity (gethash "roles" table))
-    :user "user"
+    :roles (map 'vector #'parse-snowflake (gethash "roles" table))
+    :user (cache :user (gethash "user" table))
     :colons? "require_colons"
     :managed "managed"))
+
+(defmethod update ((table hash-table) (e emoji))
+  (from-table-update (table data)
+    ("id" (id e) (parse-snowflake data))
+    ("name" (name e) data)
+    ("roles" (roles e) (mapvec #'parse-snowflake data))
+    ("require_colons" (colonsp e) data)
+    ("managed" (managedp e) data))
+  e)
 
 (defmethod %to-json ((e emoji))
   (with-object
