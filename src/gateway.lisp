@@ -89,20 +89,36 @@
 
 
 (defun on-emoji-update (data origin)
-  (with-table (data emojis "emojis")
-    (sethash "emojis" data
-	  (map 'vector (curry #'from-json :emoji) emojis))
-    (cargo-send >guild> :emojis-update data origin)))
+  (with-table (data emojis "emojis"
+		    id "guild_id")
+    (let ((g (cache :guild (new-hash-table `("id" ,id)
+					   `("emojis" ,emojis)))))
+      (cargo-send >guild>
+		  :emojis-update
+		  (lc:emojis g)
+		  origin))))
 
 
 (defun on-member-remove (data origin)
-  (let ((user (from-json :user (gethash "user" data)))
+  (let ((user (getcache-id (parse-snowflake
+			    (gethash "id" (gethash "user" data)))
+			   :user))
 	(g-id (parse-snowflake (gethash "guild_id" data))))
     (cargo-send >guild> :member-remove (list g-id user)
 		origin)))
 
+(defun on-member-add (data origin)
+  (let ((member (from-json :g-member data))
+	(g (getcache-id (gethash "guild_id" data))))
+    (setf (lc:members g) (vec-extend member (lc:members g)))
+    (cargo-send >guild> :member-add member origin)))
+
 (defun on-member-update (data origin)
-  (let ((member (from-json :g-member data)))
+  (let ((g (getcache-id (gethash "guild_id" data) :guild))
+	(member (from-json :g-member data)))
+    (nsubstitute-if member
+		    (lambda (m) (eq (lc:user m) (lc:user member)))
+		    (lc:members g))
     (cargo-send >guild> :member-update member origin)))
 
 (defun on-role-* (data origin kind)
@@ -176,7 +192,7 @@
 		   origin))
 
       ("GUILD_MEMBER_ADD"
-       (cargo-send >guild> :member-add (from-json :g-member data) origin))
+       (on-member-add data origin))
 
       ("GUILD_MEMBER_REMOVE"
        (on-member-remove data origin))

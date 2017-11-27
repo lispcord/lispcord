@@ -3,6 +3,22 @@
 (defgeneric from-json (class-symbol obj)
   (:documentation "Converts a json object to the specified class"))
 
+(defmethod from-json (eh (n null))
+  (declare (ignore eh))
+  n)
+
+(defgeneric update (data object)
+  (:documentation "Updates the internal fields of the object"))
+
+(defmacro from-table-update ((table var) &body clauses)
+  (let ((key (gensym)))
+    `(maphash (lambda (,key ,var)
+		(case ,key
+		  ,@ (loop :for (k a op) :in clauses :collect
+			`(,k (setf ,a ,op)))))
+	      ,table)))
+
+
 
 ;;; When working on a class, please comment on the relevant github issue
 ;;; at https://github.com/MegaLoler/lispcord/issues that you are working

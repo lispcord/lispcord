@@ -28,7 +28,7 @@
 
 (defmethod from-json ((c (eql :attachement)) (table hash-table))
   (instance-from-table (table 'attachement)
-    :id "id"
+    :id (parse-snowflake (gethash "id" table))
     :file "filename"
     :size "size"
     :url "url"
@@ -52,7 +52,7 @@
 	  :accessor count)
    (me    :initarg :me
 	  :type t
-	  :accessor mep)
+	  :accessor me-p)
    (emoji :initarg :emoji
 	  :type emoji
 	  :accessor emoji)))
@@ -61,7 +61,7 @@
   (instance-from-table (table 'reaction)
     :count "count"
     :me "me"
-    :emoji (from-json :emoji (gethash "emoji" table))))
+    :emoji (cache :emoji (gethash "emoji" table))))
 
 (defclass message ()
   ((id            :initarg :id
@@ -109,36 +109,37 @@
    (pinned        :initarg :pinned
 		  :type t
 		  :accessor pinnedp)
-   (webhook-id    :initarg :webhook-id
-		  :type (or null snowflake)
-		  :accessor webhook-id)
    (type          :initarg :type
 		  :type message-type
 		  :accessor type)))
 
+(defun user-or-webhook (obj)
+  (if (gethash "webhook_id" obj)
+      (from-json :webhook obj)
+      (cache :user obj)))
+
 (defmethod from-json ((c (eql :message)) (table hash-table))
   (instance-from-table (table 'message)
-    :id "id"
-    :channel-id "channel_id"
-    :author (from-json :user (gethash "author" table))
+    :id (parse-snowflake (gethash "id" table))
+    :channel-id (parse-snowflake (gethash "channel_id" table))
+    :author (user-or-webhook (gethash "author" table))
     :content "content"
     :timestamp "timestamp"
     :edited-at "edited_timestamp"
     :tts "tts"
     :mention-all "mention_everyone"
-    :mentions (map 'vector (curry #'from-json :user)
+    :mentions (mapvec (curry #'cache :user)
 		   (gethash "mentions" table))
-    :mention-roles (map 'vector (curry #'from-json :role)
-			(gethash "mention_roles" table))
-    :attachements (map 'vector (curry #'from-json :attachement)
+    :mention-roles (mapvec #'parse-snowflake
+			   (gethash "mention_roles" table))
+    :attachements (mapvec (curry #'from-json :attachement)
 		       (gethash "attachements" table))
-    :embeds (map 'vector (curry #'from-json :embed)
+    :embeds (mapvec (curry #'from-json :embed)
 		 (gethash "embeds" table))
-    :reactions (map 'vector (curry #'from-json :reaction)
+    :reactions (mapvec (curry #'from-json :reaction)
 		    (gethash "embeds" table))
     :nonce "nonce"
     :pinned "pinned"
-    :webhook-id "webhook_id"
     :type "type"))
 
 (defmethod %to-json ((m message))
@@ -158,5 +159,4 @@
     (write-key-value "reactions" (reactions m))
     (write-key-value "nonce" (nonce m))
     (write-key-value "pinned" (pinnedp m))
-    (write-key-value "webhook_id" (webhook-id m))
     (write-key-value "type" (type m))))

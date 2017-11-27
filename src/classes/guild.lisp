@@ -32,15 +32,28 @@
 
 (defmethod from-json ((c (eql :role)) (table hash-table))
   (instance-from-table (table 'role)
-		       :id "id"
-		       :name "name"
-		       :color "color"
-		       :hoist "hoist"
-		       :pos "position"
-		       :perms "permissions"
-		       :managed "managed"
-		       :mentionable "mentionable"
-		       :gid "guild_id"))
+    :id (parse-snowflake (gethash "id" table))
+    :name "name"
+    :color "color"
+    :hoist "hoist"
+    :pos "position"
+    :perms "permissions"
+    :managed "managed"
+    :mentionable "mentionable"
+    :gid (parse-snowflake (gethash "guild_id" table))))
+
+(defmethod update ((table hash-table) (r role))
+  (from-table-update (table data)
+    ("id" (id r) (parse-snowflake data))
+    ("name" (name r) data)
+    ("color" (color r) data)
+    ("hoist" (hoistp r) data)
+    ("position" (position r) data)
+    ("permissions" (permissions r) data)
+    ("managed" (managedp r) data)
+    ("mentionable" (mentionablep r) data)
+    ("guild_id" (guild-id r) (parse-snowflake data)))
+  r)
 
 (defmethod %to-json ((r role))
   (with-object
@@ -88,15 +101,24 @@
 
 (defmethod from-json ((c (eql :g-member)) (table hash-table))
   (instance-from-table (table 'member)
-    :user "user"
+    :user (cache :user (gethash "user" table))
     :nick "nick"
-    :roles "roles"
+    :roles (mapvec #'parse-snowflake (gethash "roles" table))
     :joined-at "joined_at"
     :mute "mute"
     :deaf "deaf"
-    :gid "guild_id"))
+    :gid (parse-snowflake (gethash "guild_id" table))))
 
-
+(defmethod update ((table hash-table) (m member))
+  (from-table-update (table data)
+    ("user" (user m) (cache :user data))
+    ("nick" (nick m) data)
+    ("roles" (roles m) (mapvec #'parse-snowflake data))
+    ("joined_at" (joined-at m) data)
+    ("mute" (mutep m) data)
+    ("deaf" (deafp m) data)
+    ("guild_id" (guild-id m) (parse-snowflake data)))
+  m)
 
 (defclass presence ()
   ((user     :initarg :user
@@ -117,10 +139,10 @@
 
 (defmethod from-json ((c (eql :presence)) (table hash-table))
   (instance-from-table (table 'presence)
-    :user (gethash "id" (gethash "user" table))
-    :roles (coerce (gethash "roles" table) 'vector)
+    :user (parse-snowflake (gethash "id" (gethash "user" table)))
+    :roles (mapvec #'parse-snowflakes (gethash "roles" table))
     :game (from-json :game (gethash "game" table))
-    :guild-id "guild_id"
+    :guild-id (parse-snowflake (gethash "guild_id" table))
     :status "status"))
 
 (defmethod %to-json ((p presence))
@@ -132,12 +154,16 @@
     (write-key-value "status" (status p))))
 
 
-
 (defclass guild ()
   ((id                 :initarg :id
 		       :type snowflake
 		       :accessor id)
-   (name               :initarg :name
+   (available          :initarg :available
+		       :type t
+		       :accessor availablep)))
+
+(defclass available-guild (guild)
+  ((name               :initarg :name
 		       :type string
 		       :accessor name)
    (icon               :initarg :icon
@@ -194,15 +220,15 @@
    (widget-channel-id  :initarg :widget-id
 		       :type snowflake
 		       :accessor widget-id)
+   (system-channel-id  :initarg :system-id
+		       :type (or null snowflake)
+		       :accessor system-channel-id)
    (joined-at          :initarg :joined-at
 		       :type string
 		       :accessor joined-at)
    (large              :initarg :large
 		       :type t
 		       :accessor largep)
-   (available          :initarg :available
-		       :type t
-		       :accessor availablep)
    (member-count       :initarg :member-cnt
 		       :type fixnum
 		       :accessor member-count)
@@ -216,7 +242,7 @@
 		       :type (vector presence)
 		       :accessor presences)))
 
-(defmethod %to-json ((g guild))
+(defmethod %to-json ((g available-guild))
   (with-object
     (write-key-value "id" (id g))
     (write-key-value "name" (name g))
@@ -239,6 +265,7 @@
     (write-key-value "application_id" (app-id g))
     (write-key-value "widget_enabled" (widgetp g))
     (write-key-value "widget_channel_id" (widget-id g))
+    (write-key-value "system_channel_id" (system-channel-id g))
     (write-key-value "large" (largep g))
     (write-key-value "unavailable" (not (availablep g)))
     (write-key-value "member_count" (member-count g))
@@ -246,37 +273,77 @@
     (write-key-value "channels" (channels g))
     (write-key-value "presences" (presences g))))
 
-(defmethod from-json ((c (eql :guild)) (table hash-table))
-  (instance-from-table (table 'guild)
-    :id "id"
+(defmethod %to-json ((g guild))
+  (with-object
+    (write-key-value "id" (id g))
+    (write-key-value "unvailable" (not (availablep g)))))
+
+
+(defun %available-from-json (table)
+  (instance-from-table (table 'available-guild)
+    :id (parse-snowflake (gethash "id" table))
     :name "name"
     :icon "icon"
     :splash "splash"
-    :owner "owner_id"
+    :owner (parse-snowflake (gethash "owner_id" table))
     :region "region"
-    :afk-id "afk_channel_id"
+    :afk-id (parse-snowflake (gethash "afk_channel_id" table))
     :afk-to "afk_timeout"
     :embed? "embed_enabled"
-    :embed-id "embed_channel_id"
+    :embed-id (parse-snowflake (gethash "embed_channel_id" table))
     :verify-l "verification_level"
     :notify-l "default_message_notifications"
     :content "explicit_content_filter"
-    :roles (map 'vector (curry #'from-json :role)
-		(gethash "roles" table))
-    :emojis (map 'vector (curry #'from-json :emoji)
-		 (gethash "emojis" table))
+    :roles (mapvec (curry #'cache :role) (gethash "roles" table))
+    :emojis (mapvec (curry #'cache :emoji) (gethash "emojis" table))
     :features (coerce (gethash "features" table) '(vector string))
     :mfa "mfa_level"
-    :app-id "application_id"
+    :app-id (parse-snowflake (gethash "application_id" table))
     :widget? "widget_enabled"
-    :widget-id "widget_channel_id"
+    :widget-id (parse-snowflake (gethash "widget_channel_id" table))
+    :system-id (parse-snowflake (gethash "sytem_channel_id" table))
     :joined-at "joined_at"
     :large "large"
     :available (not (gethash "unavailable" table))
     :member-cnt "member_count"
-    :members (map 'vector (curry #'from-json :g-member)
+    :members (mapvec (curry #'from-json :g-member)
 		  (gethash "members" table))
-    :channels (map 'vector (curry #'from-json :channel)
+    :channels (mapvec (curry #'cache :channel)
 		   (gethash "channels" table))
-    :presences (map 'vector (curry #'from-json :presence)
+    :presences (mapvec (curry #'from-json :presence)
 		    (gethash "presences" table))))
+
+(defun %unavailable-from-json (table)
+  (make-instance 'guild
+		 :id (parse-snowflake (gethash "id" table))
+		 :available (not (gethash "unavailable" table))))
+
+(defmethod update ((table hash-table) (g guild))
+  (from-table-update (table data)
+    ("id" (id g) (parse-snowflake data))
+    ("name" (name g) data)
+    ("icon" (icon g) data)
+    ("splash" (splash g) data)
+    ("owner_id" (owner g) (parse-snowflake data))
+    ("region" (region g) data)
+    ("afk_channel_id" (afk-id g) (parse-snowflake data))
+    ("afk_timeout" (afk-to g) data)
+    ("embed_enabled" (embedp g) data)
+    ("embed_channel_id" (embed-id g) (parse-snowflake data))
+    ("verification_level" (verify-level g) data)
+    ("default_message_notification" (notify-level g) data)
+    ("explicit_content_filter" (content-filter g) data)
+    ("roles" (roles g) (mapvec (curry #'cache :role) data))
+    ("emojis" (emojis g) (mapvec (curry #'cache :emoji) data))
+    ("features" (features g) (coerce data '(vector string)))
+    ("mfa_level" (mfa-level g) data)
+    ("application_id" (app-id g) (parse-snowflake data))
+    ("widget_enabled" (widgetp g) data)
+    ("widget_channel_id" (widget-id g) (parse-snowflake data))
+    ("system_channel_id" (system-channel-id g) (parse-snowflake data)))
+  g)
+
+(defmethod from-json ((c (eql :guild)) (table hash-table))
+  (if (gethash "unavailable" table)
+      (%unavailable-from-json table)
+      (%available-from-json table)))

@@ -56,14 +56,14 @@
 
 (defmethod from-json ((c (eql :integration)) (table hash-table))
   (instance-from-table (table 'integration)
-    :id "id"
+    :id (parse-snowflake (gethash "id" table))
     :name "name"
     :type "type"
     :enabled "enabled"
     :syning "syncing"
-    :role-id "role_id"
+    :role-id (parse-snowflake (gethash "role_id" table))
     :e-behaviour "expire_behaviour"
     :e-grace "expire_grace_period"
-    :user (from-json :user (gethash "user" table))
+    :user (cache :user (gethash "user" table))
     :account (from-json :account (gethash "account" table))
     :synced-at "synced-at"))
