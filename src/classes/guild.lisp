@@ -39,8 +39,7 @@
     :pos "position"
     :perms "permissions"
     :managed "managed"
-    :mentionable "mentionable"
-    :gid (parse-snowflake (gethash "guild_id" table))))
+    :mentionable "mentionable"))
 
 (defmethod update ((table hash-table) (r role))
   (from-table-update (table data)
@@ -51,8 +50,7 @@
     ("position" (position r) data)
     ("permissions" (permissions r) data)
     ("managed" (managedp r) data)
-    ("mentionable" (mentionablep r) data)
-    ("guild_id" (guild-id r) (parse-snowflake data)))
+    ("mentionable" (mentionablep r) data))
   r)
 
 (defmethod %to-json ((r role))
@@ -140,7 +138,7 @@
 (defmethod from-json ((c (eql :presence)) (table hash-table))
   (instance-from-table (table 'presence)
     :user (parse-snowflake (gethash "id" (gethash "user" table)))
-    :roles (mapvec #'parse-snowflakes (gethash "roles" table))
+    :roles (mapvec #'parse-snowflake (gethash "roles" table))
     :game (from-json :game (gethash "game" table))
     :guild-id (parse-snowflake (gethash "guild_id" table))
     :status "status"))
@@ -170,7 +168,7 @@
 		       :type string
 		       :accessor icon)
    (splash             :initarg :splash
-		       :type string
+		       :type (or null string)
 		       :accessor splash)
    (owner              :initarg :owner
 		       :type snowflake
@@ -188,7 +186,7 @@
 		       :type t
 		       :accessor embedp)
    (embed-id           :initarg :embed-id
-		       :type snowflake
+		       :type (or null snowflake)
 		       :accessor embed-id)
    (verification-level :initarg :verify-l
 		       :type fixnum
@@ -206,7 +204,7 @@
 		       :type (vector emoji)
 		       :accessor emojis)
    (features           :initarg :features
-		       :type (vector string)
+		       :type (or null (vector string))
 		       :accessor features)
    (mfa-level          :initarg :mfa
 		       :type fixnum
@@ -218,7 +216,7 @@
 		       :type t
 		       :accessor widgetp)
    (widget-channel-id  :initarg :widget-id
-		       :type snowflake
+		       :type (or null snowflake)
 		       :accessor widget-id)
    (system-channel-id  :initarg :system-id
 		       :type (or null snowflake)
@@ -296,7 +294,7 @@
     :content "explicit_content_filter"
     :roles (mapvec (curry #'cache :role) (gethash "roles" table))
     :emojis (mapvec (curry #'cache :emoji) (gethash "emojis" table))
-    :features (coerce (gethash "features" table) '(vector string))
+    :features (coerce (gethash "features" table) 'vector)
     :mfa "mfa_level"
     :app-id (parse-snowflake (gethash "application_id" table))
     :widget? "widget_enabled"
@@ -335,7 +333,7 @@
     ("explicit_content_filter" (content-filter g) data)
     ("roles" (roles g) (mapvec (curry #'cache :role) data))
     ("emojis" (emojis g) (mapvec (curry #'cache :emoji) data))
-    ("features" (features g) (coerce data '(vector string)))
+    ("features" (features g) (coerce data 'vector))
     ("mfa_level" (mfa-level g) data)
     ("application_id" (app-id g) (parse-snowflake data))
     ("widget_enabled" (widgetp g) data)

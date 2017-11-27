@@ -1,15 +1,11 @@
 (in-package :lispcord.classes)
 
-(deftype overwrite-type ()
-  `(and string
-	(cl:member "member" "role")))
-
 (defclass overwrite ()
   ((id    :initarg :id
 	  :type snowflake
 	  :accessor id)
    (type  :initarg :type
-	  :type overwrite-type
+	  :type string
 	  :accessor type)
    (allow :initarg :allow
 	  :type fixnum
@@ -39,7 +35,7 @@
 
 (defclass guild-channel (channel)
   ((guild-id      :initarg :g-id
-		  :type snowflake
+		  :type (or null snowflake)
 		  :accessor guild-id)
    (name          :initarg :name
 		  :type string
@@ -64,13 +60,13 @@
 		 :type t
 		 :accessor nsfw-p)
    (topic        :initarg :topic
-		 :type string
+		 :type (or null string)
 		 :accessor topic)
    (last-message :initarg :last-message
-		 :type snowflake
+		 :type (or null snowflake)
 		 :accessor last-message)
    (last-pinned  :initarg :last-pinned
-		 :type string
+		 :type (or null string)
 		 :accessor last-pinned)))
 
 (defclass voice-channel (guild-channel)
@@ -83,7 +79,7 @@
 
 (defclass dm-channel (channel)
   ((last-message :initarg :last-message
-		 :type snowflake
+		 :type (or null snowflake)
 		 :accessor last-message)
    (recipients   :initarg :last-message
 		 :type (vector user)

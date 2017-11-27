@@ -18,6 +18,7 @@
 	   #:unix-epoch
 	   #:vec-extend
 	   #:new-hash-table
+	   #:vecrem
 
 	   #:snowflake
 	   #:parse-snowflake
@@ -162,10 +163,11 @@
     (setf (aref buf (length vec)) obj)
     buf))
 
-(defun mapvec (conversion-fun list)
-  (map 'vector conversion-fun list))
+(defun mapvec (conversion-fun seq)
+  (map 'vector conversion-fun seq))
 
-
+(defun vecrem (predicate seq)
+  (delete-if predicate seq :from-end t))
 
 (defun new-hash-table (&rest pairs)
   (let ((table (make-hash-table :test #'equal)))

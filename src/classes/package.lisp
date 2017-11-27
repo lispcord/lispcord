@@ -14,6 +14,7 @@
 
 	   #:getcache-id
 	   #:cache
+	   #:decache-id
 	   
 	   #:make-game
 	   

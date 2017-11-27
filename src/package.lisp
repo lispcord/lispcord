@@ -83,7 +83,8 @@
 		#:from-json
 		#:%to-json
 		#:cache
-		#:getcache-id)
+		#:getcache-id
+		#:decache-id)
   (:export #:connect
 	   #:disconnect))
 

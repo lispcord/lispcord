@@ -37,3 +37,11 @@
     (:channel (gethash id *channels*))
     (:role    (gethash id *roles*))
     (:emoji   (gethash id *emojis*))))
+
+(defun decache-id (id key)
+  (case key
+    (:user    (remhash id *users*))
+    (:guild   (remhash id *guilds*))
+    (:channel (remhash id *channels*))
+    (:role    (remhash id *roles*))
+    (:emoji   (remhash id *emojis*))))
