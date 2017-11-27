@@ -51,7 +51,12 @@
 
 
 
-(defun discord-req (endpoint &key bot content (type :get)
+(defun discord-req (endpoint
+		    &key
+		      bot
+		      content
+		      (headers '(("Content-Type" . "application/json")))
+		      (type :get)
 		    &aux
 		      (url (str-concat +base-url+ endpoint))
 		      (final (rl-buffer endpoint)))
@@ -60,7 +65,7 @@
   (multiple-value-bind (b sta headers u str)
       (dex:request url
 		   :method type
-		   :headers (if bot (headers bot))
+		   :headers (append headers (if bot (headers bot)))
 		   :content content)
     (declare (ignore sta u str))
     (rl-parse final headers)

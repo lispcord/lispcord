@@ -101,7 +101,7 @@
 		  :type (vector embed)
 		  :accessor embeds)
    (reactions     :initarg :reactions
-		  :type (or null (vector reaction))
+		  :type (vector reaction)
 		  :accessor reactions)
    (nonce         :initarg :nonce
 		  :type (or null snowflake)

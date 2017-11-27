@@ -15,13 +15,15 @@
 	   #:mapf
 	   #:with-table
 	   #:instance-from-table
-	   #:unix-epoch
+	   #:since-unix-epoch
+	   #:*unix-epoch*
 	   #:vec-extend
 	   #:new-hash-table
 	   #:vecrem
 
 	   #:snowflake
 	   #:parse-snowflake
+	   #:sf-to-string
 	   #:optimal-id-compare
 
 	   #:set-debug-level
@@ -38,6 +40,9 @@
 (defun parse-snowflake (snowflake-string)
   snowflake-string)
 
+(defun sf-to-string (snowflake)
+  snowflake)
+
 (defvar optimal-id-compare #'equal)
 
 (defun str-concat (&rest strings)
@@ -48,6 +53,8 @@
 
 (defun jmake (alist)
   (jonathan:to-json alist :from :alist))
+
+
 
 (defun aget (key table)
   (gethash key table))
@@ -92,10 +99,14 @@
   (when (funcall (cdr (assoc *debug-level* *debug-levels*)) level)
     (apply #'format *error-output* message arguments)))
 
+(defparameter *unix-epoch* (encode-universal-time 0 0 0 1 1 1970 0)
+  "Seconds since until 1970")
 
-(defun unix-epoch ()
+(defun since-unix-epoch ()
   (- (get-universal-time)
-     (encode-universal-time 0 0 0 1 1 1970)))
+     *unix-epoch*))
+
+
 
 (defun time-passed (since &optional (unit :minute))
   (let ((now (get-universal-time)))
@@ -164,7 +175,9 @@
     buf))
 
 (defun mapvec (conversion-fun seq)
-  (map 'vector conversion-fun seq))
+  (if seq
+      (map 'vector conversion-fun seq)
+      #()))
 
 (defun vecrem (predicate seq)
   (delete-if predicate seq :from-end t))

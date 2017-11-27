@@ -90,9 +90,14 @@
 
 (defpackage :lispcord.http
   (:use :cl
+	:jonathan
 	:lispcord.constants
 	:lispcord.util
 	:lispcord.core)
+  (:import-from :lispcord.classes
+		:cache
+		:getcache-id
+		:from-json)
   (:export #:send))
 
 (defpackage :lispcord

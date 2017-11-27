@@ -11,11 +11,14 @@
 (defparameter *ratelimitsresets*
   (make-hash-table :test #'equal))
 
+(defun reset-rate-limits ()
+  (setf *ratelimitlimits* (make-hash-table :test #'equal)
+	*ratelimitsrems* (make-hash-table :test #'equal)
+	*ratelimitsresets* (make-hash-table :test #'equal)))
+
 (defun clear (final)
-  (let ((it (gethash final *ratelimitsresets*)))
-    (if (<= it 1)
-	(setf (gethash final *ratelimitsrems*)
-	      (gethash final *ratelimitlimits*)))))
+  (setf (gethash final *ratelimitsrems*)
+	(gethash final *ratelimitlimits*)))
 
 
 (defun rl-buffer (endpoint)
@@ -25,7 +28,8 @@
   (destructuring-bind (route &optional id? &rest rubbish)
       (split-string endpoint #\/)
     (declare (ignore rubbish))
-    (let* ((final (if (member route '("guilds" "channels"))
+    (let* ((final (if (member route '("guilds" "channels")
+			      :test #'equal)
 		      (str-concat route "/" id?)
 		      route))
 	   (rl (gethash final *ratelimitsrems*))
@@ -34,21 +38,20 @@
 	    ((> rl 1) (decf (gethash final *ratelimitsrems*)) final)
 	    (t
 	     (dprint :warn "Hitting ratelimit! Trying again in: ~a~%" cd)
-	     (sleep cd)
+	     (sleep (- cd (since-unix-epoch)))
 	     (clear final)
-	     (rl-buffer endpoint)
-	     final)))))
+	     (rl-buffer endpoint))))))
 
 (defun rl-parse (final headers)
   (let ((limit? (gethash "x-ratelimit-limit" headers))
 	(rem? (gethash "x-ratelimit-remaining" headers))
 	(reset? (gethash "x-ratelimit-reset" headers)))
-    (when limit?
+    (when (and limit? (not (= limit? (gethash final *ratelimitlimits* 0))))
       (dprint :debug "New ratelimit-limit ~a for ~a~%" limit? final)
       (setf (gethash final *ratelimitlimits*) limit?))
     (when rem?
       (dprint :debug "New ratelimit-remainder ~a for ~a~%" rem? final)
       (setf (gethash final *ratelimitsrems*) rem?))
-    (when reset?
+    (when (and reset? (not (= reset? (gethash final *ratelimitsresets* 0))))
       (dprint :debug "New ratelimit-reset ~a for ~a~%" reset? final)
-      (setf (gethash final *ratelimitsresets*) (/ reset? 1000)))))
+      (setf (gethash final *ratelimitsresets*) reset?))))
