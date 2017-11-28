@@ -20,3 +20,15 @@ It may be set by make-bot!")
 (defgeneric create (content destination &optional bot)
   (:documentation "Sends a POST-request to create the given
 object."))
+
+(defgeneric edit (content destination &optional bot)
+  (:documentation "Sends a PUT or PATCH request to modify
+the given object"))
+
+(defgeneric erase (object &optional bot)
+  (:documentation "Sends a DELETE request to remove the
+given object"))
+
+(defmethod erase ((n null) &optional (bot *client*))
+  (declare (ignore n bot))
+  nil)

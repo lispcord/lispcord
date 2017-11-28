@@ -20,6 +20,7 @@
 	   #:vec-extend
 	   #:new-hash-table
 	   #:vecrem
+	   #:xor
 
 	   #:snowflake
 	   #:parse-snowflake
@@ -186,3 +187,15 @@
   (let ((table (make-hash-table :test #'equal)))
     (loop :for (key val) :in pairs :do (setf (gethash key table) val))
     table))
+
+
+(defun xor (one &rest args)
+  (if (null args)
+      one
+      (if one
+	  (if (car args)
+	      nil
+	      (apply #'xor one (cdr args)))
+	  (if (car args)
+	      (apply #'xor (car args) (cdr args))
+	      (apply #'xor one (cdr args))))))

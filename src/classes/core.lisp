@@ -4,8 +4,9 @@
   (:documentation "Converts a json object to the specified class"))
 
 (defmethod from-json (eh (n null))
-  (declare (ignore eh))
-  n)
+  (declare (ignore eh n))
+  nil)
+
 
 (defgeneric update (data object)
   (:documentation "Updates the internal fields of the object"))

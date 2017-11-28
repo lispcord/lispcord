@@ -97,6 +97,7 @@
   (:import-from :lispcord.classes
 		:cache
 		:getcache-id
+		:decache-id
 		:from-json)
   (:export #:send))
 
