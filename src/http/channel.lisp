@@ -99,8 +99,6 @@
 		   :type :patch
 		   :content (to-json c))))
 
-
-
 (defmethod create ((m new-msg) (c lc:channel)
 		   &optional (bot *client*))
   (when (< 2000 (length (slot-value m 'content)))
@@ -278,19 +276,17 @@
 				   "/pins")
 		       :bot bot)))
 
-(defun pin (message channel &optional (bot *client*))
-  (declare (type lc:channel channel)
-	   (type lc:message message))
-  (discord-req (str-concat "channels/" (lc:id channel)
+(defun pin (message &optional (bot *client*))
+  (declare (type lc:message message))
+  (discord-req (str-concat "channels/" (lc:channel-id message)
 			   "/pins/" (lc:id message))
 	       :bot bot
 	       :type :put
 	       :content "{}"))
 
-(defun unpin (message channel &optional (bot *client*))
-  (declare (type lc:channel channel)
-	   (type lc:message message))
-  (discord-req (str-concat "channels/" (lc:id channel)
+(defun unpin (message &optional (bot *client*))
+  (declare (type lc:message message))
+  (discord-req (str-concat "channels/" (lc:channel-id message)
 			   "/pins/" (lc:id message))
 	       :bot bot
 	       :type :delete))
