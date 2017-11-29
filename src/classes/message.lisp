@@ -63,6 +63,29 @@
     :me "me"
     :emoji (cache :emoji (gethash "emoji" table))))
 
+
+(defclass partial-message ()
+  ((content :initarg :content)
+   (nonce   :initform (make-nonce))
+   (tts     :initarg :tts)
+   (file    :initarg :file)
+   (embed   :initarg :embed)))
+
+(defmethod %to-json ((m partial-message))
+  (with-object
+    (write-key-value "content" (slot-value m 'content))
+    (write-key-value "nonce" (slot-value m 'nonce))
+    (write-key-value "tts" (or (slot-value m 'tts) :false))
+    (write-key-value "file" (or (slot-value m 'file) :false))
+    (write-key-value "embed" (or (slot-value m 'embed) :false))))
+
+(defun make-message (content &key tts file embed)
+  (make-instance 'partial-message
+		 :content content
+		 :tts tts
+		 :file file
+		 :embed embed))
+
 (defclass message ()
   ((id            :initarg :id
 		  :type snowflake

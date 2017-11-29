@@ -304,8 +304,11 @@
     :large "large"
     :available (not (gethash "unavailable" table))
     :member-cnt "member_count"
-    :members (mapvec (curry #'from-json :g-member)
-		  (gethash "members" table))
+    :members (mapvec
+	      (lambda (e)
+		(setf (gethash "guild_id" e) (gethash "id" table))
+		(from-json :g-member e))
+	      (gethash "members" table))
     :channels (mapvec (curry #'cache :channel)
 		   (gethash "channels" table))
     :presences (mapvec (curry #'from-json :presence)

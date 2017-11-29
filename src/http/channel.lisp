@@ -15,83 +15,15 @@
 	    (lc:cache :channel req)))))
 
 
-(defclass new-msg ()
-  ((content :initarg :content)
-   (nonce   :initform (make-nonce))
-   (tts     :initarg :tts)
-   (file    :initarg :file)
-   (embed   :initarg :embed)))
+(defmethod edit ((c lc:partial-channel) (chan lc:channel)
+		 &optional (bot *client*))
+  (cache :channel (discord-req
+		   (str-concat "channels/" (lc:id chan))
+		   :bot bot
+		   :type :patch
+		   :content (to-json c))))
 
-(defmethod %to-json ((m new-msg))
-  (with-object
-    (write-key-value "content" (slot-value m 'content))
-    (write-key-value "nonce" (slot-value m 'nonce))
-    (write-key-value "tts" (or (slot-value m 'tts) :false))
-    (write-key-value "file" (or (slot-value m 'file) :false))
-    (write-key-value "embed" (or (slot-value m 'embed) :false))))
-
-(defun make-message (content &key tts file embed)
-  (make-instance 'new-msg
-		 :content content
-		 :tts tts
-		 :file file
-		 :embed embed))
-
-
-
-
-(defclass new-chnl ()
-  ((name       :initarg :name)
-   (position   :initarg :pos)
-   (topic      :initarg :topic)
-   (nsfw       :initarg :nsfw)
-   (bitrate    :initarg :bitrate)
-   (user-lim   :initarg :user-lim)
-   (overwrites :initarg :overwrites)
-   (parent-id  :initarg :parent)
-   (type       :initarg :type)))
-
-(defun make-channel (&key name position topic nsfw
-		       bitrate user-limit overwrites
-		       parent-id type)
-  (make-instance 'new-chnl
-		 :name name
-		 :pos position
-		 :topic topic
-		 :nsfw nsfw
-		 :bitrate bitrate
-		 :user-lim user-limit
-		 :overwrites overwrites
-		 :parent parent-id
-		 :type type))
-
-(defmethod %to-json ((c new-chnl))
-  (let ((name (slot-value c 'name))
-	(pos (slot-value c 'position))
-	(top (slot-value c 'topic))
-	(nsfw (slot-value c 'nsfw))
-	(bit (slot-value c 'bitrate))
-	(lim (slot-value c 'user-lim))
-	(ovw (slot-value c 'overwrites))
-	(parent (slot-value c 'parent-id))
-	(type (slot-value c 'type)))
-    (with-object
-      (if name (write-key-value "name" name))
-      (if pos (write-key-value "position" pos))
-      (if top (write-key-value "topic" top))
-      (if nsfw (write-key-value "nsfw" nsfw))
-      (if bit (write-key-value "bitrate" bit))
-      (if lim (write-key-value "user_limit" lim))
-      (if ovw (write-key-value "permission_overwrites"ovw))
-      (if parent (write-key-value "parent_id" parent))
-      (if type (write-key-value "type" type)))))
-
-
-
-
-
-
-(defmethod edit ((c new-chnl) (chan lc:channel)
+(defmethod edit ((c lc:channel) (chan lc:channel)
 		 &optional (bot *client*))
   (cache :channel (discord-req
 		   (str-concat "channels/" (lc:id chan))

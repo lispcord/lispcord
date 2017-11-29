@@ -28,6 +28,58 @@
     (write-key-value "allow" (allow o))
     (write-key-value "deny" (deny o))))
 
+
+
+
+(defclass partial-channel ()
+  ((name       :initarg :name       :accessor name)
+   (position   :initarg :pos        :accessor position)
+   (topic      :initarg :topic      :accessor topic)
+   (nsfw       :initarg :nsfw       :accessor nsfw-p)
+   (bitrate    :initarg :bitrate    :accessor bitrate)
+   (user-lim   :initarg :user-lim   :accessor user-limit)
+   (overwrites :initarg :overwrites :accessor overwrites)
+   (parent-id  :initarg :parent     :accessor parent-id)
+   (type       :initarg :type       :accessor type)))
+
+(defun make-channel (&key name position topic nsfw
+		       bitrate user-limit overwrites
+		       parent-id type)
+  (make-instance 'partial-channel
+		 :name name
+		 :pos position
+		 :topic topic
+		 :nsfw nsfw
+		 :bitrate bitrate
+		 :user-lim user-limit
+		 :overwrites overwrites
+		 :parent parent-id
+		 :type type))
+
+(defmethod %to-json ((c partial-channel))
+  (let ((name (name c))
+	(pos (position c))
+	(top (topic c))
+	(nsfw (nsfw-p c))
+	(bit (bitrate c))
+	(lim (user-limit c))
+	(ovw (overwrites c))
+	(parent (parent-id c))
+	(type (type c)))
+    (with-object
+      (if name (write-key-value "name" name))
+      (if pos (write-key-value "position" pos))
+      (if top (write-key-value "topic" top))
+      (if nsfw (write-key-value "nsfw" nsfw))
+      (if bit (write-key-value "bitrate" bit))
+      (if lim (write-key-value "user_limit" lim))
+      (if ovw (write-key-value "permission_overwrites"ovw))
+      (if parent (write-key-value "parent_id" parent))
+      (if type (write-key-value "type" type)))))
+
+
+
+
 (defclass channel ()
   ((id :initarg :id
        :type snowflake
