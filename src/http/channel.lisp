@@ -207,4 +207,47 @@
 
 
 
+(defmethod edit ((s string) (m lc:message) &optional (bot *client*))
+  (unless (< (length s) 2000) (error "Message content too long!"))
+  (discord-req (str-concat "channels/" (lc:channel-id m)
+			   "/messages/" (lc:id m))
+	       :bot bot
+	       :content (str-concat "{\"content\":\"" s "\"}")
+	       :type :patch))
 
+(defmethod edit ((e lc:embed) (m lc:message) &optional (bot *client*))
+  (discord-req (str-concat "channels/" (lc:channel-id m)
+			   "/messages/" (lc:id m))
+	       :bot bot
+	       :content (str-concat "{\"embed\":\"" (to-json e) "\"}")
+	       :type :patch))
+
+
+(defmethod erase ((m lc:message) &optional (bot *client*))
+  (discord-req (str-concat "/channels/" (lc:channel-id m)
+			   "/messages/" (lc:id m))
+	       :bot bot
+	       :type :delete))
+
+(defun erase-messages (array-of-ids channel &optional (bot *client*))
+  (when (typep channel 'lc:guild-channel)
+    (discord-req (str-concat "channels/" (lc:id channel)
+			     "/messages/bulk-delete")
+		 :type :post
+		 :bot bot
+		 :content (str-concat "{\"messages\":"
+				      (to-json array-of-ids) "}"))))
+
+
+(defun make-overwrite (id &optional (allow 0) (deny 0) (type "role"))
+  (make-instance 'lc:overwrite :id id :allow allow :deny deny :type type))
+
+(defmethod edit ((o lc:overwrite) (c lc:channel)
+		 &optional (bot *client*))
+  (discord-req (str-concat "channels/" (lc:id c)
+			   "/permissions/" (lc:id o))
+	       :bot bot
+	       :type :put
+	       :content `(("allow" . ,(lc:allow o))
+			  ("deny" . ,(lc:deny o))
+			  ("type" . ,(lc:type o)))))
