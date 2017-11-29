@@ -177,7 +177,7 @@
 		       :type string
 		       :accessor region)
    (afk-id             :initarg :afk-id
-		       :type snowflake
+		       :type (or null snowflake)
 		       :accessor afk-id)
    (afk-to             :initarg :afk-to
 		       :type fixnum
@@ -222,13 +222,13 @@
 		       :type (or null snowflake)
 		       :accessor system-channel-id)
    (joined-at          :initarg :joined-at
-		       :type string
+		       :type (or null string)
 		       :accessor joined-at)
    (large              :initarg :large
 		       :type t
 		       :accessor largep)
    (member-count       :initarg :member-cnt
-		       :type fixnum
+		       :type (or null fixnum)
 		       :accessor member-count)
    (members            :initarg :members
 		       :type (vector member)

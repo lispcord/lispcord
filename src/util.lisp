@@ -24,7 +24,7 @@
 
 	   #:snowflake
 	   #:parse-snowflake
-	   #:sf-to-string
+	   #:to-string
 	   #:optimal-id-compare
 
 	   #:set-debug-level
@@ -41,8 +41,8 @@
 (defun parse-snowflake (snowflake-string)
   snowflake-string)
 
-(defun sf-to-string (snowflake)
-  snowflake)
+(defun to-string (obj)
+  (format nil "~a" obj))
 
 (defvar optimal-id-compare #'equal)
 

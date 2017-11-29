@@ -54,6 +54,7 @@
 		    &key bot content
 		      (content-type "application/json")
 		      (type :get)
+		      parameters
 		    &aux
 		      (url (str-concat +base-url+ endpoint))
 		      (final (rl-buffer endpoint)))
@@ -64,6 +65,7 @@
       (drakma:http-request
        url
        :method type
+       :parameters parameters
        :content-type content-type
        :content content
        :user-agent (if bot (user-agent bot) :drakma)
