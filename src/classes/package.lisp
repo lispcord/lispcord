@@ -17,6 +17,9 @@
 	   #:decache-id
 	   
 	   #:make-game
+	   #:make-channel
+	   #:make-message
+	   #:make-role
 	   
 	   #:overwrite
 	   #:user
@@ -24,6 +27,7 @@
 	   #:integration
 	   #:emoji
 	   #:channel
+	   #:partial-channel
 	   #:guild-channel
 	   #:category
 	   #:text-channel
@@ -31,6 +35,7 @@
 	   #:dm-channel
 	   #:group-dm
 	   #:role
+	   #:partial-role
 	   #:guild
 	   #:member
 	   #:embed
@@ -46,7 +51,7 @@
 	   #:attachement
 	   #:reaction
 	   #:message
-	   
+	   #:partial-message
 
 	   #:id
 	   #:username

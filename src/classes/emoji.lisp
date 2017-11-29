@@ -1,25 +1,44 @@
 (in-package :lispcord.classes)
 
+(defclass partial-emoji ()
+  ((name :initarg :name :accessor name)
+   (image :initarg :image :accessor image)
+   (roles :initarg :roles :accessor roles)))
+
+(defun make-emoji (name image &optional roles)
+  (make-instance 'new-emoji
+		 :name name
+		 :image image
+		 :roles roles))
+
+(defmethod %to-json ((e partial-emoji))
+  (with-object
+    (write-key-value "name" (name e))
+    (write-key-value "image" (image e))
+    (write-key-value "roles" (or (roles e) :null))))
 
 (defclass emoji ()
-  ((id      :initarg :id
-	    :type snowflake
-	    :accessor id)
-   (name    :initarg :name
-	    :type string
-	    :accessor name)
-   (roles   :initarg :roles
-	    :type (vector snowflake)
-	    :accessor roles)
-   (user    :initarg :user
-	    :type (or null user)
-	    :accessor user)
-   (colons? :initarg :colons?
-	    :type t
-	    :accessor colonsp)
-   (managed :initarg :managed
-	    :type t
-	    :accessor managedp)))
+  ((id       :initarg :id
+	     :type snowflake
+	     :accessor id)
+   (name     :initarg :name
+	     :type string
+	     :accessor name)
+   (roles    :initarg :roles
+	     :type (vector snowflake)
+	     :accessor roles)
+   (user     :initarg :user
+	     :type (or null user)
+	     :accessor user)
+   (colons?  :initarg :colons?
+	     :type t
+	     :accessor colonsp)
+   (managed  :initarg :managed
+	     :type t
+	     :accessor managedp)
+   (guild-id :initarg :gid
+	     :type (or null snowflake)
+	     :accessor guild-id)))
 
 
 (defmethod from-json ((c (eql :emoji)) (table hash-table))

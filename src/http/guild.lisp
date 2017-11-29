@@ -1,23 +1,5 @@
 (in-package :lispcord.http)
 
-(defclass new-guild ()
-  ((name :initarg :name)
-   (region :initarg :region)
-   (icon :initarg :icon)
-   (verify-l :initarg :verify-l)
-   (notify-l :initarg :notify-l)
-   (roles :initarg :roles)
-   (channels :initarg :channels)))
-
-(defclass part-chnl ()
-  ((name :initarg :name)
-   (type :initarg :type)))
-
-(defclass plac-role (lc:role)
-  ((id :initarg :id
-       :type fixnum
-       :accessor lc:id)))
-
 (defmethod from-id (id (g (eql :guild)) &optional (bot *client*))
   (cache :guild
 	 (discord-req (str-concat "guilds/" id)
@@ -35,7 +17,8 @@
 	    (discord-req (str-concat "guilds/" g "/channels")
 			 :bot bot))))
 
-(defmethod create ((c new-chnl) (g lc:guild) &optional (bot *client*))
+(defmethod create ((c lc:partial-channel) (g lc:guild)
+		   &optional (bot *client*))
   (cache :channel
 	 (discord-req (str-concat "guilds/" (lc:id g) "/channels")
 		      :bot bot
@@ -157,4 +140,39 @@
 			 :bot bot))))
 
 
-(defun create ())
+(defmethod create ((r lc:partial-role) (g lc:guild)
+	       &optional (bot *client*))
+  (cache :role (discord-req (str-concat "guilds/" (lc:id g) "/roles")
+			    :bot bot
+			    :type :post
+			    :content (to-json r))))
+
+(defmethod edit ((r lc:partial-role) (role lc:role)
+		 &optional (bot *client*))
+  (cache :role (discord-req (str-concat "guilds/" (lc:guild-id role)
+					"/roles/" (lc:id role))
+			    :bot bot
+			    :type :patch
+			    :content (to-json r))))
+
+(defmethod edit ((r lc:role) (role lc:role)
+		 &optional (bot *client*))
+    (cache :role
+	   (discord-req
+	    (str-concat "guilds/" (lc:guild-id role)
+			"/roles/" (lc:id role))
+	    :bot bot
+	    :type :patch
+	    :content (jmake `(("name" . ,(lc:name r))
+			      ("permissions" . (lc:permissions r))
+			      ("color" . (lc:color r))
+			      ("hoist" . (lc:hoistp r))
+			      ("mentionable" . (lc:mentionablep r)))))))
+
+(defmethod erase ((r lc:role) &optional (bot *client*))
+  (discord-req (str-concat "guilds/" (lc:guild-id r)
+			   "/roles/" (lc:id r))
+	       :bot bot
+	       :type :delete))
+
+

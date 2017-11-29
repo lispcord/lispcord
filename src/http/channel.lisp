@@ -4,13 +4,10 @@
 		    &optional (bot *client*))
   (if (getcache-id id :channel)
       (getcache-id id :channel)
-      (let* ((flake (sf-to-string id))
-	     (req (handler-case (discord-req
-				 (str-concat "channels/" flake)
-				 :bot bot)
-		    (dex:http-request-not-found (e)
-		      (declare (ignore e))
-		      nil))))
+      (let* ((flake (to-string id))
+	     (req  (discord-req
+		    (str-concat "channels/" flake)
+		    :bot bot)))
 	(if req
 	    (lc:cache :channel req)))))
 
@@ -31,7 +28,7 @@
 		   :type :patch
 		   :content (to-json c))))
 
-(defmethod create ((m new-msg) (c lc:channel)
+(defmethod create ((m lc:partial-message) (c lc:channel)
 		   &optional (bot *client*))
   (when (< 2000 (length (slot-value m 'content)))
     (error "Message size exceeds maximum discord message size!~%"))
@@ -57,14 +54,11 @@
 
 
 (defmethod erase ((c lc:channel) &optional (bot *client*))
-  (let ((response (handler-case (discord-req
-				 (str-concat "channels/" (lc:id c))
-				 :bot bot
-				 :type :delete)
-		    (dex:http-request-not-found (e)
-		      (declare (ignore e))
-		      nil))))
-    (if response
+  (let ((response (discord-req
+		   (str-concat "channels/" (lc:id c))
+		   :bot bot
+		   :type :delete)))
+    (if response 
 	(decache-id
 	 (gethash "id" response)
 	 :channel))))
@@ -86,10 +80,11 @@
     (mapvec (curry #'from-json :message)
 	    (discord-req
 	     (format nil "channels/~a/messages?limit=~a~@[&~a~]"
-		     (sf-to-string (lc:id channel)) limit final)
+		     (to-string (lc:id channel)) limit final)
 	     :bot bot))))
 
-(defmethod from-id (message-id (c lc:channel) &optional (bot *client*))
+(defmethod from-id (message-id (c lc:channel)
+		    &optional (bot *client*))
   (from-json :message (discord-req
 		       (str-concat "channels/" (lc:id c)
 				   "/messages/" message-id)
@@ -169,9 +164,6 @@
 				      (to-json array-of-ids) "}"))))
 
 
-(defun make-overwrite (id &optional (allow 0) (deny 0) (type "role"))
-  (make-instance 'lc:overwrite :id id :allow allow :deny deny :type type))
-
 (defmethod edit ((o lc:overwrite) (c lc:channel)
 		 &optional (bot *client*))
   (discord-req (str-concat "channels/" (lc:id c)
@@ -183,12 +175,13 @@
 			  ("type" . ,(lc:type o)))))
 
 (defun erase-overwrite (overwrite channel &optional (bot *client*))
-  (declare (type lc:channel channel)
+  (declare (type (or snowflake lc:channel) channel)
 	   (type (or snowflake lc:overwrite) overwrite))
-  (let ((o (if (typep overwrite 'lc:overwrite)
+  (let ((c (if (typep channel 'lc:channel) (lc:id channel) channel))
+	(o (if (typep overwrite 'lc:overwrite)
 	       (lc:id overwrite)
 	       overwrite)))
-    (discord-req (str-concat "channels/" (lc:id channel)
+    (discord-req (str-concat "channels/" c
 			     "/permissions/" o)
 		 :bot bot
 		 :type :delete)))

@@ -1,5 +1,32 @@
 (in-package :lispcord.classes)
 
+(defclass partial-role ()
+  ((name        :initarg :name     :accessor name)
+   (color       :initarg :color    :accessor color)
+   (hoist       :initarg :hoist    :accessor hoistp)
+   (permissions :initargs :perms   :accessor permissions)
+   (mentionable :initargs :mention :accessor mentionablep)))
+
+(defmethod make-role (&key
+			(name "new role")
+			(color 0)
+			hoist
+			(permissions 0)
+			mentionable)
+  (make-instance 'partial-role
+		 :name name
+		 :color color
+		 :hoist (or hoist :false)
+		 :perms permissions
+		 :mention (or mentionable :false)))
+
+(defmethod %to-json ((r partial-role))
+  (with-object
+    (write-key-value "name" (name r))
+    (write-key-value "color" (color r))
+    (write-key-value "hoist" (or (hoistp r) :false))
+    (write-key-value "permissions" (permissions r))
+    (write-key-value "mentionable" (or (mentionablep r) :false))))
 
 (defclass role ()
   ((id          :initarg :id
@@ -278,41 +305,44 @@
 
 
 (defun %available-from-json (table)
-  (instance-from-table (table 'available-guild)
-    :id (parse-snowflake (gethash "id" table))
-    :name "name"
-    :icon "icon"
-    :splash "splash"
-    :owner (parse-snowflake (gethash "owner_id" table))
-    :region "region"
-    :afk-id (parse-snowflake (gethash "afk_channel_id" table))
-    :afk-to "afk_timeout"
-    :embed? "embed_enabled"
-    :embed-id (parse-snowflake (gethash "embed_channel_id" table))
-    :verify-l "verification_level"
-    :notify-l "default_message_notifications"
-    :content "explicit_content_filter"
-    :roles (mapvec (curry #'cache :role) (gethash "roles" table))
-    :emojis (mapvec (curry #'cache :emoji) (gethash "emojis" table))
-    :features (coerce (gethash "features" table) 'vector)
-    :mfa "mfa_level"
-    :app-id (parse-snowflake (gethash "application_id" table))
-    :widget? "widget_enabled"
-    :widget-id (parse-snowflake (gethash "widget_channel_id" table))
-    :system-id (parse-snowflake (gethash "sytem_channel_id" table))
-    :joined-at "joined_at"
-    :large "large"
-    :available (not (gethash "unavailable" table))
-    :member-cnt "member_count"
-    :members (mapvec
-	      (lambda (e)
-		(setf (gethash "guild_id" e) (gethash "id" table))
-		(from-json :g-member e))
-	      (gethash "members" table))
-    :channels (mapvec (curry #'cache :channel)
-		   (gethash "channels" table))
-    :presences (mapvec (curry #'from-json :presence)
-		    (gethash "presences" table))))
+  (flet ((parse-with-gid (f type e)
+	   (unless (gethash "guild_id" e)
+	     (setf (gethash "guild_id" e) (gethash "id" table)))
+	   (funcall f type e)))
+    (instance-from-table (table 'available-guild)
+      :id (parse-snowflake (gethash "id" table))
+      :name "name"
+      :icon "icon"
+      :splash "splash"
+      :owner (parse-snowflake (gethash "owner_id" table))
+      :region "region"
+      :afk-id (parse-snowflake (gethash "afk_channel_id" table))
+      :afk-to "afk_timeout"
+      :embed? "embed_enabled"
+      :embed-id (parse-snowflake (gethash "embed_channel_id" table))
+      :verify-l "verification_level"
+      :notify-l "default_message_notifications"
+      :content "explicit_content_filter"
+      :roles (mapvec (curry #'parse-with-gid #'cache :role)
+		     (gethash "roles" table))
+      :emojis (mapvec (curry #'parse-with-gid #'cache :emoji)
+		      (gethash "emojis" table))
+      :features (coerce (gethash "features" table) 'vector)
+      :mfa "mfa_level"
+      :app-id (parse-snowflake (gethash "application_id" table))
+      :widget? "widget_enabled"
+      :widget-id (parse-snowflake (gethash "widget_channel_id" table))
+      :system-id (parse-snowflake (gethash "sytem_channel_id" table))
+      :joined-at "joined_at"
+      :large "large"
+      :available (not (gethash "unavailable" table))
+      :member-cnt "member_count"
+      :members (mapvec (curry #'parse-with-gid #'from-json :g-member)
+		       (gethash "members" table))
+      :channels (mapvec (curry #'parse-with-gid #'cache :channel)
+			(gethash "channels" table))
+      :presences (mapvec (curry #'from-json :presence)
+			 (gethash "presences" table)))))
 
 (defun %unavailable-from-json (table)
   (make-instance 'guild

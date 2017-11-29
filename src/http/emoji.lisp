@@ -14,22 +14,9 @@
 				     "/emojis")
 			 :bot bot))))
 
-(defclass new-emoji ()
-  ((name :initarg :name)
-   (image :initarg :image)
-   (roles :initarg :roles)))
 
-(defun make-emoji (name image &optional roles)
-  (make-instance 'new-emoji :name name :image image :roles roles))
-
-(defmethod %to-json ((e new-emoji))
-  (with-object
-    (write-key-value "name" (slot-value e 'name))
-    (write-key-value "image" (slot-value e 'image))
-    (write-key-value "roles" (or (slot-value e 'image) :null))))
-
-
-(defmethod create ((e new-emoji) (g lc:guild) &optional (bot *client*))
+(defmethod create ((e lc:partial-emoji) (g lc:guild)
+		   &optional (bot *client*))
   (cache :emoji
 	 (discord-req (str-concat "guilds/" (lc:id g)
 				  "/emojis")
@@ -37,7 +24,8 @@
 		      :type :post
 		      :content (to-json e))))
 
-(defmethod edit ((e new-emoji) (g lc:guild) &optional (bot *client*))
+(defmethod edit ((e lc:partial-emoji) (g lc:guild)
+		 &optional (bot *client*))
   (cache :emoji
 	 (discord-req (str-concat "guilds/" (lc:id g) "/emojis")
 		      :bot bot

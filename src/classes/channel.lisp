@@ -14,6 +14,9 @@
 	  :type fixnum
 	  :accessor deny)))
 
+(defun make-overwrite (id &optional (allow 0) (deny 0) (type "role"))
+  (make-instance 'overwrite :id id :allow allow :deny deny :type type))
+
 (defmethod from-json ((c (eql :overwrite)) (table hash-table))
   (instance-from-table (table 'overwrite)
     :id (parse-snowflake (gethash "id" table))
@@ -29,9 +32,9 @@
     (write-key-value "deny" (deny o))))
 
 
+(defclass chnl nil nil)
 
-
-(defclass partial-channel ()
+(defclass partial-channel (chnl)
   ((name       :initarg :name       :accessor name)
    (position   :initarg :pos        :accessor position)
    (topic      :initarg :topic      :accessor topic)
@@ -56,7 +59,7 @@
 		 :parent parent-id
 		 :type type))
 
-(defmethod %to-json ((c partial-channel))
+(defmethod %to-json ((c chnl))
   (let ((name (name c))
 	(pos (position c))
 	(top (topic c))
@@ -80,7 +83,7 @@
 
 
 
-(defclass channel ()
+(defclass channel (chnl)
   ((id :initarg :id
        :type snowflake
        :accessor id)))

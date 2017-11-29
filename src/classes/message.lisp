@@ -65,19 +65,19 @@
 
 
 (defclass partial-message ()
-  ((content :initarg :content)
-   (nonce   :initform (make-nonce))
-   (tts     :initarg :tts)
-   (file    :initarg :file)
-   (embed   :initarg :embed)))
+  ((content :initarg :content :accessor content)
+   (nonce   :initform (make-nonce) :accessor nonce)
+   (tts     :initarg :tts :accessor tts-p)
+   (file    :initarg :file :accessor file)
+   (embed   :initarg :embed :accessor embed)))
 
 (defmethod %to-json ((m partial-message))
   (with-object
-    (write-key-value "content" (slot-value m 'content))
-    (write-key-value "nonce" (slot-value m 'nonce))
-    (write-key-value "tts" (or (slot-value m 'tts) :false))
-    (write-key-value "file" (or (slot-value m 'file) :false))
-    (write-key-value "embed" (or (slot-value m 'embed) :false))))
+    (write-key-value "content" (content m))
+    (write-key-value "nonce" (nonce m))
+    (write-key-value "tts" (or (tts-p m) :false))
+    (write-key-value "file" (or (file m) :null))
+    (write-key-value "embed" (or (embed m) :null))))
 
 (defun make-message (content &key tts file embed)
   (make-instance 'partial-message
