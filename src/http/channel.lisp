@@ -251,3 +251,48 @@
 	       :content `(("allow" . ,(lc:allow o))
 			  ("deny" . ,(lc:deny o))
 			  ("type" . ,(lc:type o)))))
+
+(defun erase-overwrite (overwrite channel &optional (bot *client*))
+  (declare (type lc:channel channel)
+	   (type (or snowflake lc:overwrite) overwrite))
+  (let ((o (if (typep overwrite 'lc:overwrite)
+	       (lc:id overwrite)
+	       overwrite)))
+    (discord-req (str-concat "channels/" (lc:id channel)
+			     "/permissions/" o)
+		 :bot bot
+		 :type :delete)))
+
+(defun start-typing (channel &optional (bot *client*))
+  (declare (type lc:channel channel))
+  (discord-req (str-concat "channels/" (lc:id channel)
+			   "typing")
+	       :bot bot
+	       :type :post
+	       :content "{}"))
+
+(defun get-pinned (channel &optional (bot *client*))
+  (declare (type lc:channel channel))
+  (mapvec (curry #'from-json :message)
+	  (discord-req (str-concat "channels/" (lc:id channel)
+				   "/pins")
+		       :bot bot)))
+
+(defun pin (message channel &optional (bot *client*))
+  (declare (type lc:channel channel)
+	   (type lc:message message))
+  (discord-req (str-concat "channels/" (lc:id channel)
+			   "/pins/" (lc:id message))
+	       :bot bot
+	       :type :put
+	       :content "{}"))
+
+(defun unpin (message channel &optional (bot *client*))
+  (declare (type lc:channel channel)
+	   (type lc:message message))
+  (discord-req (str-concat "channels/" (lc:id channel)
+			   "/pins/" (lc:id message))
+	       :bot bot
+	       :type :delete))
+
+

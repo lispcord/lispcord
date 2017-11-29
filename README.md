@@ -21,6 +21,7 @@ The [examples] folder contains some more ideas on how to get started :)
 ## Pipes:
 Unlike many other libraries, which use basic event handlers, lispcord
 abstracts over the entire dynamic through what it calls "pipes".
+
 The `>message>` object above is a pipe, and it dispatches events in
 a specific format (called "cargo")  which can be handled in various ways.
 This allows the library to expose functions which can produce derivative
