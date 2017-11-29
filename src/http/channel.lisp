@@ -1,6 +1,6 @@
 (in-package :lispcord.http)
 
-(defmethod from-id ((c (eql :channel)) id
+(defmethod from-id (id (c (eql :channel))
 		    &optional (bot *client*))
   (if (getcache-id id :channel)
       (getcache-id id :channel)
@@ -112,10 +112,9 @@
 		    :bot bot
 		    :type :post
 		    :content (to-json m)
-		    :headers `(("Content-Type"
-				. ,(if (slot-value m 'file)
-				       "multipart/form-data"
-				       "application/json")))))
+		    :content-type (if (slot-value m 'file)
+				      "multipart/form-data"
+				      "application/json")))
 	 (reply-nonce (gethash "nonce" response)))
     (if (equal reply-nonce nonce)
 	(from-json :message response)
@@ -159,3 +158,53 @@
 	     (format nil "channels/~a/messages?limit=~a~@[&~a~]"
 		     (sf-to-string (lc:id channel)) limit final)
 	     :bot bot))))
+
+(defmethod from-id (message-id (c lc:channel) &optional (bot *client*))
+  (from-json :message (discord-req
+		       (str-concat "channels/" (lc:id c)
+				   "/messages/" message-id)
+		       :bot bot)))
+
+
+
+
+
+(defmethod create ((c character) (m lc:message)
+		   &optional (bot *client*))
+  (discord-req (str-concat "channels/" (lc:channel-id m)
+			   "/messages/" (lc:id m)
+			   "/reactions/"
+			   (drakma:url-encode (string c) :utf8)
+			   "/@me")
+	       :bot bot
+	       :content "{}"
+	       :type :put))
+
+(defmethod create ((e lc:emoji) (m lc:message)
+		   &optional (bot *client*))
+  (discord-req (str-concat "channels/" (lc:channel-id m)
+			   "/messages/" (lc:id m)
+			   "/reactions/" (lc:name e) ":" (lc:id e)
+			   "/@me")
+	       :bot bot
+	       :content "{}"
+	       :type :put))
+
+
+(defun erase-reaction (emoji message
+		       &optional user (bot *client*))
+  (declare (type lc:message message)
+	   (type (or character lc:emoji) emoji))
+  (let ((e (if (characterp emoji)
+	       (drakma:url-encode (string emoji) :utf8)
+	       (str-concat (lc:name emoji) ":" (lc:id emoji)))))
+    (discord-req (str-concat "channels/" (lc:channel-id message)
+			     "/messages/" (lc:id message)
+			     "/reactions/" e
+			     (if user (lc:id user) "/@me"))
+		 :bot bot
+		 :type :delete)))
+
+
+
+

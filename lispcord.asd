@@ -3,7 +3,8 @@
     :author "MegaLoler"
     :license "yet-to-be-specified"
     :serial t
-    :depends-on (:dexador
+    :depends-on (:drakma
+		 :babel
 		 :websocket-driver-client
 		 :jonathan
 		 :bordeaux-threads)
