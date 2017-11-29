@@ -1,7 +1,8 @@
 (asdf:defsystem :lispcord
     :description "A client library for the discordapp bot api"
-    :author "MegaLoler"
-    :license "yet-to-be-specified"
+    :author "MegaLoler, spreadLink"
+    :maintainer "spreadLink"
+    :license "MIT"
     :serial t
     :depends-on (:drakma
 		 :babel
