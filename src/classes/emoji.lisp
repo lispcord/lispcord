@@ -40,6 +40,9 @@
 	     :type (or null snowflake)
 	     :accessor guild-id)))
 
+(defmethod guild ((e emoji))
+  (getcache-id (guild-id e) :guild))
+
 
 (defmethod from-json ((c (eql :emoji)) (table hash-table))
   (instance-from-table (table 'emoji)

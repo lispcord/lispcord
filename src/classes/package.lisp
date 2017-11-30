@@ -20,12 +20,15 @@
 	   #:make-channel
 	   #:make-message
 	   #:make-role
+	   #:make-emoji
 	   
 	   #:overwrite
 	   #:user
+	   #:user-id
 	   #:account
 	   #:integration
 	   #:emoji
+	   #:partial-emoji
 	   #:channel
 	   #:partial-channel
 	   #:guild-channel
@@ -62,6 +65,7 @@
 	   #:verifiedp
 	   #:emailp
 	   #:guild-id
+	   #:guild
 	   #:type
 	   #:allow
 	   #:deny
@@ -70,6 +74,7 @@
 	   #:position
 	   #:overwrites
 	   #:parent-id
+	   #:parent
 	   #:nsfw-p
 	   #:topic
 	   #:last-message
@@ -77,6 +82,7 @@
 	   #:user-limit
 	   #:recipients
 	   #:icon
+	   #:owner-id
 	   #:owner
 	   #:text
 	   #:icon-proxy
@@ -89,6 +95,7 @@
 	   #:title
 	   #:description
 	   #:timestamp
+	   #:largep
 	   #:color
 	   #:footer
 	   #:image
@@ -124,7 +131,7 @@
 	   #:app-id
 	   #:widgetp
 	   #:widget-id
-	   #:largep
+	   #:ep
 	   #:availablep
 	   #:member-count
 	   #:members

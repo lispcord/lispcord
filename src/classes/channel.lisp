@@ -150,9 +150,18 @@
    (icon     :initarg :icon
 	     :type (or null string)
 	     :accessor icon)
-   (owner    :initarg :owner
+   (owner-id :initarg :owner
 	     :type snowflake
-	     :accessor owner)))
+	     :accessor owner-id)))
+
+(defmethod guild ((c guild-channel))
+  (getcache-id (guild-id c) :guild))
+
+(defmethod parent ((c guild-channel))
+  (getcache-id (parent-id c) :channel))
+
+(defmethod owner ((c group-dm))
+  (getcache-id (owner-id c) :user))
 
 (defun %guild-text-fj (table)
   (instance-from-table (table 'text-channel)

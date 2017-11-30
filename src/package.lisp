@@ -48,6 +48,7 @@
   (:export #:bot
 	   #:primitive-make-bot
 	   #:string-slot
+	   #:*client*
 
 	   #:token
 	   #:user

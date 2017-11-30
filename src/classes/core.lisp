@@ -19,7 +19,17 @@
 			`(,k (setf ,a ,op)))))
 	      ,table)))
 
+(defgeneric guild (object)
+  (:documentation "Returns the cached guild object corresponding to the guild-id of object"))
 
+(defgeneric owner (object)
+  (:documentation "Returns the cached user object corresponding to the owner-id of object"))
+
+(defgeneric channel (object)
+  (:documentation "Returns the cached channel object corresponding to the channel-id of object"))
+
+(defgeneric parent (object)
+  (:documentation "Returns the cached parent object corresponding to th e parrent-id of object"))
 
 ;;; When working on a class, please comment on the relevant github issue
 ;;; at https://github.com/MegaLoler/lispcord/issues that you are working

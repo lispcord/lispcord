@@ -57,6 +57,9 @@
 		:type (or null snowflake)
 		:accessor guild-id)))
 
+(defmethod guild ((r role))
+  (getcache-id (guild-id r) :guild))
+
 (defmethod from-json ((c (eql :role)) (table hash-table))
   (instance-from-table (table 'role)
     :id (parse-snowflake (gethash "id" table))
@@ -114,6 +117,9 @@
 	      :type (or null snowflake)
 	      :accessor guild-id)))
 
+(defmethod guild ((m member))
+  (getcache-id (guild-id m) :guild))
+
 ;;The Modify and Add Member REST-calls can use this
 (defmethod %to-json ((m member))
   (with-object
@@ -148,7 +154,7 @@
 (defclass presence ()
   ((user     :initarg :user
 	     :type snowflake
-	     :accessor user)
+	     :accessor user-id)
    (roles    :initarg :roles
 	     :type (or null (vector snowflake))
 	     :accessor roles)
@@ -161,6 +167,9 @@
    (status   :initarg :status
 	     :type (or null string)
 	     :accessor status)))
+
+(defmethod user ((p presence))
+  (getcache-id (user-id p) :user))
 
 (defmethod from-json ((c (eql :presence)) (table hash-table))
   (instance-from-table (table 'presence)
@@ -199,7 +208,7 @@
 		       :accessor splash)
    (owner              :initarg :owner
 		       :type snowflake
-		       :accessor owner)
+		       :accessor owner-id)
    (region             :initarg :region
 		       :type string
 		       :accessor region)
@@ -266,6 +275,9 @@
    (presences          :initarg :presences
 		       :type (vector presence)
 		       :accessor presences)))
+
+(defmethod owner ((g guild))
+  (getcache-id (owner-id g) :user))
 
 (defmethod %to-json ((g available-guild))
   (with-object

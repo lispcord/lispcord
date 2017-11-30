@@ -1,5 +1,8 @@
 (in-package :lispcord.core)
 
+(defvar *client* nil
+  "This is an empty dummy var to allow for implicits.
+It may be set by make-bot!")
 
 (defstruct (bot (:constructor primitive-make-bot)
 		:conc-name)

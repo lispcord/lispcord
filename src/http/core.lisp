@@ -1,8 +1,6 @@
 (in-package :lispcord.http)
 
-(defvar *client* nil
-  "This is an empty dummy var to allow for implicits.
-It may be set by make-bot!")
+
 
 ; send a message!
 (defun send (bot channel-id content)

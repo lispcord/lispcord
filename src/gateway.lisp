@@ -16,7 +16,7 @@
 (defun make-status (bot status game afk)
   (let ((since (when afk (if (afk-since bot)
 			     (afk-since bot)
-			     (setf (afk-since bot) (unix-epoch))))))
+			     (setf (afk-since bot) (since-unix-epoch))))))
     `(("since" . ,since)
       ("game" . ,game)
       ("afk" . ,afk)
@@ -52,7 +52,7 @@
   (dprint :info "~&Ready payload received; Session-id: ~a~%"
 	  (aget "session_id" payload))
   (setf (session-id bot) (aget "session_id" payload))
-  (setf (user bot) (from-json :user (aget "user" payload)))
+  (setf (user bot) (cache :user (aget "user" payload)))
   ;dispatch event
   (cargo-send >status> :ready payload (lc:id (user bot))))
 
