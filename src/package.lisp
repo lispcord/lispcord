@@ -15,11 +15,16 @@
 	   #:taggedp
 	   #:from-origin-p
 
+	   #:cargo-body
+	   #:cargo-tag
+	   #:cargo-origin
+	   
 	   #:make-cargo
 	   #:open-cargo
 	   #:with-cargo
 	   #:watch-with-cargo
 	   #:watch-with-case
+	   #:watch-unwrapped
 	   #:cargo-send))
 
 
@@ -141,6 +146,7 @@
 
 	   	   
 	   #:reply
+	   #:me
 
 	   
 	   #:with-handler
@@ -160,7 +166,11 @@
 	   #:open-cargo
 	   #:with-cargo
 	   #:watch-with-cargo
+	   #:watch-unwrapped
 	   #:cargo-send
+	   #:cargo-body
+	   #:cargo-tag
+	   #:cargo-origin
 
 	   
 	   #:>message>

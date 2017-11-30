@@ -19,7 +19,7 @@
   (let ((tag (cargo-tag cargo))
 	(body (cargo-body cargo))
 	(origin (cargo-origin cargo)))
-    (values tag body origin)))
+    (values body tag origin)))
 
 
 (defstruct handler
@@ -91,28 +91,29 @@
 
 (defmacro with-cargo ((cargo tag body &optional origin) &body progn)
   `(multiple-value-bind ,(if origin
-			     (list tag body origin)
-			     (list tag body))
+			     (list body tag origin)
+			     (list body tag))
        (open-cargo ,cargo)
      ,@progn))
 
 (defmacro watch-with-cargo ((pipe tag body &optional origin) &body progn)
   (let ((c (gensym)))
     `(watch-do ,pipe (,c)
-       (with-cargo (,c ,tag ,body ,origin)
+       (with-cargo (,c ,body ,tag ,origin)
 	 ,@progn))))
-
-(defun unwrap (cargo)
-  (with-cargo (cargo _ body)
-    (declare (ignore _))
-    body))
-
 
 (defmacro watch-with-case ((pipe body &optional origin) &body progn)
   (let ((tag (gensym)))
     `(watch-with-cargo (,pipe ,tag ,body ,origin)
        (case ,tag
 	 ,@progn))))
+
+(defmacro watch-unwrapped ((pipe body &optional origin)
+			   &body progn)
+  (let ((_ (gensym "_")))
+    `(watch-with-cargo (,pipe ,_ ,body ,origin)
+       (declare (ignore ,_))
+       ,@progn)))
 
 (defun cargo-send (pipe tag body &optional origin)
   (pipe-along pipe (make-cargo tag body origin)))

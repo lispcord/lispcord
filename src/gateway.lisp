@@ -394,6 +394,7 @@
 
 
 (defun connect (bot)
+  (unless *gateway-url* (refresh-gateway-url))
   (setf (conn bot) (wsd:make-client *gateway-url*))
   (wsd:start-connection (conn bot))
   

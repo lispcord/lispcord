@@ -9,7 +9,7 @@
 		    (str-concat "channels/" flake)
 		    :bot bot)))
 	(if req
-	    (lc:cache :channel req)))))
+	    (cache :channel req)))))
 
 
 (defmethod edit ((c lc:partial-channel) (chan lc:channel)

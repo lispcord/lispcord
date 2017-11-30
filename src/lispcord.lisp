@@ -5,10 +5,12 @@
 
 (defun make-bot (token &key (version "0.0.1"))
   (unless token (error "Token required!"))
-  (primitive-make-bot :token token
-		      :version version))
+  (setf *client*
+	(primitive-make-bot :token token
+			    :version version)))
 
-
+(defun me (&optional (bot *client*))
+  (user bot))
 
 ;; we can re-export #'connect, but i thought about making a defbot
 ;; tbh, which would define various things á la defclass or defstruct
