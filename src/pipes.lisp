@@ -1,12 +1,6 @@
 (in-package :lispcord.pipes)
 
-
-(let ((counter 1))
-  (defun generate-id ()
-    (floor (+ (/ (get-universal-time) 100)
-	      (* counter (get-universal-time))))))
-
-
+;;; dude clean this the fuck up like heck
 (defstruct (cargo (:constructor primitive-make-cargo))
   (tag :nil :type keyword)
   (origin "" :type string)
@@ -22,17 +16,11 @@
     (values body tag origin)))
 
 
-(defstruct handler
-  (id (generate-id) :type fixnum)
-  (fun (lambda (type cargo) (declare (ignore type cargo)))
-       :type (function (cargo))))
-
-
 (defclass pipe ()
   ((handlers :initarg :handlers
 	     :accessor handlers
-	     :initform '()
-	     :type (or null (cons handler))))
+	     :initform #()
+	     :type array))
   (:documentation "The default pipe class. Used to handle events"))
 
 
@@ -42,16 +30,18 @@
 (defun pipep (obj)
   (typep obj 'pipe))
 
+(defun wipe-pipe (pipe)
+  (setf (handlers pipe) #())
+  pipe)
+
 (defun pipe-along (pipe cargo)
   "Pipes the event along to the watchers of that pipe"
-  (map nil (lambda (h) (funcall (handler-fun h) cargo))
-       (handlers pipe)))
+  (map nil (lambda (h) (funcall h cargo)) (handlers pipe)))
 
 (defun watch (pipe fun)
-  "subscribes to the event-feed of the pipe and returns the handler-id"
-  (let ((handler (make-handler :fun fun)))
-    (setf (handlers pipe) (cons handler (handlers pipe)))
-    handler))
+  "subscribes to the event-feed of the pipe and returns the handler"
+  (setf (handlers pipe) (cons fun (handlers pipe)))
+  handler)
 
 (defmacro watch-do (pipe lambda-list &body body)
   `(watch ,pipe (lambda ,lambda-list ,@body)))
@@ -99,7 +89,7 @@
 (defmacro watch-with-cargo ((pipe tag body &optional origin) &body progn)
   (let ((c (gensym)))
     `(watch-do ,pipe (,c)
-       (with-cargo (,c ,body ,tag ,origin)
+       (with-cargo (,c ,tag ,body ,origin)
 	 ,@progn))))
 
 (defmacro watch-with-case ((pipe body &optional origin) &body progn)

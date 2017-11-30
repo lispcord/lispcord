@@ -30,16 +30,16 @@
 
 (defmethod create ((m lc:partial-message) (c lc:channel)
 		   &optional (bot *client*))
-  (when (< 2000 (length (slot-value m 'content)))
+  (when (< 2000 (length (lc:content m)))
     (error "Message size exceeds maximum discord message size!~%"))
-  (let* ((nonce (slot-value m 'nonce))
+  (let* ((nonce (lc:nonce m))
 	 (path (str-concat "channels/" (lc:id c) "/messages"))
 	 (response (discord-req
 		    path
 		    :bot bot
 		    :type :post
 		    :content (to-json m)
-		    :content-type (if (slot-value m 'file)
+		    :content-type (if (lc:file m)
 				      "multipart/form-data"
 				      "application/json")))
 	 (reply-nonce (gethash "nonce" response)))
@@ -50,7 +50,7 @@
 
 (defmethod create ((s string) (c lc:channel)
 		   &optional (bot *client*))
-  (create (make-message s) c bot))
+  (create (lc:make-message s) c bot))
 
 
 (defmethod erase ((c lc:channel) &optional (bot *client*))

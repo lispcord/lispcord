@@ -1,6 +1,6 @@
 (in-package :lispcord.gateway)
 
-(defvar *gateway-url*)
+(defvar *gateway-url* nil)
 
 (defun refresh-gateway-url ()
   (doit  (get-rq "gateway")

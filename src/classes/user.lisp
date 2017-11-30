@@ -39,7 +39,7 @@
 		  :accessor id)
    (username      :initarg :username
 		  :type string
-		  :accessor username)
+		  :accessor name)
    (discriminator :initarg :discrim
 		  :type string
 		  :accessor discrim)

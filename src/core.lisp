@@ -37,8 +37,6 @@ It may be set by make-bot!")
 
 
 
-
-
 (defparameter bot-url "N/A")
 (defun bot-url (url)
   (setf bot-url url))

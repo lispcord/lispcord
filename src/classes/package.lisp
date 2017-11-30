@@ -47,6 +47,7 @@
 	   #:embed-video
 	   #:embed-provider
 	   #:embed-author
+	   #:author
 	   #:embed-field
 	   #:game
 	   #:presence
@@ -56,7 +57,6 @@
 	   #:partial-message
 
 	   #:id
-	   #:username
 	   #:discrim
 	   #:avatar
 	   #:botp
@@ -143,7 +143,7 @@
 	   #:expire-grace
 	   #:account
 	   #:synced-at
-	   #:filename
+	   #:file
 	   #:size
 	   #:channel-id
 	   #:content
@@ -198,6 +198,7 @@
 	   #:embed-video
 	   #:embed-provider
 	   #:embed-author
+	   #:author
 	   #:embed-field
 	   #:game
 	   #:presence
@@ -207,7 +208,6 @@
 	   #:partial-message
 
 	   #:id
-	   #:username
 	   #:discrim
 	   #:avatar
 	   #:botp
@@ -294,7 +294,7 @@
 	   #:expire-grace
 	   #:account
 	   #:synced-at
-	   #:filename
+	   #:file
 	   #:size
 	   #:channel-id
 	   #:content

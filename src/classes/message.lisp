@@ -9,7 +9,7 @@
 	      :accessor id)
    (filename  :initarg :file
 	      :type string
-	      :accessor filename)
+	      :accessor file)
    (size      :initarg :size
 	      :type fixnum
 	      :accessor size)
@@ -94,8 +94,8 @@
 		  :type snowflake
 		  :accessor channel-id)
    (author        :initarg :author
-		  :type user
-		  :accessor user)
+		  :type (or webhook user)
+		  :accessor author)
    (content       :initarg :content
 		  :type string
 		  :accessor content)
