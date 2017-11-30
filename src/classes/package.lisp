@@ -1,5 +1,4 @@
 (defpackage :lispcord.classes
-  (:nicknames :lc)
   (:use :cl
 	:jonathan
 	:lispcord.util)
@@ -17,6 +16,157 @@
 	   #:decache-id
 	   
 	   #:make-game
+	   #:make-channel
+	   #:make-message
+	   #:make-role
+	   #:make-emoji
+	   
+	   #:overwrite
+	   #:user
+	   #:user-id
+	   #:account
+	   #:integration
+	   #:emoji
+	   #:partial-emoji
+	   #:channel
+	   #:partial-channel
+	   #:guild-channel
+	   #:category
+	   #:text-channel
+	   #:voice-channel
+	   #:dm-channel
+	   #:group-dm
+	   #:role
+	   #:partial-role
+	   #:guild
+	   #:member
+	   #:embed
+	   #:embed-footer
+	   #:embed-image
+	   #:embed-thumbnail
+	   #:embed-video
+	   #:embed-provider
+	   #:embed-author
+	   #:embed-field
+	   #:game
+	   #:presence
+	   #:attachement
+	   #:reaction
+	   #:message
+	   #:partial-message
+
+	   #:id
+	   #:username
+	   #:discrim
+	   #:avatar
+	   #:botp
+	   #:mfa-p
+	   #:verifiedp
+	   #:emailp
+	   #:guild-id
+	   #:guild
+	   #:type
+	   #:allow
+	   #:deny
+	   #:me-p
+	   #:name
+	   #:position
+	   #:overwrites
+	   #:parent-id
+	   #:parent
+	   #:nsfw-p
+	   #:topic
+	   #:last-message
+	   #:bitrate
+	   #:user-limit
+	   #:recipients
+	   #:icon
+	   #:owner-id
+	   #:owner
+	   #:text
+	   #:icon-proxy
+	   #:url
+	   #:proxy-url
+	   #:height
+	   #:width
+	   #:value
+	   #:inline
+	   #:title
+	   #:description
+	   #:timestamp
+	   #:largep
+	   #:color
+	   #:footer
+	   #:image
+	   #:thumbnail
+	   #:video
+	   #:provider
+	   #:author
+	   #:fields
+	   #:roles
+	   #:user
+	   #:colonsp
+	   #:managedp
+	   #:hoistp
+	   #:permissions
+	   #:mentionablep
+	   #:nick
+	   #:deafp
+	   #:mutep
+	   #:game
+	   #:status
+	   #:splash
+	   #:region
+	   #:afk-id
+	   #:afk-to
+	   #:embedp
+	   #:embed-id
+	   #:verify-level
+	   #:notify-level
+	   #:content-filter
+	   #:emojis
+	   #:features
+	   #:mfa-level
+	   #:app-id
+	   #:widgetp
+	   #:widget-id
+	   #:ep
+	   #:availablep
+	   #:member-count
+	   #:members
+	   #:channels
+	   #:presences
+	   #:enabledp
+	   #:syncingp
+	   #:role-id
+	   #:expire-behaviour
+	   #:expire-grace
+	   #:account
+	   #:synced-at
+	   #:filename
+	   #:size
+	   #:channel-id
+	   #:content
+	   #:editedp
+	   #:tts-p
+	   #:mention-all-p
+	   #:mentions
+	   #:mention-roles
+	   #:attachements
+	   #:embeds
+	   #:reactions
+	   #:nonce
+	   #:pinnedp
+	   #:type
+	   #:system-channel-id
+	   #:last-pinned))
+
+
+
+(defpackage lispcord.classes.pub
+  (:use :lispcord.classes)
+  (:nicknames :lc)
+  (:export #:make-game
 	   #:make-channel
 	   #:make-message
 	   #:make-role

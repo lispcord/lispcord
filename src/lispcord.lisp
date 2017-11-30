@@ -4,9 +4,10 @@
 ;;;; will go!
 
 (defun make-bot (token &key (version "0.0.1"))
-  (unless token (error "No token specified!"))
+  (unless token (error "Token required!"))
   (primitive-make-bot :token token
 		      :version version))
+
 
 
 ;; we can re-export #'connect, but i thought about making a defbot
@@ -14,17 +15,7 @@
 
 ;;; useful functions
 
-(defun reply (bot msg content)
-  (send bot (aget "channel_id" msg) content))
+(defun reply (msg content &optional (bot *client*))
+  (create content (lc:author msg) bot))
 
 
-
-;;; event handler macro
-;; handle :message events like this:
-; bot = bot instance
-; :message is the event type
-; payload is the parameter name for the payload in the body
-; (with-handler (payload bot :message) ...)
-(defmacro with-handler ((var bot event) &body body)
-  `(setf (gethash ,event (bot-callbacks ,bot))
-	 (lambda (,var) ,@body)))

@@ -2,16 +2,6 @@
 
 
 
-; send a message!
-(defun send (bot channel-id content)
-  (post-rq (str-concat "channels/" channel-id "/messages")
-	   bot
-	   `(("content" . ,content))))
-
-
-
-
-
 (defgeneric from-id (snowflake from &optional bot)
   (:documentation "Retrieves the given object via ID, either from the cache or through a REST call.
 FROM can be one of :CHANNEL, :GUILD, :USER, :EMOJI, :ROLE or a 

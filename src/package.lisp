@@ -47,7 +47,6 @@
 	:lispcord.constants)
   (:export #:bot
 	   #:primitive-make-bot
-	   #:string-slot
 	   #:*client*
 
 	   #:token
@@ -100,7 +99,32 @@
 		:getcache-id
 		:decache-id
 		:from-json)
-  (:export #:send))
+  (:export #:create
+	   #:edit
+	   #:erase
+	   #:from-id
+	   #:get-messages
+	   #:erase-reaction
+	   #:erase-messages
+	   #:erase-overwrite
+	   #:start-typing
+	   #:get-pinned
+	   #:pin
+	   #:unpin
+	   #:get-emojis
+	   #:erase-emoji
+	   #:get-channels
+	   #:get-members
+	   #:move-member
+	   #:set-nick
+	   #:erase-role
+	   #:get-bans
+	   #:ban
+	   #:unban
+	   #:get-roles
+	   #:get-me
+	   #:leave
+	   #:create-dms))
 
 (defpackage :lispcord
   (:use :cl
@@ -111,12 +135,65 @@
 	:lispcord.core
 	:lispcord.pipes)
   (:export #:make-bot
+	   #:*client*
 	   #:connect
 	   #:disconnect
+
+	   	   
 	   #:reply
+
+	   
 	   #:with-handler
 	   #:watch-with-case
+	   #:make-pipe
+	   #:pipep
+	   #:watch
+	   #:watch-do
+	   #:pipe-along
+	   #:drop
+	   #:pmap
+	   #:pfilter
+	   #:pjoin
+	   #:taggedp
+	   #:from-origin-p
+	   #:make-cargo
+	   #:open-cargo
+	   #:with-cargo
+	   #:watch-with-cargo
+	   #:cargo-send
 
-	   #:>message>))
+	   
+	   #:>message>
+	   #:>user>
+	   #:>guild>
+	   #:>status>
+	   #:>channel>
+
+
+	   #:create
+	   #:edit
+	   #:erase
+	   #:from-id
+	   #:get-messages
+	   #:erase-reaction
+	   #:erase-messages
+	   #:erase-overwrite
+	   #:start-typing
+	   #:get-pinned
+	   #:pin
+	   #:unpin
+	   #:get-emojis
+	   #:erase-emoji
+	   #:get-channels
+	   #:get-members
+	   #:move-member
+	   #:set-nick
+	   #:erase-role
+	   #:get-bans
+	   #:ban
+	   #:unban
+	   #:get-roles
+	   #:get-me
+	   #:leave))
 
 

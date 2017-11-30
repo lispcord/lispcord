@@ -1,10 +1,15 @@
 (in-package :lispcord.gateway)
 
-(defun gateway-url ()
+(defvar *gateway-url*)
+
+(defun refresh-gateway-url ()
   (doit  (get-rq "gateway")
 	 (aget "url" it)
 	 (:! dprint :debug "~&Gateway-url: ~a~%" it)
-	 (str-concat it +api-suffix+)))
+	 (str-concat it +api-suffix+)
+	 (setf *gateway-url* it)))
+
+
 
 
 
@@ -76,8 +81,9 @@
   (dprint :info "~&Initiating heartbeat every ~d seconds~%" seconds)
   (make-thread (lambda ()
 		 (loop :until (done bot) :do
-		   (send-heartbeat bot)
-		   (sleep seconds)))))
+		    (dprint :debug "Dispatching heartbeat!")
+		    (send-heartbeat bot)
+		    (sleep seconds)))))
 
 
 
@@ -349,7 +355,28 @@
 	(send-identify bot))))
 
 
+(defun cleanup (bot)
+  (dprint :warn "Cleanup loop engaged!~%Bot: ~a" (lc:name (user bot)))
+  (sleep (aref #(1 2 3 4 5) (random 4)))
+  (disconnect bot)
+  (connect bot))
 
+(defun disconnect (bot &optional reason code)
+  (dprint :info "~a disconnecting..." (lc:name (user bot)))
+  (wsd:close-connection (conn bot) reason code)
+  (setf (conn bot) nil)
+  (setf (done bot) t)
+  (setf (seq bot) 0)
+  (setf (session-id bot) nil)
+  (setf (user bot) nil)
+  (setf (heartbeat-thread bot) nil))
+
+(defun reconnect (bot &optional reason code)
+  (dprint :warn "Attempting to reconnect!~%Bot: ~a" (lc:name (user bot)))
+  (wsd:close-connection (conn bot) reason code)
+  (setf (conn bot) nil)
+  (setf (done bot) t)
+  (setf (heartbeat-thread bot) nil))
 
 
 ;; receive message from websocket and dispatch to handler
@@ -358,20 +385,16 @@
     (case op
       (0  (on-dispatch bot msg)) ;Dispatch Event
       (1  (send-heartbeat bot))  ;Requests Heartbeat
-      (7  (print msg))           ;Requests Reconnect
-      (9  (print msg))           ;Invalid Sessions Event
+      (7  (reconnect bot))	 ;Requests Reconnect
+      (9  (cleanup bot)) ;Invalid Sessions Event
       (10 (on-hello bot msg))    ;Hello Event
       (11 (dprint :debug "Received Heartbeat ACK~%"))
       (T ;; not sure if this should be an error to the user or not?
        (dprint :error "Received invalid opcode! ~a~%" op)))))
 
 
-
-
-
-
 (defun connect (bot)
-  (setf (conn bot) (wsd:make-client (gateway-url)))
+  (setf (conn bot) (wsd:make-client *gateway-url*))
   (wsd:start-connection (conn bot))
   
   (wsd:on :open (conn bot)
@@ -384,19 +407,11 @@
   
   (wsd:on :error (conn bot)
 	  (lambda (error)
-	    (dprint :error "Websocket error: ~a~%" error)))
+	    (dprint :error "Websocket error: ~a~%" error)
+	    (refresh-gateway-url)))
   
   (wsd:on :close (conn bot)
 	  (lambda (&key code reason)
 	    (cargo-send >status> :close (list code reason) (lc:id (user bot)))
-	    (disconnect bot)
+	    (disconnect bot reason code)
 	    (dprint :warn "Websocket closed with code: ~a~%Reason: ~a~%" code reason))))
-
-(defun disconnect (bot)
-  (wsd:close-connection (conn bot))
-  (setf (conn bot) nil)
-  (setf (done bot) t)
-  (setf (seq bot) 0)
-  (setf (session-id bot) nil)
-  (setf (user bot) nil)
-  (setf (heartbeat-thread bot) nil))
