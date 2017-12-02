@@ -13,7 +13,6 @@ It may be set by make-bot!")
   (session-id nil :type (or null string))
   (afk-since nil :type (or null fixnum))
   conn
-  (done nil :type (or null t))
   heartbeat-thread)
 
 
@@ -73,7 +72,8 @@ It may be set by make-bot!")
        :additional-headers (if bot (headers bot))
        :external-format-in :utf8
        :external-format-out :utf8
-       :decode-content t)
+       :keep-alive t
+       :close nil)
     (declare (ignore uri stream closedp reason))
     (rl-parse final headers)
     (values (if (= status 204)

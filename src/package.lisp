@@ -5,12 +5,11 @@
   (:export #:make-pipe
 	   #:pipep
 	   #:pipe-along
-	   #:watch
-	   #:watch-do
 	   #:drop
 	   #:pmap
 	   #:pfilter
 	   #:pjoin
+	   #:pfold
 
 	   #:taggedp
 	   #:from-origin-p
@@ -18,13 +17,14 @@
 	   #:cargo-body
 	   #:cargo-tag
 	   #:cargo-origin
+	   #:val
 	   
 	   #:make-cargo
 	   #:open-cargo
 	   #:with-cargo
-	   #:watch-with-cargo
-	   #:watch-with-case
-	   #:watch-unwrapped
+	   #:cargocase
+	   #:ccargocase
+	   #:ecargocase
 	   #:cargo-send))
 
 
@@ -147,31 +147,28 @@
 	   	   
 	   #:reply
 	   #:me
-
-	   
-	   #:with-handler
-	   #:watch-with-case
+	   	   
 	   #:make-pipe
 	   #:pipep
-	   #:watch
-	   #:watch-do
 	   #:pipe-along
 	   #:drop
 	   #:pmap
 	   #:pfilter
 	   #:pjoin
+	   #:pfold
 	   #:taggedp
 	   #:from-origin-p
 	   #:make-cargo
 	   #:open-cargo
 	   #:with-cargo
-	   #:watch-with-cargo
-	   #:watch-unwrapped
 	   #:cargo-send
 	   #:cargo-body
 	   #:cargo-tag
 	   #:cargo-origin
-
+	   #:val
+	   #:cargocase
+	   #:ccargocase
+	   #:ecargocase
 	   
 	   #:>message>
 	   #:>user>

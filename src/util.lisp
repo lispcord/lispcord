@@ -27,7 +27,7 @@
 	   #:to-string
 	   #:optimal-id-compare
 
-	   #:set-debug-level
+	   #:set-log-level
 	   #:dprint))
 
 (in-package :lispcord.util)
@@ -171,7 +171,10 @@
   (declare (type array vec))
   (let ((buf (make-array (1+ (length vec))
 			 :element-type (array-element-type vec))))
-    (dotimes (i (length vec)) (setf (aref buf i) (aref vec i)))
+    (dotimes (i (length vec))
+      (if (null (aref vec i))
+	  (progn (setf (aref vec i) obj) (return-from vec-extend vec))
+	  (setf (aref buf i) (aref vec i))))
     (setf (aref buf (length vec)) obj)
     buf))
 

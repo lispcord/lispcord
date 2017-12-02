@@ -37,7 +37,7 @@
 		     (str-concat "users/@me/channels")
 		     :bot bot
 		     :type :post
-		     :content (jmake `(("recipient_id" . ,(lc:id u))))))))
+		     :content (jmake `(("recipient_id" . ,u)))))))
 
 (defmethod create ((s string) (u lc:user) &optional (bot *client*))
   (if (getcache-id (lc:id u) :channel)

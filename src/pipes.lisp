@@ -1,10 +1,9 @@
 (in-package :lispcord.pipes)
 
-;;; dude clean this the fuck up like heck
 (defstruct (cargo (:constructor primitive-make-cargo))
-  (tag :nil :type keyword)
-  (origin "" :type string)
-  (body nil :type t))
+  (tag nil :type (or null keyword))
+  (origin nil :type (or null string))
+  (body nil :type list))
 
 (defun make-cargo (tag body &optional origin)
   (primitive-make-cargo :tag tag :body body :origin origin))
@@ -15,12 +14,20 @@
 	(origin (cargo-origin cargo)))
     (values body tag origin)))
 
+(defun val (cargo)
+  (cargo-body cargo))
+
+(defun (setf val) (new-val cargo)
+  (setf (cargo-body cargo) new-val))
 
 (defclass pipe ()
   ((handlers :initarg :handlers
 	     :accessor handlers
 	     :initform #()
-	     :type array))
+	     :type array)
+   (upstream :initarg :upstream
+	     :accessor upstream
+	     :initform nil))
   (:documentation "The default pipe class. Used to handle events"))
 
 
@@ -36,46 +43,69 @@
 
 (defun pipe-along (pipe cargo)
   "Pipes the event along to the watchers of that pipe"
-  (map nil (lambda (h) (funcall h cargo)) (handlers pipe)))
+  (loop :for h :across (handlers pipe) :do (funcall h cargo)))
 
-(defun watch (pipe fun)
-  "subscribes to the event-feed of the pipe and returns the handler"
-  (setf (handlers pipe) (cons fun (handlers pipe)))
-  handler)
+(defun watch (fun pipe)
+  "subscribes to the event-feed of the pipe"
+  (setf (handlers pipe) (vec-extend fun (handlers pipe)))
+  fun)
 
 (defmacro watch-do (pipe lambda-list &body body)
-  `(watch ,pipe (lambda ,lambda-list ,@body)))
+  `(watch (lambda ,lambda-list ,@body) ,pipe))
 
 
-(defun drop (pipe handler)
-  "unsubscribes from the event-feed"
-  (setf (handlers pipe) (remove handler (handlers pipe))))
+(defun drop (pipe)
+  "unsubscribes pipe from upstream"
+  (mapcar
+   (lambda (e)
+     (setf (handlers e)
+	   (delete (car (upstream pipe)) (handlers e))))
+   (cdr (upstream pipe))))
 
 
 
 (defun pmap (pipe fun)
   "For a pipe p with events e and a function f, returns a new pipe q whose elements are (f e)"
-  (let* ((q (make-instance (class-of pipe)))
-	 (h (watch-do pipe (val)
-	      (pipe-along q (funcall fun val)))))
-    (values q h)))
+  (let ((q (make-instance 'pipe)))
+    (setf (upstream q)
+	  (list
+	   (watch-do pipe (cargo)
+	     (pipe-along q (funcall fun cargo)))
+	   pipe))
+    q))
 
 
 (defun pfilter (pipe pred)
-  "For a pipe p with events k;e, returns a new pipe q whose elements satisfy predicate(k, e)"
-  (let* ((q (make-instance (class-of pipe)))
-	 (h (watch-do pipe (val)
-	      (if (funcall pred val) (pipe-along q val)))))
-    (values q h)))
+  "For a pipe p with events e, returns a new pipe q whose elements satisfy predicate(e)"
+  (let ((q (make-instance 'pipe)))
+    (setf (upstream q)
+	  (list 
+	   (watch-do pipe (cargo)
+	     (if (funcall pred cargo) (pipe-along q cargo)))
+	   pipe))
+    q))
 
 
 (defun pjoin (&rest pipes)
   "For any amount of pipes, returns a new pipe which is the union of the base pipes"
   (let* ((q (make-instance (class-of (car pipes))))
-	 (hs (mapf pipes (p)
-		   (watch-do p (val)
-		     (pipe-along q val)))))
-    (values q hs)))
+	 (l (lambda (e) (pipe-along q e))))
+    (setf (upstream q) (cons l pipes))
+    (mapcar (curry #'watch l) pipes)
+    q))
+
+
+(defun pfold (pipe fun initial-value)
+  "For a pipe p and a function f, returns and updates a cargo-object produced from
+applying f to the current value and any new event"
+  (let* ((c (make-cargo :body initial-value))
+	 (q (make-pipe)))
+    (setf (upstream q)
+	  (list
+	   (watch-do pipe (cargo)
+	     (setf (val c) (funcall fun (val c) cargo)))
+	   pipe))
+    (values c q)))
 
 
 
@@ -86,24 +116,27 @@
        (open-cargo ,cargo)
      ,@progn))
 
-(defmacro watch-with-cargo ((pipe tag body &optional origin) &body progn)
-  (let ((c (gensym)))
-    `(watch-do ,pipe (,c)
-       (with-cargo (,c ,tag ,body ,origin)
-	 ,@progn))))
 
-(defmacro watch-with-case ((pipe body &optional origin) &body progn)
-  (let ((tag (gensym)))
-    `(watch-with-cargo (,pipe ,tag ,body ,origin)
-       (case ,tag
-	 ,@progn))))
+;;((:create msg) (dostuff msg))
+(eval-when (:compile-toplevel :load-toplevel :execute)
+  (defun loop-case-body-clauses (cargo clauses)
+    (loop :for e :in clauses :collect
+       `(,(caar e)
+	  (destructuring-bind ,(cdar e) (cargo-body ,cargo)
+	    ,@(cdr e))))))
 
-(defmacro watch-unwrapped ((pipe body &optional origin)
-			   &body progn)
-  (let ((_ (gensym "_")))
-    `(watch-with-cargo (,pipe ,_ ,body ,origin)
-       (declare (ignore ,_))
-       ,@progn)))
+(defmacro cargocase (cargo &body clauses)
+  `(case (cargo-tag ,cargo)
+     ,@(loop-case-body-clauses cargo clauses)))
+
+(defmacro ccargocase (cargo &body clauses)
+  `(ccase (cargo-tag ,cargo)
+     ,@(loop-case-body-clauses cargo clauses)))
+
+(defmacro ecargocase (cargo &body clauses)
+  `(ecase (cargo-tag ,cargo)
+     ,@(loop-case-body-clauses cargo clauses)))
+
 
 (defun cargo-send (pipe tag body &optional origin)
   (pipe-along pipe (make-cargo tag body origin)))

@@ -1,18 +1,17 @@
-(ql:quickload :lispcord)
-(use-package :lispcord)
+(defpackage :ping.bot (:use :cl :lispcord))
+(in-package :ping.bot)
 
 ;;make a new bot from a user-given input
 (print "Enter a valid token: ")
-(defparameter *token* (read-line))
-
-(defvar *client* (make-bot *token*))
+(defvar *client* (make-bot (read-line)))
 
 ;;connect to the gateway
 (connect *client*)
 
 ;;set up a handler waiting for "message_create" events
-(watch-with-case (>message> msg)
-		 (:create (format t "Got message :D~%~a~%"
-				  (lc:content msg))))
+(pmap >message>
+      (lambda (e)
+	(cargocase e
+	  ((:create msg) (reply msg "pong")))))
 
 

@@ -18,6 +18,6 @@
 ;;; useful functions
 
 (defun reply (msg content &optional (bot *client*))
-  (create content (lc:author msg) bot))
+  (create content (lc:channel msg) bot))
 
 

@@ -59,7 +59,7 @@
   (setf (session-id bot) (aget "session_id" payload))
   (setf (user bot) (cache :user (aget "user" payload)))
   ;dispatch event
-  (cargo-send >status> :ready payload (lc:id (user bot))))
+  (cargo-send >status> :ready (list payload) (lc:id (user bot))))
 
 
 
@@ -80,18 +80,14 @@
 (defun make-heartbeat-thread (bot seconds)
   (dprint :info "~&Initiating heartbeat every ~d seconds~%" seconds)
   (make-thread (lambda ()
-		 (loop :until (done bot) :do
+		 (loop
 		    (dprint :debug "Dispatching heartbeat!")
 		    (send-heartbeat bot)
 		    (sleep seconds)))))
 
 
 
-(defun on-members-chunk (data origin)
-  (with-table (data id "guild_id" members "members")
-    (mapf members (m)
-      (setf (gethash "guild_id" m) id)
-      (cargo-send >guild> :member-add m origin))))
+
 
 
 (defun on-emoji-update (data origin)
@@ -101,7 +97,7 @@
 					   `("emojis" ,emojis)))))
       (cargo-send >guild>
 		  :emojis-update
-		  (lc:emojis g)
+		  (list (lc:emojis g) g)
 		  origin))))
 
 
@@ -113,14 +109,20 @@
 	 (g (getcache-id g-id :guild)))
     (setf (lc:members g)
 	  (vecrem (lambda (e) (eq user (lc:user e))) (lc:members g)))
-    (cargo-send >guild> :member-remove (list g-id user)
+    (cargo-send >guild> :member-remove (list user g)
 		origin)))
 
 (defun on-member-add (data origin)
   (let ((member (from-json :g-member data))
 	(g (getcache-id (gethash "guild_id" data) :guild)))
     (setf (lc:members g) (vec-extend member (lc:members g)))
-    (cargo-send >guild> :member-add member origin)))
+    (cargo-send >guild> :member-add (list member g) origin)))
+
+(defun on-members-chunk (data origin)
+  (with-table (data id "guild_id" members "members")
+    (mapf members (m)
+      (setf (gethash "guild_id" m) id)
+      (on-member-add m origin))))
 
 (defun on-member-update (data origin)
   (let ((g (getcache-id (gethash "guild_id" data) :guild))
@@ -128,7 +130,7 @@
     (nsubstitute-if member
 		    (lambda (m) (eq (lc:user m) (lc:user member)))
 		    (lc:members g))
-    (cargo-send >guild> :member-update member origin)))
+    (cargo-send >guild> :member-update (list member g) origin)))
 
 (defun on-role-add (data origin)
   (let ((role (cache :role (gethash "role" data)))
@@ -136,11 +138,12 @@
 			:guild)))
     (setf (lc:guild-id role) (parse-snowflake (gethash "guild_id" data)))
     (setf (lc:roles g) (vec-extend role (lc:roles g)))
-    (cargo-send >guild> :role-create role origin)))
+    (cargo-send >guild> :role-create (list role g) origin)))
 
 (defun on-role-update (data origin)
-  (let ((role (cache :role (gethash "role" data))))
-    (cargo-send >guild> :role-update role origin)))
+  (let ((role (cache :role (gethash "role" data)))
+	(g (getcache-id (gethash "guild_id" data) :guild)))
+    (cargo-send >guild> :role-update (list role g) origin)))
 
 (defun on-role-delete (data origin)
   (with-table (data guild-id "guild_id" role-id "role_id")
@@ -152,7 +155,7 @@
 	    (vecrem (lambda (e)
 		      (funcall optimal-id-compare r-id (lc:id e)))
 		    (lc:roles g)))
-      (cargo-send >guild> :role-delete (list g-id r-id) origin))))
+      (cargo-send >guild> :role-delete (list r-id g-id) origin))))
 
 
 (defun on-channel-create (data origin)
@@ -160,7 +163,7 @@
     (when (typep c 'lc:guild-channel)
       (let ((g (getcache-id (lc:guild-id c) :guild)))
 	(setf (lc:channels g) (vec-extend c (lc:channels g)))))
-    (cargo-send >channel> :create c origin)))
+    (cargo-send >channel> :create (list c) origin)))
 
 (defun on-channel-delete (data origin)
   (let ((c (cache data :channel)))
@@ -169,30 +172,34 @@
 	(setf (lc:channels g)
 	      (vecrem (lambda (e) (eq e c)) (lc:channels g)))))
     (decache-id (lc:id c) :channel)
-    (cargo-send >channel> :delete c origin)))
+    (cargo-send >channel> :delete (list c) origin)))
 
 (defun on-channel-pin-update (data origin)
   (let ((id (parse-snowflake (gethash "id" data))))
     (cargo-send >channel>
 		:pin-update
-		(list id (gethash "last_pin_timestamp" data))
+		(list (getcache-id id :channel)
+		      (gethash "last_pin_timestamp" data))
 		origin)))
 
 
 (defun on-guild-ban (data origin kind)
   (let ((u (cache :user data))
-	(gid (parse-snowflake (gethash "guild_id" data))))
-    (cargo-send >user> kind (list u gid) origin)))
+	(g (getcache-id (parse-snowflake (gethash "guild_id" data))
+			:guild)))
+    (cargo-send >user> kind (list u g) origin)))
 
 
 (defun on-reaction (data origin kind)
   (let ((e (cache :emoji (gethash "emoji" data)))
-	(uid (parse-snowflake (gethash "user_id" data)))
-	(cid (parse-snowflake (gethash "channel_id" data)))
+	(u (getcache-id (parse-snowflake (gethash "user_id" data))
+			:user))
+	(c (getcache-id (parse-snowflake (gethash "channel_id" data))
+			:channel))
 	(mid (parse-snowflake (gethash "message_id" data))))
     (cargo-send >message>
 		kind
-		(list uid cid mid e)
+		(list e mid u c)
 		origin)))
 
 
@@ -204,7 +211,18 @@
 	  (lc:game u) (from-json :game (gethash "game" data)))
     (cargo-send >user>
 		:presence
-		(from-json :presence data)
+		(list (from-json :presence data))
+		origin)))
+
+(defun on-typing-start (data origin)
+  (let ((c (getcache-id (parse-snowflake (gethash "channel_id" data))
+			:channel))
+	(u (getcache-id (parse-snowflake (gethash "user_id" data))
+			:user))
+	(ts (gethash "timestamp" data)))
+    (cargo-send >status>
+		:typing-start
+		(list u c ts)
 		origin)))
 
 ;; opcode 0
@@ -227,17 +245,20 @@
 
       ;; someone starts typing
       ("TYPING_START"
-       (cargo-send >status> :typing-start data origin))
+       (on-typing-start data origin))
 
       ("USER_UPDATE" 
-       (cargo-send >user> :update (cache :user data) origin))
+       (cargo-send >user> :update (list (cache :user data)) origin))
 
       ;; channel made known
       ("CHANNEL_CREATE"
        (on-channel-create data origin))
 
       ("CHANNEL_UPDATE"
-       (cargo-send >channel> :update (cache :channel data) origin))
+       (cargo-send >channel>
+		   :update
+		   (list (cache :channel data))
+		   origin))
 
       ("CHANNEL_DELETE"
        (on-channel-delete data origin))
@@ -247,14 +268,14 @@
 
       ;; guild made known
       ("GUILD_CREATE"
-       (cargo-send >guild> :create (cache :guild data) origin))
+       (cargo-send >guild> :create (list (cache :guild data)) origin))
 
       ("GUILD_UPDATE"
-       (cargo-send >guild> :update (cache :guild data) origin))
+       (cargo-send >guild> :update (list (cache :guild data)) origin))
 
       ("GUILD_DELETE"
        (let ((g (cache :guild data)))
-	 (cargo-send >guild> :delete g origin)
+	 (cargo-send >guild> :delete (list g) origin)
 	 (decache-id (lc:id g) :guild)))
 
       ("GUILD_BAN_ADD"
@@ -269,7 +290,9 @@
       ("GUILD_INTEGRATIONS_UPDATE"
        (cargo-send >guild>
 		   :integrations-update
-		   (gethash "guild_id" data)
+		   (list (getcache-id
+			  (parse-snowflake (gethash "guild_id" data))
+			  :guild))
 		   origin))
 
       ("GUILD_MEMBER_ADD"
@@ -297,28 +320,33 @@
       ("MESSAGE_CREATE"
        (cargo-send >message>
 		   :create
-		   (from-json :message data)
+		   (list (from-json :message data))
 		   origin))
 
       ;; a message is edited // might need special parsing here
       ("MESSAGE_UPDATE"
        (cargo-send >message>
 		   :update
-		   (from-json :message data)
+		   (list (from-json :message data))
 		   origin))
 
       ;; a message is deleted
       ("MESSAGE_DELETE"
        (cargo-send >message>
 		   :delete
-		   (list (parse-snowflake (gethash "id" data))
-			 (parse-snowflake (gethash "channel_id" data)))
+		   (list
+		    (parse-snowflake (gethash "id" data))
+		    (getcache-id
+		     (parse-snowflake (gethash "channel_id" data))
+		     :channel))
 		   origin))
 
       ("MESSAGE_DELETE_BULK"
        (let ((ids (mapvec #'parse-snowflake (gethash "ids" data)))
-	     (cid (parse-snowflake (gethash "channel_id" data))))
-	 (cargo-send >message> :delete-bulk (list ids cid) origin)))
+	     (c (getcache-id
+		 (parse-snowflake (gethash "channel_id" data))
+		 :channel)))
+	 (cargo-send >message> :delete-bulk (list c ids) origin)))
 
       ("MESSAGE_REACTION_ADD"
        (on-reaction data origin :reaction-add))
@@ -327,11 +355,13 @@
        (on-reaction data origin :reaction-remove))
 
       ("MESSAGE_REACTION_REMOVE_ALL"
-       (let ((cid (parse-snowflake (gethash "channel_id" data)))
+       (let ((c (getcache-id
+		 (parse-snowflake (gethash "channel_id" data))
+		 :channel))
 	     (mid (parse-snowflake (gethash "message_id" data))))
 	 (cargo-send >message>
 		     :reaction-purge
-		     (list cid mid)
+		     (list c mid)
 		     origin)))
       
       ;; someone updates their presence
@@ -355,27 +385,29 @@
 	(send-identify bot))))
 
 
-(defun cleanup (bot)
-  (dprint :warn "Cleanup loop engaged!~%Bot: ~a" (lc:name (user bot)))
-  (sleep (aref #(1 2 3 4 5) (random 4)))
-  (disconnect bot)
-  (connect bot))
+
 
 (defun disconnect (bot &optional reason code)
-  (dprint :info "~a disconnecting..." (lc:name (user bot)))
-  (wsd:close-connection (conn bot) reason code)
-  (setf (conn bot) nil)
-  (setf (done bot) t)
-  (setf (seq bot) 0)
-  (setf (session-id bot) nil)
-  (setf (user bot) nil)
-  (setf (heartbeat-thread bot) nil))
+  (bt:interrupt-thread
+   (heartbeat-thread bot)
+   (lambda ()
+     (dprint :info "~a disconnecting...~%"
+	     (if (user bot) (lc:name (user bot))))
+     (wsd:close-connection (conn bot) reason code)
+     (setf (seq bot) 0)
+     (setf (session-id bot) nil)))
+  (bt:destroy-thread (heartbeat-thread bot)))
+
+(defun cleanup (bot)
+  (dprint :warn "Cleanup loop engaged!~%Bot: ~a" (lc:name (user bot)))
+  (disconnect bot)
+  (sleep (aref #(1 2 3 4 5) (random 4)))
+  (connect bot))
 
 (defun reconnect (bot &optional reason code)
   (dprint :warn "Attempting to reconnect!~%Bot: ~a" (lc:name (user bot)))
   (wsd:close-connection (conn bot) reason code)
   (setf (conn bot) nil)
-  (setf (done bot) t)
   (setf (heartbeat-thread bot) nil))
 
 
@@ -386,7 +418,7 @@
       (0  (on-dispatch bot msg)) ;Dispatch Event
       (1  (send-heartbeat bot))  ;Requests Heartbeat
       (7  (reconnect bot))	 ;Requests Reconnect
-      (9  (cleanup bot)) ;Invalid Sessions Event
+      (9  (cleanup bot))         ;Invalid Sessions Event
       (10 (on-hello bot msg))    ;Hello Event
       (11 (dprint :debug "Received Heartbeat ACK~%"))
       (T ;; not sure if this should be an error to the user or not?
@@ -394,6 +426,7 @@
 
 
 (defun connect (bot)
+  (assert (typep bot 'bot))
   (unless *gateway-url* (refresh-gateway-url))
   (setf (conn bot) (wsd:make-client *gateway-url*))
   (wsd:start-connection (conn bot))
@@ -413,6 +446,6 @@
   
   (wsd:on :close (conn bot)
 	  (lambda (&key code reason)
-	    (cargo-send >status> :close (list code reason) (lc:id (user bot)))
-	    (disconnect bot reason code)
-	    (dprint :warn "Websocket closed with code: ~a~%Reason: ~a~%" code reason))))
+	    (dprint :warn "Websocket closed with code: ~a~%Reason: ~a~%" code reason)
+	    (cargo-send >status> :close (list reason code)
+			(lc:id (user bot))))))

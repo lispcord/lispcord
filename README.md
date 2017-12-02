@@ -4,7 +4,14 @@ Lispcord aims to make it freakishly easy to build bots for Discord
 
 The [examples] folder contains some more ideas on how to get started :)
 
+#### NOTE: this is not-even alpha quality software, a lot of the api is chaning
+rapidly, use at own risk!
+
 ## Ping bot
+
+This assumes that :lispcord has been loaded in your image. If not, try running
+`(ql:quickload :lispcord)` after cloning the repo to your ~/common-lisp folder
+
 ```lisp
 (defpackage :ping-bot
   (:use :cl :lispcord))
@@ -13,9 +20,11 @@ The [examples] folder contains some more ideas on how to get started :)
 (defvar *client* (make-bot <your-token-here>))
 (connect *client*)
 
-(watch-with-case (>message> msg)
-  (:create (if (equal "ping" (lc:content msg))
-               (create "pong" (lc:channel msg)))))
+(pmap >message>
+      (lambda (e)
+        (cargocase e
+	  ((:create msg) (if (equal (lc:content msg) "ping")
+	                     (reply msg "pong"))))))
 ```
 
 ## Pipes:
