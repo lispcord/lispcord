@@ -1,6 +1,6 @@
 (in-package :lispcord.core)
 
-(defvar *client* nil
+(defparameter *client* nil
   "This is an empty dummy var to allow for implicits.
 It may be set by make-bot!")
 
