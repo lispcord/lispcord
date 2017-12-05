@@ -77,13 +77,15 @@
 		:op 1
 		:data (seq bot)))
 
-(defun make-heartbeat-thread (bot seconds)
+(defun make-heartbeat-thread (bot seconds
+			      &optional (stream *standard-output*))
   (dprint :info "~&Initiating heartbeat every ~d seconds~%" seconds)
   (make-thread (lambda ()
-		 (loop
-		    (dprint :debug "Dispatching heartbeat!")
-		    (send-heartbeat bot)
-		    (sleep seconds)))))
+		 (let ((*standard-output* stream))
+		   (loop
+		      (dprint :debug "Dispatching heartbeat!")
+		      (send-heartbeat bot)
+		      (sleep seconds))))))
 
 
 
@@ -230,7 +232,7 @@
   (let ((event (aget "t" msg))
 	(seq (aget "s" msg))
 	(data (aget "d" msg))
-	(origin (if (user bot) (lc:id (user bot)))))
+	(origin (user bot)))
     (setf (seq bot) seq)
     (dprint :info "[Event] ~a~%" event)
     (dprint :debug "[Payload] ~a~%" msg)

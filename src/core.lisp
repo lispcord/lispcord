@@ -36,13 +36,13 @@ It may be set by make-bot!")
 
 
 
-(defparameter bot-url "N/A")
+(defparameter *bot-url* "N/A")
 (defun bot-url (url)
-  (setf bot-url url))
+  (setf *bot-url* url))
 
 
 (defun user-agent (bot)
-  (str-concat "DiscordBot (" bot-url ", " (version bot) ")"))
+  (str-concat "DiscordBot (" *bot-url* ", " (version bot) ")"))
 
 (defun headers (bot)
   (list (cons "Authorization" (str-concat "Bot " (token bot)))))

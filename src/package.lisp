@@ -147,6 +147,10 @@
 	   	   
 	   #:reply
 	   #:me
+
+	   #:pmap-case
+	   #:pfilter-case
+	   #:pfold-case
 	   	   
 	   #:make-pipe
 	   #:pipep

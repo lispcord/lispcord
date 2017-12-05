@@ -2,7 +2,7 @@
 
 (defstruct (cargo (:constructor primitive-make-cargo))
   (tag nil :type (or null keyword))
-  (origin nil :type (or null string))
+  origin
   (body nil :type list))
 
 (defun make-cargo (tag body &optional origin)
@@ -20,34 +20,24 @@
 (defun (setf val) (new-val cargo)
   (setf (cargo-body cargo) new-val))
 
-(defclass pipe ()
-  ((handlers :initarg :handlers
-	     :accessor handlers
-	     :initform #()
-	     :type array)
-   (upstream :initarg :upstream
-	     :accessor upstream
-	     :initform nil))
-  (:documentation "The default pipe class. Used to handle events"))
+(defstruct pipe
+  (handlers #() :type array)
+  upstream)
 
-
-(defun make-pipe ()
-  (make-instance 'pipe))
-
-(defun pipep (obj)
-  (typep obj 'pipe))
 
 (defun wipe-pipe (pipe)
-  (setf (handlers pipe) #())
+  (setf (pipe-handlers pipe) #())
   pipe)
 
 (defun pipe-along (pipe cargo)
   "Pipes the event along to the watchers of that pipe"
-  (loop :for h :across (handlers pipe) :do (funcall h cargo)))
+  (loop :for h :across (pipe-handlers pipe)
+     :do (funcall h cargo)))
 
 (defun watch (fun pipe)
   "subscribes to the event-feed of the pipe"
-  (setf (handlers pipe) (vec-extend fun (handlers pipe)))
+  (setf (pipe-handlers pipe)
+	(vec-extend fun (pipe-handlers pipe)))
   fun)
 
 (defmacro watch-do (pipe lambda-list &body body)
@@ -58,16 +48,17 @@
   "unsubscribes pipe from upstream"
   (mapcar
    (lambda (e)
-     (setf (handlers e)
-	   (delete (car (upstream pipe)) (handlers e))))
-   (cdr (upstream pipe))))
+     (setf (pipe-handlers e)
+	   (delete (car (pipe-upstream pipe))
+		   (pipe-handlers e))))
+   (cdr (pipe-upstream pipe))))
 
 
 
 (defun pmap (pipe fun)
   "For a pipe p with events e and a function f, returns a new pipe q whose elements are (f e)"
-  (let ((q (make-instance 'pipe)))
-    (setf (upstream q)
+  (let ((q (make-pipe)))
+    (setf (pipe-upstream q)
 	  (list
 	   (watch-do pipe (cargo)
 	     (pipe-along q (funcall fun cargo)))
@@ -77,8 +68,8 @@
 
 (defun pfilter (pipe pred)
   "For a pipe p with events e, returns a new pipe q whose elements satisfy predicate(e)"
-  (let ((q (make-instance 'pipe)))
-    (setf (upstream q)
+  (let ((q (make-pipe)))
+    (setf (pipe-upstream q)
 	  (list 
 	   (watch-do pipe (cargo)
 	     (if (funcall pred cargo) (pipe-along q cargo)))
@@ -88,9 +79,9 @@
 
 (defun pjoin (&rest pipes)
   "For any amount of pipes, returns a new pipe which is the union of the base pipes"
-  (let* ((q (make-instance (class-of (car pipes))))
+  (let* ((q (make-pipe))
 	 (l (lambda (e) (pipe-along q e))))
-    (setf (upstream q) (cons l pipes))
+    (setf (pipe-upstream q) (cons l pipes))
     (mapcar (curry #'watch l) pipes)
     q))
 
@@ -100,7 +91,7 @@
 applying f to the current value and any new event"
   (let* ((c (make-cargo :body initial-value))
 	 (q (make-pipe)))
-    (setf (upstream q)
+    (setf (pipe-upstream q)
 	  (list
 	   (watch-do pipe (cargo)
 	     (setf (val c) (funcall fun (val c) cargo)))
@@ -122,7 +113,8 @@ applying f to the current value and any new event"
   (defun loop-case-body-clauses (cargo clauses)
     (loop :for e :in clauses :collect
        `(,(caar e)
-	  (destructuring-bind ,(cdar e) (cargo-body ,cargo)
+	  (destructuring-bind ,(cdar e)
+	      (cargo-body ,cargo)
 	    ,@(cdr e))))))
 
 (defmacro cargocase (cargo &body clauses)

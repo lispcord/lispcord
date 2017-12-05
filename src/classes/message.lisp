@@ -139,6 +139,9 @@
 (defmethod channel ((m message))
   (getcache-id (channel-id m) :channel))
 
+(defmethod guild ((m message))
+  (getcache-id (channel m) :channel))
+
 (defun user-or-webhook (obj)
   (if (gethash "webhook_id" obj)
       (from-json :webhook obj)

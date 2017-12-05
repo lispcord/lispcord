@@ -5,17 +5,63 @@
 
 (defun make-bot (token &key (version "0.0.1"))
   (unless token (error "Token required!"))
-  (setf *client*
-	(primitive-make-bot :token token
-			    :version version)))
+  (let ((b (primitive-make-bot :token token :version version)))
+    (setf *client* b)
+    b))
 
-(defun me (&optional (bot *client*))
-  (user bot))
 
-;; we can re-export #'connect, but i thought about making a defbot
-;; tbh, which would define various things á la defclass or defstruct
+
+
+
+(defmacro pmap-case (pipe &rest clauses)
+  (let ((p (gensym "PAYLOAD")))
+    `(pmap ,pipe (lambda (,p) (cargocase ,p ,@clauses)))))
+
+(defmacro pfilter-case (pipe &rest clauses)
+  (let ((p (gensym "PAYLOAD")))
+    `(pmap ,pipe (lambda (,p) (cargocase ,p ,@clauses)))))
+
+(defmacro pfold-case (pipe &rest clauses)
+  (let ((p (gensym "PAYLOAD")))
+    `(pmap ,pipe (lambda (,p) (cargocase ,p ,@clauses)))))
+
+
+
+;;; prefixes
+
+(defvar *cmd-prefix-table* (make-hash-table))
+
+(defun make-prefix (character &rest guilds)
+  (declare (type character character))
+  (setf (gethash character *cmd-prefix-table*)
+	(if guilds guilds :global)))
+
+(defun commandp (msg &optional (bot *client*))
+  (declare (type lc:message msg))
+  (if (member (user bot) (lc:mentions msg) :test #'eq)
+      (return-from commandp t))
+  (let ((cmd? (gethash (char (lc:content msg) 0)
+		       *cmd-prefix-table*)))
+    (cond ((not cmd?) nil)
+	  ((eq :global cmd?) t)
+	  ((consp cmd?) (member (lc:guild msg) cmd?
+				:test #'eq))
+	  (t (warn "the object interned for prefix ~a is not a list or the keyword \":global\"" (char (lc:content msg) 0)))))
+
+
+(defmacro defbot (symbol token
+		  &key
+		    prefix
+		    (version "0.0.1"))
+  `(progn
+     (defparameter ,symbol (make-bot ,token
+				     :version ,version))
+     (make-prefix ,prefix)))
 
 ;;; useful functions
+
+  (defun me (&optional (bot *client*))
+    (user bot)))
 
 (defun reply (msg content &optional (bot *client*))
   (create content (lc:channel msg) bot))
