@@ -19,20 +19,52 @@ It may be set by make-bot!")
 ;;; Set up the various event pipes
 ;;; By (my) convention, they should be named ">'name'>"
 
-(defvar >status> (make-pipe)
-  "The generic event pipe")
+(defvar >status-ready> (make-pipe))
+(defvar >status-close> (make-pipe))
+(defvar >status-resumed> (make-pipe))
 
-(defvar >user> (make-pipe)
-  "Dispatches user specific events")
+(defvar >user-create> (make-pipe))
+(defvar >user-delete> (make-pipe))
+(defvar >user-update> (make-pipe))
 
-(defvar >channel> (make-pipe)
-  "Dispatches channel specific events")
+(defvar >emoji-update> (make-pipe))
+(defvar >emoji-update> (make-pipe))
+(defvar >emoji-update> (make-pipe))
 
-(defvar >guild> (make-pipe)
-  "Dispatches guild specific events")
+(defvar >member-add> (make-pipe))
+(defvar >member-update> (make-pipe))
+(defvar >member-remove> (make-pipe))
+(defvar >member-ban> (make-pipe))
+(defvar >member-unban> (make-pipe))
 
-(defvar >message> (make-pipe)
-  "Dispatches message specific events")
+(defvar >role-create> (make-pipe))
+(defvar >role-update> (make-pipe))
+(defvar >role-delete> (make-pipe))
+
+(defvar >channel-create> (make-pipe))
+(defvar >channel-delete> (make-pipe))
+(defvar >channel-update> (make-pipe))
+
+(defvar >pin-update> (make-pipe))
+
+(defvar >presence-update> (make-pipe))
+
+(defvar >typing-start> (make-pipe))
+
+(defvar >integrations-update> (make-pipe))
+
+(defvar >guild-create> (make-pipe))
+(defvar >guild-update> (make-pipe))
+(defvar >guild-delete> (make-pipe))
+
+(defvar >message-create> (make-pipe))
+(defvar >message-update> (make-pipe))
+(defvar >message-delete> (make-pipe))
+(defvar >message-purge> (make-pipe))
+
+(defvar >reaction-add> (make-pipe))
+(defvar >reaction-remove> (make-pipe))
+(defvar >reaction-purge> (make-pipe))
 
 
 
@@ -71,14 +103,21 @@ It may be set by make-bot!")
        :user-agent (if bot (user-agent bot) :drakma)
        :additional-headers (if bot (headers bot))
        :external-format-in :utf8
-       :external-format-out :utf8
-       :keep-alive t
-       :close nil)
+       :external-format-out :utf8)
     (declare (ignore uri stream closedp reason))
     (rl-parse final headers)
-    (values (if (= status 204)
-		t
-		(jparse (babel:octets-to-string body))) status)))
+    (case status
+      (400 (cerror "ignore" "HTTP: BAD REQUEST"))
+      (401 (cerror "ignore" "HTTP: UNAUTHORIZED"))
+      (403 (cerror "ignore" "HTTP: FORBIDDEN"))
+      (405 (cerror "ignore" "HTTP: BAD METHOD"))
+      (408 (cerror "ignore" "HTTP: TIMEOUT"))
+      (429 (cerror "ignore" "HTTP: RATELIMIT"))
+      (520 (cerror "ignore" "HTTP: UNKNOWN")))
+    (values (cond ((= status 204) t)
+		  ((= status 404) nil)
+		  (t (jparse (babel:octets-to-string body))))
+	    status)))
 
 (defun get-rq (endpoint &optional bot)
   (discord-req endpoint :bot bot :type :get))

@@ -59,7 +59,7 @@
   (setf (session-id bot) (aget "session_id" payload))
   (setf (user bot) (cache :user (aget "user" payload)))
   ;dispatch event
-  (cargo-send >status> :ready (list payload) (lc:id (user bot))))
+  (cargo-send >status-ready> (list payload) bot))
 
 
 
@@ -78,10 +78,10 @@
 		:data (seq bot)))
 
 (defun make-heartbeat-thread (bot seconds
-			      &optional (stream *standard-output*))
+			      &optional (stream *error-output*))
   (dprint :info "~&Initiating heartbeat every ~d seconds~%" seconds)
   (make-thread (lambda ()
-		 (let ((*standard-output* stream))
+		 (let ((*error-output* stream))
 		   (loop
 		      (dprint :debug "Dispatching heartbeat!")
 		      (send-heartbeat bot)
@@ -97,8 +97,7 @@
 		    id "guild_id")
     (let ((g (cache :guild (new-hash-table `("id" ,id)
 					   `("emojis" ,emojis)))))
-      (cargo-send >guild>
-		  :emojis-update
+      (cargo-send >emoji-update>
 		  (list (lc:emojis g) g)
 		  origin))))
 
@@ -111,14 +110,14 @@
 	 (g (getcache-id g-id :guild)))
     (setf (lc:members g)
 	  (vecrem (lambda (e) (eq user (lc:user e))) (lc:members g)))
-    (cargo-send >guild> :member-remove (list user g)
+    (cargo-send >member-remove> (list user g)
 		origin)))
 
 (defun on-member-add (data origin)
   (let ((member (from-json :g-member data))
 	(g (getcache-id (gethash "guild_id" data) :guild)))
     (setf (lc:members g) (vec-extend member (lc:members g)))
-    (cargo-send >guild> :member-add (list member g) origin)))
+    (cargo-send >member-add> (list member g) origin)))
 
 (defun on-members-chunk (data origin)
   (with-table (data id "guild_id" members "members")
@@ -132,7 +131,7 @@
     (nsubstitute-if member
 		    (lambda (m) (eq (lc:user m) (lc:user member)))
 		    (lc:members g))
-    (cargo-send >guild> :member-update (list member g) origin)))
+    (cargo-send >member-update> (list member g) origin)))
 
 (defun on-role-add (data origin)
   (let ((role (cache :role (gethash "role" data)))
@@ -140,12 +139,12 @@
 			:guild)))
     (setf (lc:guild-id role) (parse-snowflake (gethash "guild_id" data)))
     (setf (lc:roles g) (vec-extend role (lc:roles g)))
-    (cargo-send >guild> :role-create (list role g) origin)))
+    (cargo-send >role-create> (list role g) origin)))
 
 (defun on-role-update (data origin)
   (let ((role (cache :role (gethash "role" data)))
 	(g (getcache-id (gethash "guild_id" data) :guild)))
-    (cargo-send >guild> :role-update (list role g) origin)))
+    (cargo-send >role-update> (list role g) origin)))
 
 (defun on-role-delete (data origin)
   (with-table (data guild-id "guild_id" role-id "role_id")
@@ -157,7 +156,7 @@
 	    (vecrem (lambda (e)
 		      (funcall optimal-id-compare r-id (lc:id e)))
 		    (lc:roles g)))
-      (cargo-send >guild> :role-delete (list r-id g-id) origin))))
+      (cargo-send >role-delete> (list r-id g-id) origin))))
 
 
 (defun on-channel-create (data origin)
@@ -165,7 +164,7 @@
     (when (typep c 'lc:guild-channel)
       (let ((g (getcache-id (lc:guild-id c) :guild)))
 	(setf (lc:channels g) (vec-extend c (lc:channels g)))))
-    (cargo-send >channel> :create (list c) origin)))
+    (cargo-send >channel-create> (list c) origin)))
 
 (defun on-channel-delete (data origin)
   (let ((c (cache data :channel)))
@@ -174,12 +173,11 @@
 	(setf (lc:channels g)
 	      (vecrem (lambda (e) (eq e c)) (lc:channels g)))))
     (decache-id (lc:id c) :channel)
-    (cargo-send >channel> :delete (list c) origin)))
+    (cargo-send >channel-delete> (list c) origin)))
 
 (defun on-channel-pin-update (data origin)
   (let ((id (parse-snowflake (gethash "id" data))))
-    (cargo-send >channel>
-		:pin-update
+    (cargo-send >pin-update>
 		(list (getcache-id id :channel)
 		      (gethash "last_pin_timestamp" data))
 		origin)))
@@ -189,7 +187,7 @@
   (let ((u (cache :user data))
 	(g (getcache-id (parse-snowflake (gethash "guild_id" data))
 			:guild)))
-    (cargo-send >user> kind (list u g) origin)))
+    (cargo-send kind (list u g) origin)))
 
 
 (defun on-reaction (data origin kind)
@@ -199,8 +197,7 @@
 	(c (getcache-id (parse-snowflake (gethash "channel_id" data))
 			:channel))
 	(mid (parse-snowflake (gethash "message_id" data))))
-    (cargo-send >message>
-		kind
+    (cargo-send kind
 		(list e mid u c)
 		origin)))
 
@@ -211,8 +208,7 @@
 			:user)))
     (setf (lc:status u) (gethash "status" data)
 	  (lc:game u) (from-json :game (gethash "game" data)))
-    (cargo-send >user>
-		:presence
+    (cargo-send >presence-update>
 		(list (from-json :presence data))
 		origin)))
 
@@ -222,8 +218,7 @@
 	(u (getcache-id (parse-snowflake (gethash "user_id" data))
 			:user))
 	(ts (gethash "timestamp" data)))
-    (cargo-send >status>
-		:typing-start
+    (cargo-send >typing-start>
 		(list u c ts)
 		origin)))
 
@@ -232,7 +227,7 @@
   (let ((event (aget "t" msg))
 	(seq (aget "s" msg))
 	(data (aget "d" msg))
-	(origin (user bot)))
+	(origin bot))
     (setf (seq bot) seq)
     (dprint :info "[Event] ~a~%" event)
     (dprint :debug "[Payload] ~a~%" msg)
@@ -243,22 +238,21 @@
 
       ;; on resume
       ("RESUMED"
-       (cargo-send >status> :resumed nil origin))
+       (cargo-send >status-resumed> nil origin))
 
       ;; someone starts typing
       ("TYPING_START"
        (on-typing-start data origin))
 
       ("USER_UPDATE" 
-       (cargo-send >user> :update (list (cache :user data)) origin))
+       (cargo-send >user-update> (list (cache :user data)) origin))
 
       ;; channel made known
       ("CHANNEL_CREATE"
        (on-channel-create data origin))
 
       ("CHANNEL_UPDATE"
-       (cargo-send >channel>
-		   :update
+       (cargo-send >channel-update>
 		   (list (cache :channel data))
 		   origin))
 
@@ -270,28 +264,27 @@
 
       ;; guild made known
       ("GUILD_CREATE"
-       (cargo-send >guild> :create (list (cache :guild data)) origin))
+       (cargo-send >guild-create> (list (cache :guild data)) origin))
 
       ("GUILD_UPDATE"
-       (cargo-send >guild> :update (list (cache :guild data)) origin))
+       (cargo-send >guild-update> (list (cache :guild data)) origin))
 
       ("GUILD_DELETE"
        (let ((g (cache :guild data)))
-	 (cargo-send >guild> :delete (list g) origin)
+	 (cargo-send >guild-delete> (list g) origin)
 	 (decache-id (lc:id g) :guild)))
 
       ("GUILD_BAN_ADD"
-       (on-guild-ban data origin :ban-add))
+       (on-guild-ban data origin >member-ban>))
 
       ("GUILD_BAN_REMOVE"
-       (on-guild-ban data origin :ban-remove))
+       (on-guild-ban data origin >member-unban>))
 
       ("GUILD_EMOJIS_UPDATE"
        (on-emoji-update data origin))
 
       ("GUILD_INTEGRATIONS_UPDATE"
-       (cargo-send >guild>
-		   :integrations-update
+       (cargo-send >integrations-update>
 		   (list (getcache-id
 			  (parse-snowflake (gethash "guild_id" data))
 			  :guild))
@@ -320,22 +313,19 @@
 
       ;; received new message
       ("MESSAGE_CREATE"
-       (cargo-send >message>
-		   :create
+       (cargo-send >message-create>
 		   (list (from-json :message data))
 		   origin))
 
       ;; a message is edited // might need special parsing here
       ("MESSAGE_UPDATE"
-       (cargo-send >message>
-		   :update
+       (cargo-send >message-update>
 		   (list (from-json :message data))
 		   origin))
 
       ;; a message is deleted
       ("MESSAGE_DELETE"
-       (cargo-send >message>
-		   :delete
+       (cargo-send >message-delete>
 		   (list
 		    (parse-snowflake (gethash "id" data))
 		    (getcache-id
@@ -348,21 +338,20 @@
 	     (c (getcache-id
 		 (parse-snowflake (gethash "channel_id" data))
 		 :channel)))
-	 (cargo-send >message> :delete-bulk (list c ids) origin)))
+	 (cargo-send >message-purge> (list c ids) origin)))
 
       ("MESSAGE_REACTION_ADD"
-       (on-reaction data origin :reaction-add))
+       (on-reaction data origin >reaction-add>))
 
       ("MESSAGE_REACTION_REMOVE"
-       (on-reaction data origin :reaction-remove))
+       (on-reaction data origin >reaction-remove>))
 
       ("MESSAGE_REACTION_REMOVE_ALL"
        (let ((c (getcache-id
 		 (parse-snowflake (gethash "channel_id" data))
 		 :channel))
 	     (mid (parse-snowflake (gethash "message_id" data))))
-	 (cargo-send >message>
-		     :reaction-purge
+	 (cargo-send >reaction-purge>
 		     (list c mid)
 		     origin)))
       
@@ -372,8 +361,7 @@
 
       ;; unrecognised event!
       (:else
-       (dprint :warn "unrecognised event! ~a~%" event)
-       (cargo-send >status> :unrecognised-event nil origin)))))
+       (dprint :warn "unrecognised event! ~a~%" event)))))
 
 
 ;; opcode 10
@@ -390,20 +378,22 @@
 
 
 (defun disconnect (bot &optional reason code)
-  (bt:interrupt-thread
-   (heartbeat-thread bot)
-   (lambda ()
-     (dprint :info "~a disconnecting...~%"
-	     (if (user bot) (lc:name (user bot))))
-     (wsd:close-connection (conn bot) reason code)
-     (setf (seq bot) 0)
-     (setf (session-id bot) nil)))
-  (bt:destroy-thread (heartbeat-thread bot)))
+  (let ((out *error-output*))
+    (bt:join-thread
+     (bt:make-thread
+      (lambda ()
+	(let ((*error-output* out))
+	  (dprint :info "~a disconnecting...~%"
+		  (if (user bot) (lc:name (user bot))))
+	  (wsd:close-connection (conn bot) reason code)
+	  (setf (seq bot) 0)
+	  (setf (session-id bot) nil)
+	  (bt:destroy-thread (heartbeat-thread bot))))))))
 
 (defun cleanup (bot)
   (dprint :warn "Cleanup loop engaged!~%Bot: ~a" (lc:name (user bot)))
   (disconnect bot)
-  (sleep (aref #(1 2 3 4 5) (random 4)))
+  (sleep 4)
   (connect bot))
 
 (defun reconnect (bot &optional reason code)
@@ -448,6 +438,10 @@
   
   (wsd:on :close (conn bot)
 	  (lambda (&key code reason)
-	    (dprint :warn "Websocket closed with code: ~a~%Reason: ~a~%" code reason)
-	    (cargo-send >status> :close (list reason code)
-			(lc:id (user bot))))))
+	    (let ((reason (typecase reason
+			    (null nil)
+			    (string reason)
+			    (vector (babel:octets-to-string reason)))))
+	      (dprint :warn "Websocket closed with code: ~a~%Reason: ~a~%" code reason)
+	      (cargo-send >status-close> (list reason code)
+			  (lc:id (user bot)))))))

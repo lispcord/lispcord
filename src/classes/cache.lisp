@@ -16,7 +16,7 @@
 (defun resolve-cache (cache table key)
   (let* ((id (gethash "id" table))
 	 (entity (gethash id cache)))
-    (dprint :debug "Cache-hit: ~30a :: ~a~%" id key)
+    (dprint :debug "Cache-hit: ~20a :: ~a~%" id key)
     (if entity
 	(update table entity)
 	(setf (gethash id cache) (from-json key table)))))

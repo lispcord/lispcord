@@ -11,22 +11,6 @@
 
 
 
-
-
-(defmacro pmap-case (pipe &rest clauses)
-  (let ((p (gensym "PAYLOAD")))
-    `(pmap ,pipe (lambda (,p) (cargocase ,p ,@clauses)))))
-
-(defmacro pfilter-case (pipe &rest clauses)
-  (let ((p (gensym "PAYLOAD")))
-    `(pmap ,pipe (lambda (,p) (cargocase ,p ,@clauses)))))
-
-(defmacro pfold-case (pipe &rest clauses)
-  (let ((p (gensym "PAYLOAD")))
-    `(pmap ,pipe (lambda (,p) (cargocase ,p ,@clauses)))))
-
-
-
 ;;; prefixes
 
 (defvar *cmd-prefix-table* (make-hash-table))
@@ -46,7 +30,7 @@
 	  ((eq :global cmd?) t)
 	  ((consp cmd?) (member (lc:guild msg) cmd?
 				:test #'eq))
-	  (t (warn "the object interned for prefix ~a is not a list or the keyword \":global\"" (char (lc:content msg) 0)))))
+	  (t (warn "the object interned for prefix ~a is not a list or the keyword \":global\"" (char (lc:content msg) 0))))))
 
 
 (defmacro defbot (symbol token
@@ -56,12 +40,14 @@
   `(progn
      (defparameter ,symbol (make-bot ,token
 				     :version ,version))
-     (make-prefix ,prefix)))
+     (when ,prefix (make-prefix ,prefix))))
 
 ;;; useful functions
 
-  (defun me (&optional (bot *client*))
-    (user bot)))
+
+
+(defun me (&optional (bot *client*))
+  (user bot))
 
 (defun reply (msg content &optional (bot *client*))
   (create content (lc:channel msg) bot))

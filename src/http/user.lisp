@@ -4,8 +4,11 @@
   (user bot))
 
 (defmethod from-id (id (c (eql :user)) &optional (bot *client*))
-  (cache :user (discord-req (str-concat "users/" id)
-			    :bot bot)))
+  (let ((u (getcache-id id :user)))
+    (if u
+	u
+	(cache :user (discord-req (str-concat "users/" id)
+				  :bot bot)))))
 
 
 (defmethod edit ((u lc:user) (user lc:user) &optional (bot *client*))

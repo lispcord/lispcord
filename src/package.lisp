@@ -9,22 +9,12 @@
 	   #:pmap
 	   #:pfilter
 	   #:pjoin
-	   #:pfold
+	   #:preduce
 
-	   #:taggedp
 	   #:from-origin-p
 
-	   #:cargo-body
-	   #:cargo-tag
-	   #:cargo-origin
 	   #:val
 	   
-	   #:make-cargo
-	   #:open-cargo
-	   #:with-cargo
-	   #:cargocase
-	   #:ccargocase
-	   #:ecargocase
 	   #:cargo-send))
 
 
@@ -64,11 +54,39 @@
 	   #:done
 	   #:heartbeat-thread
 
-	   #:>message>
-	   #:>user>
-	   #:>guild>
-	   #:>status>
-	   #:>channel>
+	   #:>message-create>
+	   #:>message-update>
+	   #:>message-delete>
+	   #:>message-purge>
+	   #:>reaction-add>
+	   #:>reaction-remove>
+	   #:>reaction-purge>
+	   #:>pin-update>
+	   #:>user-create>
+	   #:>user-update>
+	   #:>user-delete>
+	   #:>guild-create>
+	   #:>guild-update>
+	   #:>guild-delete>
+	   #:>presence-update>
+	   #:>typing-start>
+	   #:>status-ready>
+	   #:>status-close>
+	   #:>status-resumed>
+	   #:>channel-create>
+	   #:>channel-delete>
+	   #:>channel-update>
+	   #:>role-create>
+	   #:>role-delete>
+	   #:>role-update>
+	   #:>member-add>
+	   #:>member-remove>
+	   #:>member-update>
+	   #:>member-ban>
+	   #:>member-unban>
+	   #:>emoji-update>
+	   #:>integrations-update>
+	   
 	   
 	   #:bot-url
 	   #:base-url
@@ -143,15 +161,14 @@
 	   #:*client*
 	   #:connect
 	   #:disconnect
+	   #:defbot
 
+	   #:make-prefix
+	   #:commandp
 	   	   
 	   #:reply
 	   #:me
 
-	   #:pmap-case
-	   #:pfilter-case
-	   #:pfold-case
-	   	   
 	   #:make-pipe
 	   #:pipep
 	   #:pipe-along
@@ -160,27 +177,43 @@
 	   #:pfilter
 	   #:pjoin
 	   #:pfold
-	   #:taggedp
 	   #:from-origin-p
-	   #:make-cargo
-	   #:open-cargo
-	   #:with-cargo
 	   #:cargo-send
-	   #:cargo-body
-	   #:cargo-tag
-	   #:cargo-origin
 	   #:val
-	   #:cargocase
-	   #:ccargocase
-	   #:ecargocase
-	   
-	   #:>message>
-	   #:>user>
-	   #:>guild>
-	   #:>status>
-	   #:>channel>
 
-
+	   #:>message-create>
+	   #:>message-update>
+	   #:>message-delete>
+	   #:>message-purge>
+	   #:>reaction-add>
+	   #:>reaction-remove>
+	   #:>reaction-purge>
+	   #:>pin-update>
+	   #:>user-create>
+	   #:>user-update>
+	   #:>user-delete>
+	   #:>guild-create>
+	   #:>guild-update>
+	   #:>guild-delete>
+	   #:>presence-update>
+	   #:>typing-start>
+	   #:>status-ready>
+	   #:>status-close>
+	   #:>status-resumed>
+	   #:>channel-create>
+	   #:>channel-delete>
+	   #:>channel-update>
+	   #:>role-create>
+	   #:>role-delete>
+	   #:>role-update>
+	   #:>member-add>
+	   #:>member-remove>
+	   #:>member-update>
+	   #:>member-ban>
+	   #:>member-unban>
+	   #:>emoji-update>
+	   #:>integrations-update>
+	   	   
 	   #:create
 	   #:edit
 	   #:erase
@@ -205,6 +238,8 @@
 	   #:unban
 	   #:get-roles
 	   #:get-me
-	   #:leave))
+	   #:leave
+
+	   #:set-log-level))
 
 
