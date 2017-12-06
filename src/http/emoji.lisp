@@ -1,10 +1,12 @@
 (in-package lispcord.http)
 
 (defmethod from-id (id (g lc:guild) &optional (bot *client*))
-  (cache :emoji
-	 (discord-req (str-concat "guilds/" (lc:id g)
-				  "/emojis/" id)
-		      :bot bot)))
+  (if (getcache-id id :emoji)
+      (getcache-id id :emoji)
+      (cache :emoji
+	     (discord-req (str-concat "guilds/" (lc:id g)
+				      "/emojis/" id)
+			  :bot bot))))
 
 (defun get-emojis (guild &optional (bot *client*))
   (declare (type (or snowflake lc:guild) guild))

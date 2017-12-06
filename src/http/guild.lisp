@@ -1,9 +1,11 @@
 (in-package :lispcord.http)
 
 (defmethod from-id (id (g (eql :guild)) &optional (bot *client*))
-  (cache :guild
-	 (discord-req (str-concat "guilds/" id)
-		      :bot bot)))
+  (if (getcache-id id :guild)
+      (getcache-id id :guild)
+      (cache :guild
+	     (discord-req (str-concat "guilds/" id)
+			  :bot bot))))
 
 (defmethod erase ((g lc:guild) &optional (bot *client*))
   (discord-req (str-concat "guilds/" (lc:id g))
@@ -27,10 +29,18 @@
 
 
 (defmethod from-id ((u lc:user) (g lc:guild) &optional (bot *client*))
-  (from-json :member
-	     (discord-req (str-concat "guilds/" (lc:id g)
-				      "/members/" (lc:id u))
-			  :bot bot)))
+  (let ((m? (find-if (lambda (e)
+		       (funcall optimal-id-compare
+				(lc:id (lc:user e))
+				(lc:id u)))
+		     (lc:members g))))
+    (if m?
+	m?
+	(from-json :member
+		   (discord-req
+		    (str-concat "guilds/" (lc:id g)
+				"/members/" (lc:id u))
+		    :bot bot)))))
 
 (defun get-members (guild &key (limit 1) after (bot *client*))
   (declare (type (or snowflake lc:guild) guild))
@@ -176,3 +186,7 @@
 	       :type :delete))
 
 
+(defmethod from-id (id (c (eql :role))
+		    &optional (bot *client*))
+  (declare (ignore bot))
+  (getcache-id id :role))
