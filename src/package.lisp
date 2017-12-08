@@ -6,10 +6,7 @@
 	   #:pipep
 	   #:pipe-along
 	   #:drop
-	   #:pmap
-	   #:pfilter
-	   #:pjoin
-	   #:preduce
+	   #:defpipe
 
 	   #:from-origin-p
 
@@ -157,8 +154,7 @@
 	:lispcord.http
 	:lispcord.core
 	:lispcord.pipes)
-  (:export #:make-bot
-	   #:*client*
+  (:export #:*client*
 	   #:connect
 	   #:disconnect
 	   #:defbot
@@ -173,10 +169,7 @@
 	   #:pipep
 	   #:pipe-along
 	   #:drop
-	   #:pmap
-	   #:pfilter
-	   #:pjoin
-	   #:pfold
+	   #:defpipe
 	   #:from-origin-p
 	   #:cargo-send
 	   #:val

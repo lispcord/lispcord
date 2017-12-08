@@ -1,15 +1,17 @@
-(defpackage :ping.bot (:use :cl :lispcord))
+(defpackage :ping.bot
+  (:use :cl :lispcord))
 (in-package :ping.bot)
 
 ;;make a new bot from a user-given input
 (print "Enter a valid token: ")
-(defparameter *client* (make-bot (read-line)))
+(defbot *ping-bot* (read-line))
 
 ;;connect to the gateway
-(connect *client*)
+(connect *ping-bot*)
 
 ;;set up a handler waiting for "message_create" events
-(pmap >message-create> (lambda (msg) (if (equal (lc:content msg) "ping")
-					 (reply msg "pong!"))))
+(defpipe >handler> :for msg :from >message-create>
+	 :do (if (equal (lc:content msg) "ping")
+		 (reply msg "pong")))
 
 

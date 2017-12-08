@@ -17,22 +17,19 @@ This assumes that :lispcord has been loaded in your image. If not, try running
   (:use :cl :lispcord))
 (in-package :ping-bot)
 
-(defvar *client* (make-bot <your-token-here>))
-(connect *client*)
+(defbot *ping-bot* "<Your Token Here>")
+(connect *ping-bot*)
 
-(pmap >message>
-      (lambda (e)
-        (cargocase e
-	  ((:create msg) (if (equal (lc:content msg) "ping")
-	                     (reply msg "pong"))))))
+(defpipe >event> :for msg :from >message-create>
+         :do (if (equal (lc:content msg) "ping")
+	         (reply msg "pong")))
 ```
 
 ## Pipes:
 Unlike many other libraries, which use basic event handlers, lispcord
 abstracts over the entire dynamic through what it calls "pipes".
 
-The `>message>` object above is a pipe, and it dispatches events in
-a specific format (called "cargo")  which can be handled in various ways.
-This allows the library to expose functions which can produce derivative
-pipes from the source ones, like `pmap` (which works like `map` for lists)
-or `pfilter` (which works like `remove-if-not`)
+The `>message-create>` object above is a pipe, and it dispatches events  which can be handled in various ways.
+This allows you to define your own new (or derivative) pipes,
+to chain them, filter them or otherwise combine them without being
+forced into a single monolithic event-dispatching mechanism.

@@ -39,52 +39,42 @@
      (setf (pipe-handlers e)
 	   (remove (car (pipe-upstream pipe))
 		   (pipe-handlers e))))
-   (cdr (pipe-upstream pipe))))
+   (cdr (pipe-upstream pipe)))
+  nil)
 
 
-
-(defun pmap (pipe fun)
-  "For a pipe p with events e and a function f, returns a new pipe q whose elements are (f e)"
-  (let ((q (make-pipe)))
-    (setf (pipe-upstream q)
-	  (list
-	   (watch-do pipe (&rest cargo)
-	     (pipe-along q (apply fun cargo)))
-	   pipe))
-    q))
-
-
-(defun pfilter (pipe pred)
-  "For a pipe p with events e, returns a new pipe q whose elements satisfy predicate(e)"
-  (let ((q (make-pipe)))
-    (setf (pipe-upstream q)
-	  (list 
-	   (watch-do pipe (&rest cargo)
-	     (if (apply pred cargo) (pipe-along q cargo)))
-	   pipe))
-    q))
-
-
-(defun pjoin (&rest pipes)
-  "For any amount of pipes, returns a new pipe which is the union of the base pipes"
-  (let* ((q (make-pipe))
-	 (l (lambda (&rest e) (pipe-along q e))))
-    (setf (pipe-upstream q) (cons l pipes))
-    (mapcar (curry #'watch l) pipes)
-    q))
-
-
-(defun pfold (pipe fun initial-value)
-  "For a pipe p and a function f, returns and updates a cargo-object produced from
-applying f to the current value and any new event"
-  (let* ((c (make-cargo initial-value))
-	 (q (make-pipe)))
-    (setf (pipe-upstream q)
-	  (list
-	   (watch-do pipe (cargo)
-	     (setf (val c) (funcall fun (val c) cargo)))
-	   pipe))
-    (values c q)))
+(defmacro defpipe (symbol &key for from where do reduce with)
+  (when (and for (not from))
+    (error "Missing :FROM-clause in DEFPIPE ~a" symbol))
+  (when (and reduce (not with))
+    (error "Missing :WITH-clause in DEFPIPE ~a" symbol))
+  (when (and (not reduce) with)
+    (error "Missing :REDUCE-clause in DEFPIPE ~a" symbol))
+  (when (and (not for) (or from where do reduce))
+    (error "Missing :FOR-clause in DEFPIPE ~a" symbol))
+  (let ((l (gensym "LAMBDA"))
+	(q (gensym "PIPE"))
+	(f (if (consp for) for (list for)))
+	(ff (if (consp from) from (list from))))
+    `(progn
+       (when (and (boundp ',symbol) (pipe-p ,symbol))
+	 (drop ,symbol))
+       (defparameter ,symbol
+	 ,(if for
+	      `(let* ((,q (make-pipe))
+		      (,l (lambda ,(if reduce (cons reduce f) f)
+			    (when ,(or where t)
+			      ,(if reduce
+				   `(setf ,symbol ,(or do for))
+				   `(pipe-along ,q (list ,(or do for))))))))
+		 (setf (pipe-upstream ,q)
+		       (cons ,l (list ,@ff)))
+		 (mapcar (curry #'watch ,l)
+			 (list ,@ff))
+		 ,(if (and reduce with)
+		      with
+		      q))
+	      `(make-pipe))))))
 
 
 (defun cargo-send (pipe body &optional origin)
