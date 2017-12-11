@@ -28,6 +28,8 @@
 		   :type :patch
 		   :content (to-json c))))
 
+
+
 (defmethod create ((m lc:partial-message) (c lc:channel)
 		   &optional (bot *client*))
   (when (< 2000 (length (lc:content m)))

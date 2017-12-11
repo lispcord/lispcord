@@ -161,6 +161,9 @@
 
 	   #:make-prefix
 	   #:commandp
+	   #:sanitize-content
+	   #:remove-substring
+	   #:remove-mention
 	   	   
 	   #:reply
 	   #:me

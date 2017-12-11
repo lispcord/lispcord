@@ -22,7 +22,7 @@
 
 (defun commandp (msg &optional (bot *client*))
   (declare (type lc:message msg))
-  (if (member (user bot) (lc:mentions msg) :test #'eq)
+  (if (find (user bot) (lc:mentions msg) :test #'eq)
       (return-from commandp t))
   (let ((cmd? (gethash (char (lc:content msg) 0)
 		       *cmd-prefix-table*)))
@@ -31,6 +31,10 @@
 	  ((consp cmd?) (member (lc:guild msg) cmd?
 				:test #'eq))
 	  (t (warn "the object interned for prefix ~a is not a list or the keyword \":global\"" (char (lc:content msg) 0))))))
+
+(defun sanitize-content (content)
+  (declare (type string content))
+  (substitute #\EXTRATERRESTRIAL_ALIEN #\@ content))
 
 
 (defmacro defbot (symbol token
@@ -53,4 +57,17 @@
 (defun reply (msg content &optional (bot *client*))
   (create content (from-id (lc:channel-id msg) :channel) bot))
 
+(defun remove-substring (string msg)
+  (declare (type string string msg))
+  (let ((from (search string msg))
+	(to (length string)))
+    (when from
+      (str-concat (subseq msg 0 from) (subseq msg to)))))
 
+(defun remove-mention (user msg)
+  (declare (type lc:user user)
+	   (type string msg))
+  (or (remove-substring (str-concat "<@" (to-string (lc:id user)) ">")
+			msg)
+      (remove-substring (str-concat "<@!" (to-string (lc:id user)) ">")
+			msg)))
