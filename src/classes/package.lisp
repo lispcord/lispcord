@@ -20,7 +20,9 @@
 	   #:make-message
 	   #:make-role
 	   #:make-emoji
-	   
+
+	   #:version
+	   #:session-id
 	   #:overwrite
 	   #:user
 	   #:user-id
@@ -55,6 +57,7 @@
 	   #:reaction
 	   #:message
 	   #:partial-message
+	   #:ready
 
 	   #:id
 	   #:discrim
@@ -65,6 +68,7 @@
 	   #:emailp
 	   #:guild-id
 	   #:guild
+	   #:guilds
 	   #:type
 	   #:allow
 	   #:deny
@@ -206,7 +210,11 @@
 	   #:reaction
 	   #:message
 	   #:partial-message
+	   #:ready
 
+	   #:version
+	   #:session-id
+	   #:guilds
 	   #:id
 	   #:discrim
 	   #:avatar

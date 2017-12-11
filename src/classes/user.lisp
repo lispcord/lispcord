@@ -66,7 +66,7 @@
 (defmethod update ((table hash-table) (u user))
   (from-table-update (table data)
     ("id" (id u) (parse-snowflake data))
-    ("username" (username u) data)
+    ("username" (name u) data)
     ("discriminator" (discrim u) data)
     ("avatar" (avatar u) data)
     ("bot" (botp u) data)
@@ -78,7 +78,7 @@
 (defmethod %to-json ((u user))
   (with-object
     (write-key-value "id" (id u))
-    (write-key-value "username" (username u))
+    (write-key-value "username" (name u))
     (write-key-value "discriminator" (discrim u))
     (write-key-value "avatar" (avatar u))
     (write-key-value "bot" (botp u))
@@ -131,3 +131,32 @@
     :user (cache :user (gethash "user" table))
     :avatar "avatar"
     :token "token"))
+
+
+
+(defclass ready ()
+  ((version     :initarg :v
+		:type fixnum
+		:accessor version)
+   (user        :initarg :me
+	        :type user
+	        :accessor user)
+   (dm-channels :initarg :channels
+		:type array
+		:accessor channels)
+   (guilds      :initarg :guilds
+		:type array
+		:accessor guilds)
+   (session-id  :initarg :session
+		:type string
+		:accessor session-id)))
+
+(defmethod from-json ((c (eql :ready)) (table hash-table))
+  (instance-from-table (table 'ready)
+    :v "version"
+    :me (cache :user (gethash "user" table))
+    :channels (mapvec (curry #'cache :channel)
+		      (gethash "private_channels" table))
+    :guilds (mapvec (curry #'cache :guild)
+		    (gethash "guilds" table))
+    :session "session_id"))

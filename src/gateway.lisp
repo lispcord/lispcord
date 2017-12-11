@@ -58,8 +58,8 @@
 	  (aget "session_id" payload))
   (setf (session-id bot) (aget "session_id" payload))
   (setf (user bot) (cache :user (aget "user" payload)))
-  ;dispatch event
-  (cargo-send >status-ready> (list payload) bot))
+  ;;dispatch event
+  (cargo-send >status-ready> (list (from-json :ready payload)) bot))
 
 
 
@@ -79,6 +79,7 @@
 
 (defun make-heartbeat-thread (bot seconds
 			      &optional (stream *error-output*))
+  (declare (type rational seconds))
   (dprint :info "~&Initiating heartbeat every ~d seconds~%" seconds)
   (make-thread (lambda ()
 		 (let ((*error-output* stream))
@@ -206,8 +207,11 @@
   (let ((u (getcache-id (parse-snowflake
 			 (gethash "id" (gethash "user" data)))
 			:user)))
-    (setf (lc:status u) (gethash "status" data)
-	  (lc:game u) (from-json :game (gethash "game" data)))
+    (when u
+      (dprint :debug "User uncached: ~a~%"
+	      (gethash "id" (gethash "user" data)))
+      (setf (lc:status u) (gethash "status" data))
+      (setf (lc:game u) (from-json :game (gethash "game" data))))
     (cargo-send >presence-update>
 		(list (from-json :presence data))
 		origin)))
@@ -367,9 +371,10 @@
 ;; opcode 10
 (defun on-hello (bot msg)
   (let ((heartbeat-interval (aget "heartbeat_interval" (aget "d" msg))))
+    (declare (type (unsigned-byte 32) heartbeat-interval))
     (dprint :debug "Heartbeat Inverval: ~a~%" heartbeat-interval)
     (setf (heartbeat-thread bot)
-	  (make-heartbeat-thread bot (/ heartbeat-interval 1000.0)))
+	  (make-heartbeat-thread bot (/ heartbeat-interval 1000)))
     (if (session-id bot)
 	(send-resume bot)
 	(send-identify bot))))

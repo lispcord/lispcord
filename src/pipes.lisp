@@ -8,7 +8,7 @@
   (primitive-make-cargo :val body))
 
 (defstruct pipe
-  (handlers #() :type array)
+  (handlers #() :type (simple-array function (*)))
   upstream)
 
 (defvar *origin*)
@@ -62,7 +62,7 @@
        (defparameter ,symbol
 	 ,(if for
 	      `(let* ((,q (make-pipe))
-		      (,l (lambda ,(if reduce (cons reduce f) f)
+		      (,l (lambda ,(if reduce (cons reduce f) f) 
 			    (when ,(or where t)
 			      ,(if reduce
 				   `(setf ,symbol ,(or do for))

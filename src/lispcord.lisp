@@ -40,7 +40,8 @@
   `(progn
      (defparameter ,symbol (make-bot ,token
 				     :version ,version))
-     (when ,prefix (make-prefix ,prefix))))
+     (when ,prefix (make-prefix ,prefix))
+     ,symbol))
 
 ;;; useful functions
 
@@ -50,6 +51,6 @@
   (user bot))
 
 (defun reply (msg content &optional (bot *client*))
-  (create content (lc:channel msg) bot))
+  (create content (from-id (lc:channel-id msg) :channel) bot))
 
 

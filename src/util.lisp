@@ -71,6 +71,7 @@
 
 (defmacro str-case (key-form &body clauses &aux (key (gensym)))
   `(let ((,key ,key-form))
+     (declare (type string ,key-form))
      (cond ,@(mapcar (lambda (c)
 		       (if (string= (string (car c)) "ELSE")
 			   `(T ,@(cdr c))
@@ -80,7 +81,7 @@
 
 ;;; Set up a logging framework so bot authors can
 ;;;  gather various levels of information
-(defparameter *debug-level* :debug
+(defparameter *debug-level* (the keyword :debug)
   "The debug level can be one of: :error, :warn, :info, :debug")
 
 (defvar *debug-levels*
@@ -97,7 +98,10 @@
 
 ;;unfortunately "log" is package locked
 (defun dprint (level message &rest arguments)
-  (when (funcall (cdr (assoc *debug-level* *debug-levels*)) level)
+  (declare (type keyword *debug-level*))
+  (when (funcall
+	 (the function (cdr (assoc *debug-level* *debug-levels*)))
+	 level)
     (apply #'format *error-output* message arguments)))
 
 (defparameter *unix-epoch* (encode-universal-time 0 0 0 1 1 1970 0)
@@ -109,15 +113,8 @@
 
 
 
-(defun time-passed (since &optional (unit :minute))
-  (let ((now (get-universal-time)))
-    (case unit
-      ((:second :seconds) (<= (1+ since) now))
-      ((:minute :minutes) (<= (+ since 60) now))
-      ((:hour :hours)     (<= (+ since 3600) now)))))
-
-
 (defun curry (f &rest args)
+  (declare (type function f))
   (lambda (arg) (apply f (append args (list arg)))))
 
 (defun split-string (string &optional (delimiter #\space))
@@ -137,6 +134,7 @@
 
 (let ((cnt 0))
   (defun make-nonce ()
+    (declare (type fixnum cnt))
     (format nil "~d" (+ (* (get-universal-time) 1000000)
 			(incf cnt)))))
 
@@ -146,6 +144,7 @@
 
 (defmacro with-table ((table &rest pairs) &body body)
   (labels ((partition (list)
+	     (declare (type cons list))
 	     (unless (evenp (length list)) (error "Uneven pair list!"))
 	     (values (loop :for i :in list :counting i :into c
 			:if (oddp c) :collect i)
@@ -179,8 +178,9 @@
     buf))
 
 (defun mapvec (conversion-fun seq)
+  (declare (type function conversion-fun))
   (if seq
-      (map 'vector conversion-fun seq)
+      (map '(simple-array * (*)) conversion-fun seq)
       #()))
 
 (defun vecrem (predicate seq)
