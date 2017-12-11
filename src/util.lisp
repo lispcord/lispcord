@@ -69,9 +69,10 @@
 		       `(setf ,it ,f)))
 		 forms))))
 
-(defmacro str-case (key-form &body clauses &aux (key (gensym)))
+(defmacro str-case (key-form &body clauses
+		    &aux (key (gensym)))
   `(let ((,key ,key-form))
-     (declare (type string ,key-form))
+     (declare (type string ,key))
      (cond ,@(mapcar (lambda (c)
 		       (if (string= (string (car c)) "ELSE")
 			   `(T ,@(cdr c))

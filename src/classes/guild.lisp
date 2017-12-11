@@ -362,12 +362,16 @@
 		 :available (not (gethash "unavailable" table))))
 
 (defmethod update ((table hash-table) (g guild))
+  (decache-id (id g) :guild)
+  (cache :guild table))
+
+(defmethod update ((table hash-table) (g available-guild))
   (from-table-update (table data)
     ("id" (id g) (parse-snowflake data))
     ("name" (name g) data)
     ("icon" (icon g) data)
     ("splash" (splash g) data)
-    ("owner_id" (owner g) (parse-snowflake data))
+    ("owner_id" (owner-id g) (parse-snowflake data))
     ("region" (region g) data)
     ("afk_channel_id" (afk-id g) (parse-snowflake data))
     ("afk_timeout" (afk-to g) data)
