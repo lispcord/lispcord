@@ -52,21 +52,28 @@
     (error "Missing :REDUCE-clause in DEFPIPE ~a" symbol))
   (when (and (not for) (or from where do reduce))
     (error "Missing :FOR-clause in DEFPIPE ~a" symbol))
-  (let ((l (gensym "LAMBDA"))
-	(q (gensym "PIPE"))
-	(f (if (consp for) for (list for)))
-	(ff (if (consp from) from (list from))))
+  (let* ((l (gensym "LAMBDA"))
+	 (q (gensym "PIPE"))
+	 (r (gensym "_REDUCE"))
+	 (f (if (consp for) for (list for)))
+	 (ignore-list (remove-if-not
+		       (lambda (e) (char= #\_ (char (symbol-name e) 0)))
+		       f))
+	 (ff (if (consp from) from (list from))))
     `(progn
        (when (and (boundp ',symbol) (pipe-p ,symbol))
 	 (drop ,symbol))
        (defparameter ,symbol
 	 ,(if for
 	      `(let* ((,q (make-pipe))
-		      (,l (lambda ,(if reduce (cons reduce f) f) 
-			    (when ,(or where t)
-			      ,(if reduce
-				   `(setf ,symbol ,(or do for))
-				   `(pipe-along ,q (list ,(or do for))))))))
+		      (,l (lambda ,f
+			    (declare (ignore ,@ignore-list))
+			    (let ((,(or reduce r) ,symbol))
+			      ,(unless reduce `(declare (ignore ,r)))
+			      (when ,(or where t)
+				,(if reduce
+				     `(setf ,symbol ,(or do for))
+				     `(pipe-along ,q (list ,(or do for)))))))))
 		 (setf (pipe-upstream ,q)
 		       (cons ,l (list ,@ff)))
 		 (mapcar (curry #'watch ,l)
