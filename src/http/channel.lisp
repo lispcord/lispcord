@@ -62,7 +62,7 @@
 		   :type :delete)))
     (if response 
 	(decache-id
-	 (gethash "id" response)
+	 (parse-snowflake (gethash "id" response))
 	 :channel))))
 
 (defun get-messages (channel &key around

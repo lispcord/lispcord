@@ -64,7 +64,7 @@
     :type "type"
     :enabled "enabled"
     :syning "syncing"
-    :role-id (parse-snowflake (gethash "role_id" table))
+    :role-id (%maybe-sf (gethash "role_id" table))
     :e-behaviour "expire_behaviour"
     :e-grace "expire_grace_period"
     :user (cache :user (gethash "user" table))

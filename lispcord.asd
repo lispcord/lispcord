@@ -27,10 +27,10 @@
 				     (:file "embed")
 				     (:file "message")))
 			   (:file "package")
-			   (:file "pipes")
 			   (:file "ratelimits")
 			   (:file "constants")
 			   (:file "core")
+			   (:file "pipes")
 			   (:module http
 				    :serial t
 				    :components

@@ -36,15 +36,15 @@
 
 ;; this type allows us to later potentially convert the IDs to numbers
 ;; without needing to rewrite all the type declerations!
-(deftype snowflake () 'string)
+(deftype snowflake () '(unsigned-byte 64))
 
 (defun parse-snowflake (snowflake-string)
-  snowflake-string)
+  (parse-integer snowflake-string))
 
 (defun to-string (obj)
   (format nil "~a" obj))
 
-(defvar optimal-id-compare #'equal)
+(defvar optimal-id-compare #'eql)
 
 (defun str-concat (&rest strings)
   (apply #'concatenate 'string strings))
@@ -182,7 +182,7 @@
   (declare (type function conversion-fun))
   (if seq
       (map '(simple-array * (*)) conversion-fun seq)
-      #()))
+      (make-array '(0) :element-type '(simple-array * (*)))))
 
 (defun vecrem (predicate seq)
   (delete-if predicate seq :from-end t))

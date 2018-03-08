@@ -14,7 +14,7 @@
 (defvar *emojis* (make-cache))
 
 (defun resolve-cache (cache table key)
-  (let* ((id (gethash "id" table))
+  (let* ((id (parse-snowflake (gethash "id" table)))
 	 (entity (gethash id cache)))
     (dprint :debug "Cache-hit: ~20a :: ~a~%" id key)
     (if entity

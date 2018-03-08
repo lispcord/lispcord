@@ -19,6 +19,10 @@
 			`(,k (setf ,a ,op)))))
 	      ,table)))
 
+(defun %maybe-sf (string)
+  "only parses the string if it's there :D"
+  (when string (parse-snowflake string)))
+
 (defgeneric guild (object)
   (:documentation "Returns the cached guild object corresponding to the guild-id of object"))
 
