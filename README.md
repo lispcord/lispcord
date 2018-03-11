@@ -7,29 +7,38 @@ The [examples] folder contains some more ideas on how to get started :)
 #### NOTE: this is not-even alpha quality software, a lot of the api is chaning
 rapidly, use at own risk!
 
+#### NOTE2.0: recently we axed the Pipe system, please re-adjust your bots to use
+the new API going forwards.
+As it turned out, the pipes worked well for small bots but had the penchant to
+bloat in complexity rather quickly, and weren't particularly fast :D
+
 ## Ping bot
 
 This assumes that :lispcord has been loaded in your image. If not, try running
-`(ql:quickload :lispcord)` after cloning the repo to your ~/common-lisp folder
+`(ql:quickload :lispcord)` after cloning the repo to your ~/common-lisp or
+~/quicklisp/local-projects folder
 
 ```lisp
 (defpackage :ping-bot
   (:use :cl :lispcord))
 (in-package :ping-bot)
 
-(defbot *ping-bot* "<Your Token Here>")
-(connect *ping-bot*)
+(set-log-level :info)
 
-(defpipe >event> :for msg :from >message-create>
-         :do (if (equal (lc:content msg) "ping")
-	         (reply msg "pong")))
+(defbot *ping-bot* "<Your Token Here>")
+(connect *ping-bot*) ; Yes, you can register handlers after connect
+
+(add-event-handler :on-message-create
+  (lambda (msg) (if (string= cmd "ping!") (reply msg "pong!"))))
 ```
 
-## Pipes:
-Unlike many other libraries, which use basic event handlers, lispcord
-abstracts over the entire dynamic through what it calls "pipes".
+Unlike many other libraries, lispcord is capeable of running an arbitrary amount
+of client-instances at the same time. Every (non-cache related) function takes
+and optional "bot" parameter, either via keyword or as an anonymous optional,
+with which you can specifiy which instance should execute the action.
+For convinience, however, lispcord *also* defines a dynamic `*CLIENT*` which
+gets automatically bound to the last instance defined via `DEFBOT`.
+This allows you to
+  A: drop having to specifiy the bot for 1-instance scripts and
+  B: lets you use `LET` to override the global, and create local 1-instance spaces
 
-The `>message-create>` object above is a pipe, and it dispatches events  which can be handled in various ways.
-This allows you to define your own new (or derivative) pipes,
-to chain them, filter them or otherwise combine them without being
-forced into a single monolithic event-dispatching mechanism.
