@@ -6,6 +6,7 @@ The [examples] folder contains some more ideas on how to get started :)
 
 #### NOTE: this is not-even alpha quality software, a lot of the api is chaning
 rapidly, use at own risk!
+In fact, the entire Pipe API is in the process of getting scrapped, please consider using the "depipe" branch instead!
 
 ## Ping bot
 
