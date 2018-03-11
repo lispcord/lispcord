@@ -33,12 +33,12 @@ This assumes that :lispcord has been loaded in your image. If not, try running
 ```
 
 Unlike many other libraries, lispcord is capable of running an arbitrary amount
-of client-instances at the same time.
+of client-instances at the same time.  
 Every (non-cache related) function takes an optional "bot" parameter,
 either via keyword or as an anonymous optional,
-with which you can specifiy what instance should execute the action.
+with which you can specify what instance should execute the action.  
 For convinience, however, lispcord *also* defines a dynamic `*CLIENT*` which
-gets automatically bound to the last instance defined via `DEFBOT`.
+gets automatically bound to the last instance defined via `DEFBOT`.  
 This allows you to
   A: drop having to specifiy the bot for 1-instance scripts and
   B: lets you use `LET` to override the global, and create local 1-instance spaces
