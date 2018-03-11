@@ -4,11 +4,11 @@ Lispcord aims to make it freakishly easy to build bots for Discord
 
 The [examples] folder contains some more ideas on how to get started :)
 
-#### NOTE: this is not-even alpha quality software, a lot of the api is chaning
-rapidly, use at own risk!
+#### NOTE: this is not-even alpha quality software
+a lot of the api is changing rapidly, use at own risk!
 
-#### NOTE2.0: recently we axed the Pipe system, please re-adjust your bots to use
-the new API going forwards.
+#### NOTE2.0: recently we axed the Pipe system
+please re-adjust your bots to use the new API going forwards.
 As it turned out, the pipes worked well for small bots but had the penchant to
 bloat in complexity rather quickly, and weren't particularly fast :D
 
@@ -32,10 +32,11 @@ This assumes that :lispcord has been loaded in your image. If not, try running
   (lambda (msg) (if (string= cmd "ping!") (reply msg "pong!"))))
 ```
 
-Unlike many other libraries, lispcord is capeable of running an arbitrary amount
-of client-instances at the same time. Every (non-cache related) function takes
-and optional "bot" parameter, either via keyword or as an anonymous optional,
-with which you can specifiy which instance should execute the action.
+Unlike many other libraries, lispcord is capable of running an arbitrary amount
+of client-instances at the same time.
+Every (non-cache related) function takes an optional "bot" parameter,
+either via keyword or as an anonymous optional,
+with which you can specifiy what instance should execute the action.
 For convinience, however, lispcord *also* defines a dynamic `*CLIENT*` which
 gets automatically bound to the last instance defined via `DEFBOT`.
 This allows you to
