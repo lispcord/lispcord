@@ -32,7 +32,15 @@
 
 (in-package :lispcord.util)
 
-
+(declaim (inline parse-snowflake
+		 to-string
+		 str-concat
+		 jparse
+		 jmake
+		 since-unix-epoch
+		 curry
+		 sethash
+		 vecrem))
 
 ;; this type allows us to later potentially convert the IDs to numbers
 ;; without needing to rewrite all the type declerations!
@@ -47,7 +55,7 @@
 (defvar optimal-id-compare #'eql)
 
 (defun str-concat (&rest strings)
-  (apply #'concatenate 'string strings))
+  (format nil "~{~a~}" strings))
 
 (defun jparse (payload)
   (jonathan:parse payload :as :hash-table))
@@ -56,9 +64,6 @@
   (jonathan:to-json alist :from :alist))
 
 
-
-(defun aget (key table)
-  (gethash key table))
 
 (defmacro doit (&rest forms)
   (let ((it (intern (symbol-name 'it))))

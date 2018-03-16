@@ -176,7 +176,7 @@
     :user (parse-snowflake (gethash "id" (gethash "user" table)))
     :roles (mapvec #'parse-snowflake (gethash "roles" table))
     :game (from-json :game (gethash "game" table))
-    :guild-id (parse-snowflake (gethash "guild_id" table))
+    :guild-id (%maybe-sf (gethash "guild_id" table))
     :status "status"))
 
 (defmethod %to-json ((p presence))
