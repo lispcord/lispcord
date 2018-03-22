@@ -1,6 +1,6 @@
 (in-package :example-bot)
 
-(defbot *client* "Mjk4ODgyODgyMjIxNjM3NjMz.DTi9oQ.maCiWFqjeJLm9sAqb1I8RVU1dnk")
+(defbot *client* "TOKEN")
 
 (defun message-create (msg)
   (cond ((lc:botp (lc:author msg)) nil)
