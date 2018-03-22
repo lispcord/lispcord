@@ -4,7 +4,7 @@
 
 (defun refresh-gateway-url ()
   (doit  (get-rq "gateway")
-	 (aget "url" it)
+	 (gethash "url" it)
 	 (:! dprint :debug "~&Gateway-url: ~a~%" it)
 	 (str-concat it +api-suffix+)
 	 (setf *gateway-url* it)))

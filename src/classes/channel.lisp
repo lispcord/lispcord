@@ -136,7 +136,7 @@
   ((last-message :initarg :last-message
 		 :type (or null snowflake)
 		 :accessor last-message)
-   (recipients   :initarg :last-message
+   (recipients   :initarg :recipients
 		 :type (vector user)
 		 :accessor recipients)
    (last-pinned  :initarg :last-pinned
