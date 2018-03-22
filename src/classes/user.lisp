@@ -153,7 +153,7 @@
 
 (defmethod from-json ((c (eql :ready)) (table hash-table))
   (instance-from-table (table 'ready)
-    :v "version"
+    :v "v"
     :me (cache :user (gethash "user" table))
     :channels (mapvec (curry #'cache :channel)
 		      (gethash "private_channels" table))

@@ -48,7 +48,7 @@
   (instance-from-table (table 'emoji)
     :id (parse-snowflake (gethash "id" table))
     :name "name"
-    :roles (map 'vector #'parse-snowflake (gethash "roles" table))
+    :roles (mapvec #'parse-snowflake (gethash "roles" table))
     :user (cache :user (gethash "user" table))
     :colons? "require_colons"
     :managed "managed"))

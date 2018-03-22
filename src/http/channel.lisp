@@ -1,12 +1,12 @@
 (in-package :lispcord.http)
 
 (defmethod from-id (id (c (eql :channel))
-		    &optional (bot *client*))
-  (if (getcache-id id :channel)
-      (getcache-id id :channel)
-      (let* ((flake (to-string id))
-	     (req  (discord-req
-		    (str-concat "channels/" flake)
+		    &optional (bot *client*)
+		    &aux (this (getcache-id id :channel)))
+  (if this
+      this
+      (let* ((req  (discord-req
+		    (str-concat "channels/" id)
 		    :bot bot)))
 	(if req
 	    (cache :channel req)))))
@@ -62,7 +62,7 @@
 		   :type :delete)))
     (if response 
 	(decache-id
-	 (gethash "id" response)
+	 (parse-snowflake (gethash "id" response))
 	 :channel))))
 
 (defun get-messages (channel &key around

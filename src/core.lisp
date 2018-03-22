@@ -4,21 +4,21 @@
   "This is an empty dummy var to allow for implicits.
 It may be set by make-bot!")
 
-(defstruct (bot (:constructor primitive-make-bot)
-		:conc-name)
+(defstruct (bot (:constructor primitive-make-bot))
   (token "" :type string :read-only t)
   (user nil :type (or null lc:user))
   (version "0.0.1" :type string)
   (seq 0 :type fixnum)
   (session-id nil :type (or null string))
   (afk-since nil :type (or null fixnum))
+  (event-handlers (make-hash-table) :type hash-table)
   conn
   heartbeat-thread)
 
 
 ;;; Set up the various event pipes
 ;;; By (my) convention, they should be named ">'name'>"
-
+#|
 (defvar >status-ready> (make-pipe))
 (defvar >status-close> (make-pipe))
 (defvar >status-resumed> (make-pipe))
@@ -65,7 +65,7 @@ It may be set by make-bot!")
 (defvar >reaction-add> (make-pipe))
 (defvar >reaction-remove> (make-pipe))
 (defvar >reaction-purge> (make-pipe))
-
+|#
 
 
 (defparameter *bot-url* "N/A")
@@ -74,10 +74,10 @@ It may be set by make-bot!")
 
 
 (defun user-agent (bot)
-  (str-concat "DiscordBot (" *bot-url* ", " (version bot) ")"))
+  (str-concat "DiscordBot (" *bot-url* ", " (bot-version bot) ")"))
 
 (defun headers (bot)
-  (list (cons "Authorization" (str-concat "Bot " (token bot)))))
+  (list (cons "Authorization" (str-concat "Bot " (bot-token bot)))))
 
 
 

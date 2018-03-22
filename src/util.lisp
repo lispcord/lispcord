@@ -32,22 +32,30 @@
 
 (in-package :lispcord.util)
 
-
+(declaim (inline parse-snowflake
+		 to-string
+		 str-concat
+		 jparse
+		 jmake
+		 since-unix-epoch
+		 curry
+		 sethash
+		 vecrem))
 
 ;; this type allows us to later potentially convert the IDs to numbers
 ;; without needing to rewrite all the type declerations!
-(deftype snowflake () 'string)
+(deftype snowflake () '(unsigned-byte 64))
 
 (defun parse-snowflake (snowflake-string)
-  snowflake-string)
+  (parse-integer snowflake-string))
 
 (defun to-string (obj)
   (format nil "~a" obj))
 
-(defvar optimal-id-compare #'equal)
+(defvar optimal-id-compare #'eql)
 
 (defun str-concat (&rest strings)
-  (apply #'concatenate 'string strings))
+  (format nil "~{~a~}" strings))
 
 (defun jparse (payload)
   (jonathan:parse payload :as :hash-table))
@@ -56,9 +64,6 @@
   (jonathan:to-json alist :from :alist))
 
 
-
-(defun aget (key table)
-  (gethash key table))
 
 (defmacro doit (&rest forms)
   (let ((it (intern (symbol-name 'it))))
@@ -182,7 +187,7 @@
   (declare (type function conversion-fun))
   (if seq
       (map '(simple-array * (*)) conversion-fun seq)
-      #()))
+      (make-array '(0) :element-type '(simple-array * (*)))))
 
 (defun vecrem (predicate seq)
   (delete-if predicate seq :from-end t))

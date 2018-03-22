@@ -22,8 +22,8 @@
 
 (defun commandp (msg &optional (bot *client*))
   (declare (type lc:message msg))
-  (if (find (user bot) (lc:mentions msg) :test #'eq)
-      (return-from commandp t))
+  (when (find (bot-user bot) (lc:mentions msg) :test #'eq)
+    (return-from commandp t))
   (let ((cmd? (gethash (char (lc:content msg) 0)
 		       *cmd-prefix-table*)))
     (cond ((not cmd?) nil)
@@ -52,7 +52,7 @@
 
 
 (defun me (&optional (bot *client*))
-  (user bot))
+  (bot-user bot))
 
 (defun reply (msg content &optional (bot *client*))
   (create content (from-id (lc:channel-id msg) :channel) bot))

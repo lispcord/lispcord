@@ -136,7 +136,7 @@
   ((last-message :initarg :last-message
 		 :type (or null snowflake)
 		 :accessor last-message)
-   (recipients   :initarg :last-message
+   (recipients   :initarg :recipients
 		 :type (vector user)
 		 :accessor recipients)
    (last-pinned  :initarg :last-pinned
@@ -173,8 +173,8 @@
 		     (gethash "permission_overwrites" table))
     :nsfw "nsfw"
     :topic "topic"
-    :last-message (parse-snowflake (gethash "last_message_id" table))
-    :parent-id (parse-snowflake (gethash "parent_id" table))
+    :last-message (%maybe-sf (gethash "last_message_id" table))
+    :parent-id (%maybe-sf (gethash "parent_id" table))
     :last-pinned "last_pin_timestamp"))
 
 (defun %guild-voice-fj (table)
@@ -187,11 +187,11 @@
 		     (gethash "permission_overwrites" table))
     :bitrate "bitrate"
     :user-limit "user_limit"
-    :parent-id (parse-snowflake (gethash "parent_id" table))))
+    :parent-id (%maybe-sf (gethash "parent_id" table))))
 
 (defun %dm-fj (table)
   (instance-from-table (table 'dm-channel)
-    :last-message (parse-snowflake (gethash "last_message_id" table))
+    :last-message (%maybe-sf (gethash "last_message_id" table))
     :id (parse-snowflake (gethash "id" table))
     :recipients (mapvec (curry #'cache :user)
 			(gethash "recipients" table))
@@ -203,7 +203,7 @@
     :name "name"
     :recipients (mapvec (curry #'cache :user)
 		     (gethash "recipients" table))
-    :last-message (parse-snowflake (gethash "last_message_id" table))
+    :last-message (%maybe-sf (gethash "last_message_id" table))
     :owner (parse-snowflake (gethash "owner_id" table))
     :last-pinned "last_pin_timestamp"))
 
@@ -213,7 +213,7 @@
     :overwrites (mapvec (curry #'from-json :overwrite)
 		     (gethash "permission_overwrites" table))
     :name "name"
-    :parent-id (parse-snowflake (gethash "parent_id" table))
+    :parent-id (%maybe-sf (gethash "parent_id" table))
     :nsfw "nsfw"
     :pos "position"
     :g-id (parse-snowflake (gethash "guild_id" table))))
@@ -246,7 +246,7 @@
      (recipients c) (mapvec (curry #'cache :user)
 			    data))
     ("icon" (icon c) data)
-    ("owner_id" (owner c) (parse-snowflake data))
+    ("owner_id" (owner-id c) (parse-snowflake data))
     ("application_id" (app-id c) (parse-snowflake data))
     ("parent_id" (parent-id c) (parse-snowflake data))
     ("last_pin_timestamp" (last-pinned c) data))

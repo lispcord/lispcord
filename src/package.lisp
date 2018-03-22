@@ -1,21 +1,4 @@
 
-
-(defpackage :lispcord.pipes
-  (:use :cl :lispcord.util)
-  (:export #:make-pipe
-	   #:pipep
-	   #:pipe-along
-	   #:drop
-	   #:defpipe
-
-	   #:from-origin-p
-
-	   #:val
-	   
-	   #:cargo-send))
-
-
-
 (defpackage :lispcord.constants
   (:use :cl :lispcord.util)
   (:export #:+os+
@@ -34,63 +17,35 @@
 (defpackage :lispcord.core
   (:use :cl
 	:lispcord.util
-	:lispcord.pipes
 	:lispcord.ratelimits
 	:lispcord.constants)
   (:export #:bot
 	   #:primitive-make-bot
 	   #:*client*
 
-	   #:token
-	   #:user
-	   #:version
-	   #:seq
-	   #:session-id
-	   #:afk-since
-	   #:conn
-	   #:done
-	   #:heartbeat-thread
+	   #:bot-token
+	   #:bot-user
+	   #:bot-version
+	   #:bot-seq
+	   #:bot-session-id
+	   #:bot-afk-since
+	   #:bot-event-handlers
+	   #:bot-conn
+	   #:bot-done
+	   #:bot-heartbeat-thread
 
-	   #:>message-create>
-	   #:>message-update>
-	   #:>message-delete>
-	   #:>message-purge>
-	   #:>reaction-add>
-	   #:>reaction-remove>
-	   #:>reaction-purge>
-	   #:>pin-update>
-	   #:>user-create>
-	   #:>user-update>
-	   #:>user-delete>
-	   #:>guild-create>
-	   #:>guild-update>
-	   #:>guild-delete>
-	   #:>presence-update>
-	   #:>typing-start>
-	   #:>status-ready>
-	   #:>status-close>
-	   #:>status-resumed>
-	   #:>channel-create>
-	   #:>channel-delete>
-	   #:>channel-update>
-	   #:>role-create>
-	   #:>role-delete>
-	   #:>role-update>
-	   #:>member-add>
-	   #:>member-remove>
-	   #:>member-update>
-	   #:>member-ban>
-	   #:>member-unban>
-	   #:>emoji-update>
-	   #:>integrations-update>
-	   
-	   
 	   #:bot-url
 	   #:base-url
 	   #:api-suffix
 	   #:discord-req
 	   #:get-rq
 	   #:post-rq))
+
+(defpackage :lispcord.pipes
+  (:use :cl :lispcord.util :lispcord.core)
+  (:export #:make-event-table
+	   #:add-event-handler
+	   #:dispatch-event))
 
 (defpackage :lispcord.gateway
   (:use :bordeaux-threads
@@ -168,14 +123,8 @@
 	   #:reply
 	   #:me
 
-	   #:make-pipe
-	   #:pipep
-	   #:pipe-along
-	   #:drop
-	   #:defpipe
-	   #:from-origin-p
-	   #:cargo-send
-	   #:val
+
+	   #:add-event-handler
 
 	   #:>message-create>
 	   #:>message-update>

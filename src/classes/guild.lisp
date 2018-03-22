@@ -176,7 +176,7 @@
     :user (parse-snowflake (gethash "id" (gethash "user" table)))
     :roles (mapvec #'parse-snowflake (gethash "roles" table))
     :game (from-json :game (gethash "game" table))
-    :guild-id (parse-snowflake (gethash "guild_id" table))
+    :guild-id (%maybe-sf (gethash "guild_id" table))
     :status "status"))
 
 (defmethod %to-json ((p presence))
@@ -328,10 +328,10 @@
       :splash "splash"
       :owner (parse-snowflake (gethash "owner_id" table))
       :region "region"
-      :afk-id (parse-snowflake (gethash "afk_channel_id" table))
+      :afk-id (%maybe-sf (gethash "afk_channel_id" table))
       :afk-to "afk_timeout"
       :embed? "embed_enabled"
-      :embed-id (parse-snowflake (gethash "embed_channel_id" table))
+      :embed-id (%maybe-sf (gethash "embed_channel_id" table))
       :verify-l "verification_level"
       :notify-l "default_message_notifications"
       :content "explicit_content_filter"
@@ -341,10 +341,10 @@
 		      (gethash "emojis" table))
       :features (coerce (gethash "features" table) 'vector)
       :mfa "mfa_level"
-      :app-id (parse-snowflake (gethash "application_id" table))
+      :app-id (%maybe-sf (gethash "application_id" table))
       :widget? "widget_enabled"
-      :widget-id (parse-snowflake (gethash "widget_channel_id" table))
-      :system-id (parse-snowflake (gethash "sytem_channel_id" table))
+      :widget-id (%maybe-sf (gethash "widget_channel_id" table))
+      :system-id (%maybe-sf (gethash "sytem_channel_id" table))
       :joined-at "joined_at"
       :large "large"
       :available (not (gethash "unavailable" table))
