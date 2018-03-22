@@ -4,6 +4,7 @@ Lispcord aims to make it freakishly easy to build bots for Discord
 
 The [examples] folder contains some more ideas on how to get started :)
 
+
 #### NOTE: this is not-even alpha quality software
 a lot of the api is changing rapidly, use at own risk!
 
@@ -11,6 +12,7 @@ a lot of the api is changing rapidly, use at own risk!
 please re-adjust your bots to use the new API going forwards.
 As it turned out, the pipes worked well for small bots but had the penchant to
 bloat in complexity rather quickly, and weren't particularly fast :D
+
 
 ## Ping bot
 
@@ -42,4 +44,3 @@ gets automatically bound to the last instance defined via `DEFBOT`.
 This allows you to
   A: drop having to specifiy the bot for 1-instance scripts and
   B: lets you use `LET` to override the global, and create local 1-instance spaces
-
