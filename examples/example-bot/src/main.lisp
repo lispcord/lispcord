@@ -10,6 +10,12 @@
 ;;set up a handler waiting for "message_create" events
 (add-event-handler :on-message-create #'message-create)
 
+(add-event-handler :on-ready
+		   (lambda (ready)
+		     (format t "User: ~a~%Session: ~a~%Connected!"
+			     (lc:name (lc:user ready))
+			     (lc:session-id ready))))
+
 
 (defun main ()
   (connect *client*))
