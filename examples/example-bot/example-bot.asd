@@ -4,7 +4,7 @@
     :maintainer "spreadLink"
     :license "Public Domain"
     :serial t
-    :depends-on (lispcord)
+    :depends-on (:lispcord)
     :components
     ((:module src
 	      :serial t
