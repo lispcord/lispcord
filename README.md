@@ -31,7 +31,7 @@ This assumes that :lispcord has been loaded in your image. If not, try running
 (connect *ping-bot*) ; Yes, you can register handlers after connect
 
 (add-event-handler :on-message-create
-  (lambda (msg) (if (string= cmd "ping!") (reply msg "pong!"))))
+  (lambda (msg) (if (string= (lc:content msg) "ping!") (reply msg "pong!"))))
 ```
 
 Unlike many other libraries, lispcord is capable of running an arbitrary amount
