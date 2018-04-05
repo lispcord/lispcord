@@ -7,8 +7,8 @@
     :depends-on (:lispcord)
     :components
     ((:module src
-	      :serial t
-	      :components
-	      ((:file "package")
-	       (:file "commands")
-	       (:file "main")))))
+        :serial t
+        :components
+        ((:file "package")
+         (:file "commands")
+         (:file "main")))))
