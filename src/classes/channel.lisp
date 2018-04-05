@@ -2,17 +2,17 @@
 
 (defclass overwrite ()
   ((id    :initarg :id
-	  :type snowflake
-	  :accessor id)
+    :type snowflake
+    :accessor id)
    (type  :initarg :type
-	  :type string
-	  :accessor type)
+    :type string
+    :accessor type)
    (allow :initarg :allow
-	  :type fixnum
-	  :accessor allow)
+    :type fixnum
+    :accessor allow)
    (deny  :initarg :deny
-	  :type fixnum
-	  :accessor deny)))
+    :type fixnum
+    :accessor deny)))
 
 (defun make-overwrite (id &optional (allow 0) (deny 0) (type "role"))
   (make-instance 'overwrite :id id :allow allow :deny deny :type type))
@@ -46,29 +46,29 @@
    (type       :initarg :type       :accessor type)))
 
 (defun make-channel (&key name position topic nsfw
-		       bitrate user-limit overwrites
-		       parent-id type)
+           bitrate user-limit overwrites
+           parent-id type)
   (make-instance 'partial-channel
-		 :name name
-		 :pos position
-		 :topic topic
-		 :nsfw nsfw
-		 :bitrate bitrate
-		 :user-lim user-limit
-		 :overwrites overwrites
-		 :parent parent-id
-		 :type type))
+     :name name
+     :pos position
+     :topic topic
+     :nsfw nsfw
+     :bitrate bitrate
+     :user-lim user-limit
+     :overwrites overwrites
+     :parent parent-id
+     :type type))
 
 (defmethod %to-json ((c chnl))
   (let ((name (name c))
-	(pos (position c))
-	(top (topic c))
-	(nsfw (nsfw-p c))
-	(bit (bitrate c))
-	(lim (user-limit c))
-	(ovw (overwrites c))
-	(parent (parent-id c))
-	(type (type c)))
+  (pos (position c))
+  (top (topic c))
+  (nsfw (nsfw-p c))
+  (bit (bitrate c))
+  (lim (user-limit c))
+  (ovw (overwrites c))
+  (parent (parent-id c))
+  (type (type c)))
     (with-object
       (if name (write-key-value "name" name))
       (if pos (write-key-value "position" pos))
@@ -90,69 +90,69 @@
 
 (defclass guild-channel (channel)
   ((guild-id      :initarg :g-id
-		  :type (or null snowflake)
-		  :accessor guild-id)
+      :type (or null snowflake)
+      :accessor guild-id)
    (name          :initarg :name
-		  :type string
-		  :accessor name)
+      :type string
+      :accessor name)
    (position      :initarg :pos
-		  :type fixnum
-		  :accessor position)
+      :type fixnum
+      :accessor position)
    (overwrites    :initarg :overwrites
-		  :type (vector overwrite)
-		  :accessor overwrites)
+      :type (vector overwrite)
+      :accessor overwrites)
    (parent-id     :initarg :parent-id
-		  :type (or null snowflake)
-		  :accessor parent-id)))
+      :type (or null snowflake)
+      :accessor parent-id)))
 
 (defclass category (guild-channel)
   ((nsfw :initarg :nsfw
-	 :type t
-	 :accessor nsfw-p)))
+   :type t
+   :accessor nsfw-p)))
 
 (defclass text-channel (guild-channel)
   ((nsfw         :initarg :nsfw
-		 :type t
-		 :accessor nsfw-p)
+     :type t
+     :accessor nsfw-p)
    (topic        :initarg :topic
-		 :type (or null string)
-		 :accessor topic)
+     :type (or null string)
+     :accessor topic)
    (last-message :initarg :last-message
-		 :type (or null snowflake)
-		 :accessor last-message)
+     :type (or null snowflake)
+     :accessor last-message)
    (last-pinned  :initarg :last-pinned
-		 :type (or null string)
-		 :accessor last-pinned)))
+     :type (or null string)
+     :accessor last-pinned)))
 
 (defclass voice-channel (guild-channel)
   ((bitrate    :initarg :bitrate
-	       :type fixnum
-	       :accessor bitrate)
+         :type fixnum
+         :accessor bitrate)
    (user-limit :initarg :user-limit
-	       :type fixnum
-	       :accessor user-limit)))
+         :type fixnum
+         :accessor user-limit)))
 
 (defclass dm-channel (channel)
   ((last-message :initarg :last-message
-		 :type (or null snowflake)
-		 :accessor last-message)
+     :type (or null snowflake)
+     :accessor last-message)
    (recipients   :initarg :recipients
-		 :type (vector user)
-		 :accessor recipients)
+     :type (vector user)
+     :accessor recipients)
    (last-pinned  :initarg :last-pinned
-		 :type string
-		 :accessor last-pinned)))
+     :type string
+     :accessor last-pinned)))
 
 (defclass group-dm (dm-channel)
   ((name     :initarg :name
-	     :type string
-	     :accessor name)
+       :type string
+       :accessor name)
    (icon     :initarg :icon
-	     :type (or null string)
-	     :accessor icon)
+       :type (or null string)
+       :accessor icon)
    (owner-id :initarg :owner
-	     :type snowflake
-	     :accessor owner-id)))
+       :type snowflake
+       :accessor owner-id)))
 
 (defmethod guild ((c guild-channel))
   (getcache-id (guild-id c) :guild))
@@ -170,7 +170,7 @@
     :name "name"
     :pos "position"
     :overwrites (mapvec (curry #'from-json :overwrite)
-		     (gethash "permission_overwrites" table))
+         (gethash "permission_overwrites" table))
     :nsfw "nsfw"
     :topic "topic"
     :last-message (%maybe-sf (gethash "last_message_id" table))
@@ -184,7 +184,7 @@
     :name "name"
     :pos "position"
     :overwrites (mapvec (curry #'from-json :overwrite)
-		     (gethash "permission_overwrites" table))
+         (gethash "permission_overwrites" table))
     :bitrate "bitrate"
     :user-limit "user_limit"
     :parent-id (%maybe-sf (gethash "parent_id" table))))
@@ -194,7 +194,7 @@
     :last-message (%maybe-sf (gethash "last_message_id" table))
     :id (parse-snowflake (gethash "id" table))
     :recipients (mapvec (curry #'cache :user)
-			(gethash "recipients" table))
+      (gethash "recipients" table))
     :last-pinned "last_pin_timestamp"))
 
 (defun %group-dm-fj (table)
@@ -202,7 +202,7 @@
     :id (parse-snowflake (gethash "id" table))
     :name "name"
     :recipients (mapvec (curry #'cache :user)
-		     (gethash "recipients" table))
+         (gethash "recipients" table))
     :last-message (%maybe-sf (gethash "last_message_id" table))
     :owner (parse-snowflake (gethash "owner_id" table))
     :last-pinned "last_pin_timestamp"))
@@ -211,7 +211,7 @@
   (instance-from-table (table 'category)
     :id (parse-snowflake (gethash "id" table))
     :overwrites (mapvec (curry #'from-json :overwrite)
-		     (gethash "permission_overwrites" table))
+         (gethash "permission_overwrites" table))
     :name "name"
     :parent-id (%maybe-sf (gethash "parent_id" table))
     :nsfw "nsfw"
@@ -234,7 +234,7 @@
     ("position" (position c) data)
     ("permission_overwrites"
      (overwrites c) (mapvec (curry #'from-json :overwrite)
-			    data))
+          data))
     ("name" (name c) data)
     ("topic" (topic c) data)
     ("nsfw" (nsfw-p c) data)
@@ -244,7 +244,7 @@
     ("user_limit" (user-limit c) data)
     ("recipients"
      (recipients c) (mapvec (curry #'cache :user)
-			    data))
+          data))
     ("icon" (icon c) data)
     ("owner_id" (owner-id c) (parse-snowflake data))
     ("application_id" (app-id c) (parse-snowflake data))

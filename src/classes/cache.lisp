@@ -15,11 +15,11 @@
 
 (defun resolve-cache (cache table key)
   (let* ((id (parse-snowflake (gethash "id" table)))
-	 (entity (gethash id cache)))
+   (entity (gethash id cache)))
     (dprint :debug "Cache-hit: ~20a :: ~a~%" id key)
     (if entity
-	(update table entity)
-	(setf (gethash id cache) (from-json key table)))))
+  (update table entity)
+  (setf (gethash id cache) (from-json key table)))))
 
 (defun cache (key table)
   (unless table (return-from cache nil))

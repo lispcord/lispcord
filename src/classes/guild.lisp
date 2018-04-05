@@ -8,17 +8,17 @@
    (mentionable :initargs :mention :accessor mentionablep)))
 
 (defmethod make-role (&key
-			(name "new role")
-			(color 0)
-			hoist
-			(permissions 0)
-			mentionable)
+      (name "new role")
+      (color 0)
+      hoist
+      (permissions 0)
+      mentionable)
   (make-instance 'partial-role
-		 :name name
-		 :color color
-		 :hoist (or hoist :false)
-		 :perms permissions
-		 :mention (or mentionable :false)))
+     :name name
+     :color color
+     :hoist (or hoist :false)
+     :perms permissions
+     :mention (or mentionable :false)))
 
 (defmethod %to-json ((r partial-role))
   (with-object
@@ -30,32 +30,32 @@
 
 (defclass role ()
   ((id          :initarg :id
-		:type snowflake
-		:accessor id)
+    :type snowflake
+    :accessor id)
    (name        :initarg :name
-		:type string
-		:accessor name)
+    :type string
+    :accessor name)
    (color       :initarg :color
-		:type fixnum
-		:accessor color)
+    :type fixnum
+    :accessor color)
    (hoist       :initarg :hoist
-		:type t
-		:accessor hoistp)
+    :type t
+    :accessor hoistp)
    (position    :initarg :pos
-		:type fixnum
-		:accessor position)
+    :type fixnum
+    :accessor position)
    (permissions :initarg :perms
-		:type fixnum
-		:accessor permissions)
+    :type fixnum
+    :accessor permissions)
    (managed     :initarg :managed
-		:type t
-		:accessor managedp)
+    :type t
+    :accessor managedp)
    (mentionable :initarg :mentionable
-		:type t
-		:accessor mentionablep)
+    :type t
+    :accessor mentionablep)
    (guild-id    :initarg :gid
-		:type (or null snowflake)
-		:accessor guild-id)))
+    :type (or null snowflake)
+    :accessor guild-id)))
 
 (defmethod guild ((r role))
   (getcache-id (guild-id r) :guild))
@@ -96,26 +96,26 @@
 
 (defclass member ()
   ((user      :initarg :user
-	      :type user
-	      :accessor user)
+        :type user
+        :accessor user)
    (nick      :initarg :nick
-	      :type (or null string)
-	      :accessor nick)
+        :type (or null string)
+        :accessor nick)
    (roles     :initarg :roles
-	      :type (vector role)
-	      :accessor roles)
+        :type (vector role)
+        :accessor roles)
    (joined-at :initarg :joined-at
-	      :type (or null string)
-	      :accessor joined-at)
+        :type (or null string)
+        :accessor joined-at)
    (deaf      :initarg :deaf
-	      :type t
-	      :accessor deafp)
+        :type t
+        :accessor deafp)
    (mute      :initarg :mute
-	      :type t
-	      :accessor mutep)
+        :type t
+        :accessor mutep)
    (guild-id  :initarg :gid
-	      :type (or null snowflake)
-	      :accessor guild-id)))
+        :type (or null snowflake)
+        :accessor guild-id)))
 
 (defmethod guild ((m member))
   (getcache-id (guild-id m) :guild))
@@ -153,20 +153,20 @@
 
 (defclass presence ()
   ((user     :initarg :user
-	     :type snowflake
-	     :accessor user-id)
+       :type snowflake
+       :accessor user-id)
    (roles    :initarg :roles
-	     :type (or null (vector snowflake))
-	     :accessor roles)
+       :type (or null (vector snowflake))
+       :accessor roles)
    (game     :initarg :game
-	     :type (or null game)
-	     :accessor game)
+       :type (or null game)
+       :accessor game)
    (guild-id :initarg :guild-id
-	     :type (or null snowflake)
-	     :accessor guild-id)
+       :type (or null snowflake)
+       :accessor guild-id)
    (status   :initarg :status
-	     :type (or null string)
-	     :accessor status)))
+       :type (or null string)
+       :accessor status)))
 
 (defmethod user ((p presence))
   (getcache-id (user-id p) :user))
@@ -190,91 +190,91 @@
 
 (defclass guild ()
   ((id                 :initarg :id
-		       :type snowflake
-		       :accessor id)
+           :type snowflake
+           :accessor id)
    (available          :initarg :available
-		       :type t
-		       :accessor availablep)))
+           :type t
+           :accessor availablep)))
 
 (defclass available-guild (guild)
   ((name               :initarg :name
-		       :type string
-		       :accessor name)
+           :type string
+           :accessor name)
    (icon               :initarg :icon
-		       :type string
-		       :accessor icon)
+           :type string
+           :accessor icon)
    (splash             :initarg :splash
-		       :type (or null string)
-		       :accessor splash)
+           :type (or null string)
+           :accessor splash)
    (owner              :initarg :owner
-		       :type snowflake
-		       :accessor owner-id)
+           :type snowflake
+           :accessor owner-id)
    (region             :initarg :region
-		       :type string
-		       :accessor region)
+           :type string
+           :accessor region)
    (afk-id             :initarg :afk-id
-		       :type (or null snowflake)
-		       :accessor afk-id)
+           :type (or null snowflake)
+           :accessor afk-id)
    (afk-to             :initarg :afk-to
-		       :type fixnum
-		       :accessor afk-to)
+           :type fixnum
+           :accessor afk-to)
    (embed?             :initarg :embed?
-		       :type t
-		       :accessor embedp)
+           :type t
+           :accessor embedp)
    (embed-id           :initarg :embed-id
-		       :type (or null snowflake)
-		       :accessor embed-id)
+           :type (or null snowflake)
+           :accessor embed-id)
    (verification-level :initarg :verify-l
-		       :type fixnum
-		       :accessor verify-level)
+           :type fixnum
+           :accessor verify-level)
    (notification-level :initarg :notify-l
-		       :type fixnum
-		       :accessor notify-level)
+           :type fixnum
+           :accessor notify-level)
    (content-filter     :initarg :content
-		       :type fixnum
-		       :accessor content-filter)
+           :type fixnum
+           :accessor content-filter)
    (roles              :initarg :roles
-		       :type (vector role)
-		       :accessor roles)
+           :type (vector role)
+           :accessor roles)
    (emojis             :initarg :emojis
-		       :type (vector emoji)
-		       :accessor emojis)
+           :type (vector emoji)
+           :accessor emojis)
    (features           :initarg :features
-		       :type (or null (vector string))
-		       :accessor features)
+           :type (or null (vector string))
+           :accessor features)
    (mfa-level          :initarg :mfa
-		       :type fixnum
-		       :accessor mfa-level)
+           :type fixnum
+           :accessor mfa-level)
    (application-id     :initarg :app-id
-		       :type (or null snowflake)
-		       :accessor app-id)
+           :type (or null snowflake)
+           :accessor app-id)
    (widget-enabled     :initarg :widget?
-		       :type t
-		       :accessor widgetp)
+           :type t
+           :accessor widgetp)
    (widget-channel-id  :initarg :widget-id
-		       :type (or null snowflake)
-		       :accessor widget-id)
+           :type (or null snowflake)
+           :accessor widget-id)
    (system-channel-id  :initarg :system-id
-		       :type (or null snowflake)
-		       :accessor system-channel-id)
+           :type (or null snowflake)
+           :accessor system-channel-id)
    (joined-at          :initarg :joined-at
-		       :type (or null string)
-		       :accessor joined-at)
+           :type (or null string)
+           :accessor joined-at)
    (large              :initarg :large
-		       :type t
-		       :accessor largep)
+           :type t
+           :accessor largep)
    (member-count       :initarg :member-cnt
-		       :type (or null fixnum)
-		       :accessor member-count)
+           :type (or null fixnum)
+           :accessor member-count)
    (members            :initarg :members
-		       :type (vector member)
-		       :accessor members)
+           :type (vector member)
+           :accessor members)
    (channels           :initarg :channels
-		       :type (vector channel)
-		       :accessor channels)
+           :type (vector channel)
+           :accessor channels)
    (presences          :initarg :presences
-		       :type (vector presence)
-		       :accessor presences)))
+           :type (vector presence)
+           :accessor presences)))
 
 (defmethod owner ((g guild))
   (getcache-id (owner-id g) :user))
@@ -318,9 +318,9 @@
 
 (defun %available-from-json (table)
   (flet ((parse-with-gid (f type e)
-	   (unless (gethash "guild_id" e)
-	     (setf (gethash "guild_id" e) (gethash "id" table)))
-	   (funcall f type e)))
+     (unless (gethash "guild_id" e)
+       (setf (gethash "guild_id" e) (gethash "id" table)))
+     (funcall f type e)))
     (instance-from-table (table 'available-guild)
       :id (parse-snowflake (gethash "id" table))
       :name "name"
@@ -336,9 +336,9 @@
       :notify-l "default_message_notifications"
       :content "explicit_content_filter"
       :roles (mapvec (curry #'parse-with-gid #'cache :role)
-		     (gethash "roles" table))
+         (gethash "roles" table))
       :emojis (mapvec (curry #'parse-with-gid #'cache :emoji)
-		      (gethash "emojis" table))
+          (gethash "emojis" table))
       :features (coerce (gethash "features" table) 'vector)
       :mfa "mfa_level"
       :app-id (%maybe-sf (gethash "application_id" table))
@@ -350,16 +350,16 @@
       :available (not (gethash "unavailable" table))
       :member-cnt "member_count"
       :members (mapvec (curry #'parse-with-gid #'from-json :g-member)
-		       (gethash "members" table))
+           (gethash "members" table))
       :channels (mapvec (curry #'parse-with-gid #'cache :channel)
-			(gethash "channels" table))
+      (gethash "channels" table))
       :presences (mapvec (curry #'from-json :presence)
-			 (gethash "presences" table)))))
+       (gethash "presences" table)))))
 
 (defun %unavailable-from-json (table)
   (make-instance 'guild
-		 :id (parse-snowflake (gethash "id" table))
-		 :available (not (gethash "unavailable" table))))
+     :id (parse-snowflake (gethash "id" table))
+     :available (not (gethash "unavailable" table))))
 
 (defmethod update ((table hash-table) (g guild))
   (decache-id (id g) :guild)

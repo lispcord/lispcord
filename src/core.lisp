@@ -83,17 +83,17 @@ It may be set by make-bot!")
 
 
 (defun discord-req (endpoint
-		    &key bot content
-		      (content-type "application/json")
-		      (type :get)
-		      parameters
-		    &aux
-		      (url (str-concat +base-url+ endpoint))
-		      (final (rl-buffer endpoint)))
+        &key bot content
+          (content-type "application/json")
+          (type :get)
+          parameters
+        &aux
+          (url (str-concat +base-url+ endpoint))
+          (final (rl-buffer endpoint)))
   (dprint :debug "~&HTTP-~a-Request to: ~a~%~@[  content: ~a~%~]"
-	  type url content)
+    type url content)
   (multiple-value-bind (body status headers uri
-			     stream closedp reason)
+           stream closedp reason)
       (drakma:http-request
        url
        :method type
@@ -115,9 +115,9 @@ It may be set by make-bot!")
       (429 (cerror "ignore" "HTTP: RATELIMIT"))
       (520 (cerror "ignore" "HTTP: UNKNOWN")))
     (values (cond ((= status 204) t)
-		  ((= status 404) nil)
-		  (t (jparse (babel:octets-to-string body))))
-	    status)))
+      ((= status 404) nil)
+      (t (jparse (babel:octets-to-string body))))
+      status)))
 
 (defun get-rq (endpoint &optional bot)
   (discord-req endpoint :bot bot :type :get))

@@ -7,9 +7,9 @@
 
 (defun make-emoji (name image &optional roles)
   (make-instance 'new-emoji
-		 :name name
-		 :image image
-		 :roles roles))
+     :name name
+     :image image
+     :roles roles))
 
 (defmethod %to-json ((e partial-emoji))
   (with-object
@@ -19,26 +19,26 @@
 
 (defclass emoji ()
   ((id       :initarg :id
-	     :type snowflake
-	     :accessor id)
+       :type snowflake
+       :accessor id)
    (name     :initarg :name
-	     :type string
-	     :accessor name)
+       :type string
+       :accessor name)
    (roles    :initarg :roles
-	     :type (vector snowflake)
-	     :accessor roles)
+       :type (vector snowflake)
+       :accessor roles)
    (user     :initarg :user
-	     :type (or null user)
-	     :accessor user)
+       :type (or null user)
+       :accessor user)
    (colons?  :initarg :colons?
-	     :type t
-	     :accessor colonsp)
+       :type t
+       :accessor colonsp)
    (managed  :initarg :managed
-	     :type t
-	     :accessor managedp)
+       :type t
+       :accessor managedp)
    (guild-id :initarg :gid
-	     :type (or null snowflake)
-	     :accessor guild-id)))
+       :type (or null snowflake)
+       :accessor guild-id)))
 
 (defmethod guild ((e emoji))
   (getcache-id (guild-id e) :guild))
