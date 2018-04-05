@@ -45,9 +45,9 @@ of client-instances at the same time.
 Every (non-cache related) function takes an optional "bot" parameter,
 either via keyword or as an anonymous optional,
 with which you can specify what instance should execute the action.  
-For convenience, however, **lispcord** *also* defines a dynamic `*CLIENT*` which
-gets automatically bound to the last instance defined via `DEFBOT`.
 
-This allows you to
+For convenience, however, **lispcord** *also* defines a dynamic `*CLIENT*` which
+gets automatically bound to the last instance defined via `DEFBOT`. This allows you to:
+
   - drop having to specifiy the bot for 1-instance scripts
   - use `LET` to override the global, and create local 1-instance spaces
