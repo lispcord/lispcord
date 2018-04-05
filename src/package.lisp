@@ -121,47 +121,15 @@
 	   #:sanitize-content
 	   #:remove-substring
 	   #:remove-mention
+		 #:mention
+		 #:demention
 	   	   
 	   #:reply
 	   #:me
 
-
 	   #:add-event-handler
 
-	   #:>message-create>
-	   #:>message-update>
-	   #:>message-delete>
-	   #:>message-purge>
-	   #:>reaction-add>
-	   #:>reaction-remove>
-	   #:>reaction-purge>
-	   #:>pin-update>
-	   #:>user-create>
-	   #:>user-update>
-	   #:>user-delete>
-	   #:>guild-create>
-	   #:>guild-update>
-	   #:>guild-delete>
-	   #:>presence-update>
-	   #:>typing-start>
-	   #:>status-ready>
-	   #:>status-close>
-	   #:>status-resumed>
-	   #:>channel-create>
-	   #:>channel-delete>
-	   #:>channel-update>
-	   #:>role-create>
-	   #:>role-delete>
-	   #:>role-update>
-	   #:>member-add>
-	   #:>member-remove>
-	   #:>member-update>
-	   #:>member-ban>
-	   #:>member-unban>
-	   #:>emoji-update>
-	   #:>integrations-update>
-	   	   
-	   #:create
+		 #:create
 	   #:edit
 	   #:erase
 	   #:from-id
