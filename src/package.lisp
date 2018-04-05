@@ -109,6 +109,8 @@
 	:lispcord.http
 	:lispcord.core
 	:lispcord.pipes)
+	(:import-from :lispcord.classes
+								:getcache-id)
   (:export #:*client*
 	   #:connect
 	   #:disconnect
