@@ -85,7 +85,6 @@
          :type :patch
          :content (str-concat "{\"nick\":\"" nick "\"}")))))
 
-
 (defmethod create ((r lc:role) (m lc:member) &optional (bot *client*))
   (discord-req (str-concat "guilds/" (lc:guild-id m)
          "/members/" (lc:id (lc:user m))

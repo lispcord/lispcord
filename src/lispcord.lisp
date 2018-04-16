@@ -24,13 +24,14 @@
   (declare (type lc:message msg))
   (when (find (bot-user bot) (lc:mentions msg) :test #'eq)
     (return-from commandp t))
-  (let ((cmd? (gethash (char (lc:content msg) 0)
-           *cmd-prefix-table*)))
-    (cond ((not cmd?) nil)
-    ((eq :global cmd?) t)
-    ((consp cmd?) (member (lc:guild msg) cmd?
-        :test #'eq))
-    (t (warn "the object interned for prefix ~a is not a list or the keyword \":global\"" (char (lc:content msg) 0))))))
+	(unless (string= "" (lc:content msg))
+		(let ((cmd? (gethash (char (lc:content msg) 0)
+												 *cmd-prefix-table*)))
+			(cond ((not cmd?) nil)
+						((eq :global cmd?) t)
+						((consp cmd?) (member (lc:guild msg) cmd?
+																	:test #'eq))
+						(t (warn "the object interned for prefix ~a is not a list or the keyword \":global\"" (char (lc:content msg) 0)))))))
 
 (defun sanitize-content (content)
   (declare (type string content))

@@ -18,8 +18,8 @@
       :bot bot
       :type :patch
       :content (jmake
-          (list (cons "username" (lc:name u))
-          (cons "avatar" (lc:avatar u)))))))
+								(list (cons "username" (lc:name u))
+											(cons "avatar" (lc:avatar u)))))))
 
 (defun leave (guild &optional (bot *client*))
   (declare (type (or snowflake lc:guild) guild))
