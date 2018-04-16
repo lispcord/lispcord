@@ -117,7 +117,8 @@
 
 (defun on-member-add (data bot)
   (let ((member (from-json :g-member data))
-				(g (getcache-id (gethash "guild_id" data) :guild)))
+				(g (getcache-id (parse-snowflake (gethash "guild_id" data))
+												:guild)))
     (setf (lc:members g) (vec-extend member (lc:members g)))
     (dispatch-event :on-member-add (list member g) bot)))
 
@@ -146,7 +147,8 @@
 
 (defun on-role-update (data bot)
   (let ((role (cache :role (gethash "role" data)))
-				(g (getcache-id (gethash "guild_id" data) :guild)))
+				(g (getcache-id (parse-snowflake (gethash "guild_id" data))
+												:guild)))
     (dispatch-event :on-role-update (list role g) bot)))
 
 (defun on-role-delete (data bot)
