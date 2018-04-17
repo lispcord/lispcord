@@ -327,7 +327,7 @@
       ;; a message is edited // might need special parsing here
       ("MESSAGE_UPDATE"
        (dispatch-event :on-message-update
-											 (list (from-json :message data))
+											 (list data)
 											 bot))
 
       ;; a message is deleted
