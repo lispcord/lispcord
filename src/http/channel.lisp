@@ -191,7 +191,7 @@
 (defun start-typing (channel &optional (bot *client*))
   (declare (type lc:channel channel))
   (discord-req (str-concat "channels/" (lc:id channel)
-         "typing")
+         "/typing")
          :bot bot
          :type :post
          :content "{}"))
