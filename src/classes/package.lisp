@@ -20,6 +20,8 @@
 					 #:make-message
 					 #:make-role
 					 #:make-emoji
+					 #:make-embed
+					 #:make-embed-generic
 
 					 #:version
 					 #:session-id
@@ -43,6 +45,7 @@
 					 #:guild
 					 #:member
 					 #:embed
+					 #:embed-generic
 					 #:embed-footer
 					 #:embed-image
 					 #:embed-thumbnail
@@ -175,6 +178,8 @@
 					 #:make-message
 					 #:make-role
 					 #:make-emoji
+					 #:make-embed
+					 #:make-embed-generic
 					 
 					 #:overwrite
 					 #:user
@@ -195,6 +200,7 @@
 					 #:partial-role
 					 #:guild
 					 #:member
+					 #:embed-generic
 					 #:embed
 					 #:embed-footer
 					 #:embed-image

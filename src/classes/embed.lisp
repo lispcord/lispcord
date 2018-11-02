@@ -38,7 +38,14 @@
 							:type fixnum
 							:accessor width)))
 
-(deftype embed-image () 'embed-generic) 
+(defun make-embed-generic (&key url)
+  (make-instance 'embed-generic
+                 :url url
+                 :proxy nil
+                 :height nil
+                 :width nil))
+
+(deftype embed-image () 'embed-generic)
 (deftype embed-thumbnail () 'embed-generic)
 
 (defmethod from-json ((c (eql :e-generic)) (table hash-table))
@@ -50,12 +57,10 @@
 
 (defmethod %to-json ((e embed-generic))
   (with-object
-    (write-key-value "url" (url e))
-    (write-key-value "proxy_url" (proxy-url e))
-    (write-key-value "height" (height e))
-    (write-key-value "width" (width e))))
-
-
+    (if (url e) (write-key-value "url" (url e)))
+    (if (proxy-url e) (write-key-value "proxy_url" (proxy-url e)))
+    (if (height e) (write-key-value "height" (height e)))
+    (if (width e) (write-key-value "width" (width e)))))
 
 (defclass embed-video ()
   ((url    :initarg :url
@@ -193,6 +198,22 @@
 								:type (vector embed-field)
 								:accessor fields)))
 
+(defun make-embed (&key title type description url timestamp color footer image thumbnail video provider author fields)
+  (make-instance 'embed
+                 :title title
+                 :type type
+                 :description description
+                 :url url
+                 :timestamp timestamp
+                 :color color
+                 :footer footer
+                 :image image
+                 :thumbnail thumbnail
+                 :video video
+                 :provider provider
+                 :author author
+                 :fields fields))
+
 (defmethod from-json ((c (eql :embed)) (table hash-table))
   (instance-from-table (table 'embed)
     :title "title"
@@ -212,16 +233,16 @@
 
 (defmethod %to-json ((e embed))
   (with-object
-    (write-key-value "title" (title e))
-    (write-key-value "type" (type e))
-    (write-key-value "description" (description e))
-    (write-key-value "url" (url e))
-    (write-key-value "timestamp" (timestamp e))
-    (write-key-value "color" (color e))
-    (write-key-value "footer" (footer e))
-    (write-key-value "image" (image e))
-    (write-key-value "thumbnail" (thumbnail e))
-    (write-key-value "video" (video e))
-    (write-key-value "provider" (provider e))
-    (write-key-value "author" (author e))
-    (write-key-value "fields" (fields e))))
+    (if (title e) (write-key-value "title" (title e)))
+    (if (type e) (write-key-value "type" (type e)))
+    (if (description e) (write-key-value "description" (description e)))
+    (if (url e) (write-key-value "url" (url e)))
+    (if (timestamp e) (write-key-value "timestamp" (timestamp e)))
+    (if (color e) (write-key-value "color" (color e)))
+    (if (footer e) (write-key-value "footer" (footer e)))
+    (if (image e) (write-key-value "image" (image e)))
+    (if (thumbnail e) (write-key-value "thumbnail" (thumbnail e)))
+    (if (video e) (write-key-value "video" (video e)))
+    (if (provider e) (write-key-value "provider" (provider e)))
+    (if (author e) (write-key-value "author" (author e)))
+    (if (fields e) (write-key-value "fields" (fields e)))))
