@@ -3,21 +3,21 @@
 
 (defclass game ()
   ((name :initarg :name
-   :type string
-   :accessor name)
+         :type string
+         :accessor name)
    (type :initarg :type
-   :type (integer 0 1)
-   :accessor type)
+         :type (integer 0 1)
+         :accessor type)
    (url  :initarg :url
-   :type (or null string)
-   :accessor url)))
+         :type (or null string)
+         :accessor url)))
 
 
 (defmethod from-json ((c (eql :game)) (table hash-table))
   (instance-from-table (table 'game)
-    :name "name"
-    :type "type"
-    :url "url"))
+                       :name "name"
+                       :type "type"
+                       :url "url"))
 
 
 (defmethod %to-json ((g game))
@@ -35,44 +35,44 @@
 
 (defclass user ()
   ((id            :initarg :id
-      :type snowflake
-      :accessor id)
+                  :type snowflake
+                  :accessor id)
    (username      :initarg :username
-      :type string
-      :accessor name)
+                  :type string
+                  :accessor name)
    (discriminator :initarg :discrim
-      :type string
-      :accessor discrim)
+                  :type string
+                  :accessor discrim)
    (avatar        :initarg :avatar
-      :type (or null string)
-      :accessor avatar)
+                  :type (or null string)
+                  :accessor avatar)
    (bot           :initarg :bot
-      :type t
-      :accessor botp)
+                  :type t
+                  :accessor botp)
    (mfa           :initarg :mfa
-      :type t
-      :accessor mfa-p)
+                  :type t
+                  :accessor mfa-p)
    (verified      :initarg :verified
-      :type t
-      :accessor verifiedp)
+                  :type t
+                  :accessor verifiedp)
    (email         :initarg :email
-      :type t
-      :accessor emailp)
+                  :type t
+                  :accessor emailp)
    (status        :type (or null string)
-      :accessor status)
+                  :accessor status)
    (game          :type (or null game)
-      :accessor game)))
+                  :accessor game)))
 
 (defmethod update ((table hash-table) (u user))
   (from-table-update (table data)
-    ("id" (id u) (parse-snowflake data))
-    ("username" (name u) data)
-    ("discriminator" (discrim u) data)
-    ("avatar" (avatar u) data)
-    ("bot" (botp u) data)
-    ("mfa" (mfa-p u) data)
-    ("verified" (verifiedp u) data)
-    ("email" (emailp u) data))
+                     ("id" (id u) (parse-snowflake data))
+                     ("username" (name u) data)
+                     ("discriminator" (discrim u) data)
+                     ("avatar" (avatar u) data)
+                     ("bot" (botp u) data)
+                     ("mfa" (mfa-p u) data)
+                     ("verified" (verifiedp u) data)
+                     ("email" (emailp u) data))
   u)
 
 (defmethod %to-json ((u user))
@@ -88,14 +88,14 @@
 
 (defmethod from-json ((c (eql :user)) (table hash-table))
   (instance-from-table (table 'user)
-    :id (parse-snowflake (gethash "id" table))
-    :username "username"
-    :discrim "discriminator"
-    :avatar "avatar"
-    :bot "bot"
-    :mfa "mfa"
-    :verified "verified"
-    :email "email"))
+                       :id (parse-snowflake (gethash "id" table))
+                       :username "username"
+                       :discrim "discriminator"
+                       :avatar "avatar"
+                       :bot "bot"
+                       :mfa "mfa"
+                       :verified "verified"
+                       :email "email"))
 
 
 

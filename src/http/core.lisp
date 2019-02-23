@@ -11,16 +11,13 @@ discord-place like a channel, a guild and so on"))
 ;;   (from-id (parse-snowflake s) any bot))
 
 (defgeneric create (content destination &optional bot)
-  (:documentation "Sends a POST-request to create the given
-object."))
+  (:documentation "Sends a POST-request to create the given object."))
 
 (defgeneric edit (content destination &optional bot)
-  (:documentation "Sends a PUT or PATCH request to modify
-the given object"))
+  (:documentation "Sends a PUT or PATCH request to modify the given object"))
 
 (defgeneric erase (object &optional bot)
-  (:documentation "Sends a DELETE request to remove the
-given object"))
+  (:documentation "Sends a DELETE request to remove the given object"))
 
 (defmethod erase ((n null) &optional (bot *client*))
   (declare (ignore n bot))

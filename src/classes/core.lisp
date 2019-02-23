@@ -14,10 +14,10 @@
 (defmacro from-table-update ((table var) &body clauses)
   (let ((key (gensym)))
     `(maphash (lambda (,key ,var)
-    (case ,key
-      ,@ (loop :for (k a op) :in clauses :collect
-      `(,k (setf ,a ,op)))))
-        ,table)))
+                (case ,key
+                  ,@ (loop :for (k a op) :in clauses :collect
+                        `(,k (setf ,a ,op)))))
+              ,table)))
 
 (declaim (inline %maybe-sf))
 (defun %maybe-sf (string)

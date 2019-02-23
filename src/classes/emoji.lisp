@@ -7,9 +7,9 @@
 
 (defun make-emoji (name image &optional roles)
   (make-instance 'new-emoji
-     :name name
-     :image image
-     :roles roles))
+                 :name name
+                 :image image
+                 :roles roles))
 
 (defmethod %to-json ((e partial-emoji))
   (with-object
@@ -19,26 +19,26 @@
 
 (defclass emoji ()
   ((id       :initarg :id
-       :type snowflake
-       :accessor id)
+             :type snowflake
+             :accessor id)
    (name     :initarg :name
-       :type string
-       :accessor name)
+             :type string
+             :accessor name)
    (roles    :initarg :roles
-       :type (vector snowflake)
-       :accessor roles)
+             :type (vector snowflake)
+             :accessor roles)
    (user     :initarg :user
-       :type (or null user)
-       :accessor user)
+             :type (or null user)
+             :accessor user)
    (colons?  :initarg :colons?
-       :type t
-       :accessor colonsp)
+             :type t
+             :accessor colonsp)
    (managed  :initarg :managed
-       :type t
-       :accessor managedp)
+             :type t
+             :accessor managedp)
    (guild-id :initarg :gid
-       :type (or null snowflake)
-       :accessor guild-id)))
+             :type (or null snowflake)
+             :accessor guild-id)))
 
 (defmethod guild ((e emoji))
   (getcache-id (guild-id e) :guild))
@@ -46,20 +46,20 @@
 
 (defmethod from-json ((c (eql :emoji)) (table hash-table))
   (instance-from-table (table 'emoji)
-    :id (parse-snowflake (gethash "id" table))
-    :name "name"
-    :roles (mapvec #'parse-snowflake (gethash "roles" table))
-    :user (cache :user (gethash "user" table))
-    :colons? "require_colons"
-    :managed "managed"))
+                       :id (parse-snowflake (gethash "id" table))
+                       :name "name"
+                       :roles (mapvec #'parse-snowflake (gethash "roles" table))
+                       :user (cache :user (gethash "user" table))
+                       :colons? "require_colons"
+                       :managed "managed"))
 
 (defmethod update ((table hash-table) (e emoji))
   (from-table-update (table data)
-    ("id" (id e) (parse-snowflake data))
-    ("name" (name e) data)
-    ("roles" (roles e) (mapvec #'parse-snowflake data))
-    ("require_colons" (colonsp e) data)
-    ("managed" (managedp e) data))
+                     ("id" (id e) (parse-snowflake data))
+                     ("name" (name e) data)
+                     ("roles" (roles e) (mapvec #'parse-snowflake data))
+                     ("require_colons" (colonsp e) data)
+                     ("managed" (managedp e) data))
   e)
 
 (defmethod %to-json ((e emoji))

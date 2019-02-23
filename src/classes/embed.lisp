@@ -14,9 +14,9 @@
 
 (defmethod from-json ((c (eql :e-footer)) (table hash-table))
   (instance-from-table (table 'embed-footer)
-    :text "text"
-    :icon "icon_url"
-    :icon-proxy-url "icon_proxy_url"))
+                       :text "text"
+                       :icon "icon_url"
+                       :icon-proxy-url "icon_proxy_url"))
 
 (defmethod %to-json ((e embed-footer))
   (with-object
@@ -50,10 +50,10 @@
 
 (defmethod from-json ((c (eql :e-generic)) (table hash-table))
   (instance-from-table (table 'embed-generic)
-    :url "url"
-    :proxy "proxy_url"
-    :height "height"
-    :width "width"))
+                       :url "url"
+                       :proxy "proxy_url"
+                       :height "height"
+                       :width "width"))
 
 (defmethod %to-json ((e embed-generic))
   (with-object
@@ -75,9 +75,9 @@
 
 (defmethod from-json ((c (eql :e-video)) (table hash-table))
   (instance-from-table (table 'embed-video)
-    :url "url"
-    :height "height"
-    :width "width"))
+                       :url "url"
+                       :height "height"
+                       :width "width"))
 
 (defmethod %to-json ((e embed-video))
   (with-object
@@ -216,20 +216,20 @@
 
 (defmethod from-json ((c (eql :embed)) (table hash-table))
   (instance-from-table (table 'embed)
-    :title "title"
-    :type "type"
-    :description "description"
-    :url "url"
-    :timestamp "timestamp"
-    :color "color"
-    :footer (from-json :e-footer (gethash "footer" table))
-    :image (from-json :e-generic (gethash "image" table))
-    :thumbnail (from-json :e-generic (gethash "thumbnail" table))
-    :video (from-json :e-video (gethash "video" table))
-    :provider (from-json :e-provider (gethash "provider" table))
-    :author (from-json :e-author (gethash "provider" table))
-    :fields (map 'vector (curry #'from-json :e-field)
-								 (gethash "fields" table))))
+                       :title "title"
+                       :type "type"
+                       :description "description"
+                       :url "url"
+                       :timestamp "timestamp"
+                       :color "color"
+                       :footer (from-json :e-footer (gethash "footer" table))
+                       :image (from-json :e-generic (gethash "image" table))
+                       :thumbnail (from-json :e-generic (gethash "thumbnail" table))
+                       :video (from-json :e-video (gethash "video" table))
+                       :provider (from-json :e-provider (gethash "provider" table))
+                       :author (from-json :e-author (gethash "provider" table))
+                       :fields (map 'vector (curry #'from-json :e-field)
+                                    (gethash "fields" table))))
 
 (defmethod %to-json ((e embed))
   (with-object
