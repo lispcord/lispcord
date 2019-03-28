@@ -7,15 +7,16 @@
 
 (defun add-event-handler (event-key event-handler &optional (bot *client*))
   (declare (type keyword event-key)
-     (type function event-handler)
+     (type (or function symbol) event-handler)
      (type bot bot))
   (setf (gethash event-key (bot-event-handlers bot)) event-handler))
 
 (defun dispatch-event (event-key args &optional (bot *client*))
-  (apply (gethash event-key (bot-event-handlers bot)
-      (lambda (&rest _)
-        (declare (ignore _))
-        nil))
-   args))
+  (let* ((handler (or (gethash event-key (bot-event-handlers bot) dummy)
+                      (lambda (&rest _) (declare (ignore _)) (values)))
+         (func (if (symbolp handler)
+                   (fdefinition handler)
+                   handler)))
+    (apply func args)))
 
 
