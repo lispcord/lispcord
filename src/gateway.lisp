@@ -181,7 +181,7 @@
     (dispatch-event :on-channel-delete (list c) bot)))
 
 (defun on-channel-pin-update (data bot)
-  (let ((id (parse-snowflake (gethash "id" data))))
+  (let ((id (parse-snowflake (gethash "channel_id" data))))
     (dispatch-event :on-pin-update
                     (list (getcache-id id :channel)
                           (gethash "last_pin_timestamp" data))
