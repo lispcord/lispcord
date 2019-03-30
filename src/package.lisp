@@ -115,6 +115,7 @@
      #:connect
      #:disconnect
      #:defbot
+     #:make-bot
 
      #:make-prefix
      #:commandp

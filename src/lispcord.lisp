@@ -71,7 +71,8 @@
   (or (remove-substring (str-concat "<@" (to-string (lc:id user)) ">")
                         msg)
       (remove-substring (str-concat "<@!" (to-string (lc:id user)) ">")
-                        msg)))
+                        msg)
+      msg))
 
 (defun mention (mentionable)
   (declare (type (or lc:user lc:channel lc:role)
