@@ -1,5 +1,9 @@
 (in-package :lispcord.pipes)
 
+(deftype function-designator ()
+  "First argument type for apply and funcall, as per CLHS"
+  `(or function symbol))
+
 (declaim (inline make-event-table))
 (defun make-event-table ()
   "Returns a fresh empty hash-table"
@@ -7,7 +11,7 @@
 
 (defun add-event-handler (event-key event-handler &optional (bot *client*))
   (declare (type keyword event-key)
-     (type function event-handler)
+     (type function-designator event-handler)
      (type bot bot))
   (setf (gethash event-key (bot-event-handlers bot)) event-handler))
 
