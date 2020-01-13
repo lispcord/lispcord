@@ -13,6 +13,7 @@ It may be set by make-bot!")
   (afk-since nil :type (or null fixnum))
   (event-handlers (make-hash-table) :type hash-table)
   conn
+  (auth-as-bot t :type boolean)
   heartbeat-thread)
 
 
@@ -24,8 +25,14 @@ It may be set by make-bot!")
 (defun user-agent (bot)
   (str-concat "DiscordBot (" *bot-url* ", " (bot-version bot) ")"))
 
+(defun bot-auth (bot)
+  (str-concat (if (bot-auth-as-bot bot)
+                  "Bot "
+                  "")
+              (bot-token bot)))
+
 (defun headers (bot)
-  (list (cons "Authorization" (str-concat "Bot " (bot-token bot)))))
+  (list (cons "Authorization" (bot-auth bot))))
 
 
 

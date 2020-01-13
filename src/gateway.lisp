@@ -31,7 +31,7 @@
   (dprint :info "~&Send identify for ~a~%" (bot-token bot))
   (send-payload bot
                 :op 2
-                :data `(("token" . ,(str-concat "Bot " (bot-token bot)))
+                :data `(("token" . ,(lispcord.core:bot-auth bot))
                         ("properties" . (("$os" . ,+os+)
                                          ("$browser" . ,+lib+)
                                          ("$device" . ,+lib+)))

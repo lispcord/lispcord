@@ -33,7 +33,9 @@
      #:bot-conn
      #:bot-done
      #:bot-heartbeat-thread
+     #:bot-auth-as-bot
 
+     #:bot-auth
      #:bot-url
      #:base-url
      #:api-suffix
