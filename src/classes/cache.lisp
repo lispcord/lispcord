@@ -5,9 +5,7 @@
   (lock (bt:make-recursive-lock "LISPCORD.CLASSES cache")))
 
 (defun make-cache (&optional (n 50))
-  (let ((cache (primitive-make-cache)))
-    (setf (cache-data cache) (make-hash-table :test optimal-id-compare :size n))
-    cache))
+  (primitive-make-cache :data (make-hash-table :test optimal-id-compare :size n)))
 
 (defvar *users* (make-cache 200))
 
