@@ -165,14 +165,14 @@
 
 
 (defun on-channel-create (data bot)
-  (let ((c (cache data :channel)))
+  (let ((c (cache :channel data)))
     (when (typep c 'lc:guild-channel)
       (let ((g (getcache-id (lc:guild-id c) :guild)))
         (setf (lc:channels g) (vec-extend c (lc:channels g)))))
     (dispatch-event :on-channel-create (list c) bot)))
 
 (defun on-channel-delete (data bot)
-  (let ((c (cache data :channel)))
+  (let ((c (cache :channel data)))
     (when (typep c 'lc:guild-channel)
       (let ((g (getcache-id (lc:guild-id c) :guild)))
         (setf (lc:channels g)
