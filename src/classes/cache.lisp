@@ -1,48 +1,54 @@
 (in-package :lispcord.classes)
 
+(defstruct (cache (:constructor primitive-make-cache))
+  data
+  (lock (bt:make-recursive-lock "LISPCORD.CLASSES cache")))
+
 (defun make-cache (&optional (n 50))
-  (make-hash-table :test optimal-id-compare :size n))
+  (let ((cache (primitive-make-cache)))
+    (setf (cache-data cache) (make-hash-table :test optimal-id-compare :size n))
+    cache))
 
 (defvar *users* (make-cache 200))
 
 (defvar *guilds* (make-cache 10))
 
-(defvar *channels* (make-cache 100))
+(defvar *channels* (make-cache 200))
 
-(defvar *roles* (make-cache))
+(defvar *roles* (make-cache 100))
 
-(defvar *emojis* (make-cache))
+(defvar *emojis* (make-cache 200))
 
-(defun resolve-cache (cache table key)
-  (let* ((id (parse-snowflake (gethash "id" table)))
-         (entity (gethash id cache)))
-    (dprint :debug "Cache-hit: ~20a :: ~a~%" id key)
-    (if entity
-        (update table entity)
-        (setf (gethash id cache) (from-json key table)))))
+(defun resolve-cache (cache-data table key)
+  "This function should only be called with the cache's lock held"
+  (let ((id (parse-snowflake (gethash "id" table))))
+    (let ((entity (gethash id cache-data)))
+      (dprint :debug "Cache-hit: ~20a :: ~a~%" id key)
+      (if entity
+          (update table entity)
+          (setf (gethash id cache-data) (from-json key table))))))
+
+(defun key-cache (key)
+  (case key
+    (:user    *users*)
+    (:guild   *guilds*)
+    (:channel *channels*)
+    (:role    *roles*)
+    (:emoji   *emojis*)))
 
 (defun cache (key table)
-  (unless table (return-from cache nil))
-  (case key
-    (:user    (resolve-cache *users*    table key))
-    (:guild   (resolve-cache *guilds*   table key))
-    (:channel (resolve-cache *channels* table key))
-    (:role    (resolve-cache *roles*    table key))
-    (:emoji   (resolve-cache *emojis*   table key))))
+  (when table
+    (let ((cache (key-cache key)))
+      (bt:with-lock-held ((cache-lock cache))
+        (resolve-cache (cache-data cache) table key)))))
 
 
 (defun getcache-id (id key)
-  (case key
-    (:user    (gethash id *users*))
-    (:guild   (gethash id *guilds*))
-    (:channel (gethash id *channels*))
-    (:role    (gethash id *roles*))
-    (:emoji   (gethash id *emojis*))))
+  (let ((cache (key-cache key)))
+    (bt:with-lock-held ((cache-lock cache))
+      (gethash id (cache-data cache)))))
 
 (defun decache-id (id key)
-  (case key
-    (:user    (remhash id *users*))
-    (:guild   (remhash id *guilds*))
-    (:channel (remhash id *channels*))
-    (:role    (remhash id *roles*))
-    (:emoji   (remhash id *emojis*))))
+  (let ((cache (key-cache key)))
+    (bt:with-lock-held ((cache-lock cache))
+      (remhash id (cache-data cache)))))
