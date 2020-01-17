@@ -188,8 +188,8 @@
                     bot)))
 
 
-(defun on-guild-ban (data kind bot)
-  (let ((u (cache :user data))
+(defun on-guild-ban (data bot kind)
+  (let ((u (cache :user (gethash "user" data)))
         (g (getcache-id (parse-snowflake (gethash "guild_id" data))
                         :guild)))
     (dispatch-event kind (list u g) bot)))
@@ -416,7 +416,8 @@
 (defun on-recv (bot msg)
   (let ((op (gethash "op" msg)))
     (case op
-      (0  (on-dispatch bot msg)) ;Dispatch Event
+      (0  (with-simple-restart (abort "Skip handling this event")
+            (on-dispatch bot msg))) ;Dispatch Event
       (1  (send-heartbeat bot))  ;Requests Heartbeat
       (7  (reconnect bot))   ;Requests Reconnect
       (9  (cleanup bot))         ;Invalid Sessions Event
