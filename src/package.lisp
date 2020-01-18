@@ -50,12 +50,13 @@
      #:dispatch-event))
 
 (defpackage :lispcord.gateway
-  (:use :bordeaux-threads
-  :cl
-  :lispcord.util
-  :lispcord.pipes
-  :lispcord.core
-  :lispcord.constants)
+  (:use :cl
+        :alexandria
+        :bordeaux-threads
+        :lispcord.util
+        :lispcord.pipes
+        :lispcord.core
+        :lispcord.constants)
   (:import-from :lispcord.classes
     #:from-json
     #:%to-json

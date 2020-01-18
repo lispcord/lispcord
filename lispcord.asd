@@ -5,10 +5,12 @@
     :license "MIT"
     :serial t
     :depends-on (:drakma
-     :babel
-     :websocket-driver-client
-     :jonathan
-     :bordeaux-threads)
+                 :alexandria
+                 :split-sequence
+                 :babel
+                 :websocket-driver-client
+                 :jonathan
+                 :bordeaux-threads)
     :components ((:module src
         :serial t
         :components

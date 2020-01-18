@@ -26,7 +26,7 @@
   ;;The api handles different routes differently, so we need to see which one
   ;; we get <.<
   (destructuring-bind (route &optional id? &rest rubbish)
-      (split-string endpoint #\/)
+      (split-sequence #\/ endpoint)
     (declare (ignore rubbish))
     (let* ((final (if (member route '("guilds" "channels")
             :test #'equal)

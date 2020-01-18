@@ -96,8 +96,8 @@
 (defun on-emoji-update (data bot)
   (with-table (data emojis "emojis"
                     id "guild_id")
-    (let ((g (cache :guild (new-hash-table `("id" ,id)
-                                           `("emojis" ,emojis)))))
+    (let ((g (cache :guild (plist-hash-table `("id" ,id "emojis" ,emojis)
+                                             :test #'equal))))
       (dispatch-event :on-emoji-update
                       (list (lc:emojis g) g)
                       bot))))
@@ -208,17 +208,16 @@
 
 
 (defun on-presence (data bot)
-  (let ((u (getcache-id (parse-snowflake
-                         (gethash "id" (gethash "user" data)))
-                        :user)))
-    (when u
-      (dprint :debug "User uncached: ~a~%"
-              (gethash "id" (gethash "user" data)))
-      (setf (lc:status u) (gethash "status" data))
-      (setf (lc:game u) (from-json :game (gethash "game" data))))
-    (dispatch-event :on-presence-update
-                    (list (from-json :presence data))
-                    bot)))
+  (when-let ((u (getcache-id (parse-snowflake
+                               (gethash "id" (gethash "user" data)))
+                              :user)))
+    (dprint :debug "User uncached: ~a~%"
+            (gethash "id" (gethash "user" data)))
+    (setf (lc:status u) (gethash "status" data))
+    (setf (lc:game u) (from-json :game (gethash "game" data))))
+  (dispatch-event :on-presence-update
+                  (list (from-json :presence data))
+                  bot))
 
 (defun on-typing-start (data bot)
   (let ((c (getcache-id (parse-snowflake (gethash "channel_id" data))
@@ -236,7 +235,7 @@
     (setf (bot-seq bot) seq)
     (dprint :info "[Event] ~a~%" event)
     (dprint :debug "[Payload] ~a~%" msg)
-    (str-case event
+    (switch (event :test #'string=)
       ;; on handshake
       ("READY"
        (on-ready bot data))                           

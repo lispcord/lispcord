@@ -1,15 +1,10 @@
 (defpackage :lispcord.util
-  (:use :cl)
+  (:use :cl :split-sequence)
   (:export #:mapvec
      #:str-concat
      #:jparse
      #:jmake
-     #:alist
-     #:aget
      #:doit
-     #:str-case
-     #:split-string
-     #:curry
      #:sethash
      #:make-nonce
      #:mapf
@@ -18,9 +13,9 @@
      #:since-unix-epoch
      #:*unix-epoch*
      #:vec-extend
-     #:new-hash-table
      #:vecrem
-     #:xor
+
+     #:split-sequence
 
      #:snowflake
      #:parse-snowflake
@@ -38,7 +33,6 @@
      jparse
      jmake
      since-unix-epoch
-     curry
      sethash
      vecrem))
 
@@ -74,17 +68,6 @@
            `(setf ,it ,f)))
      forms))))
 
-(defmacro str-case (key-form &body clauses
-        &aux (key (gensym)))
-  `(let ((,key ,key-form))
-     (declare (type string ,key))
-     (cond ,@(mapcar (lambda (c)
-           (if (string= (string (car c)) "ELSE")
-         `(T ,@(cdr c))
-         `((string= ,key ,(car c)) ,@(cdr c))))
-         clauses))))
-
-
 ;;; Set up a logging framework so bot authors can
 ;;;  gather various levels of information
 (defparameter *debug-level* (the keyword :debug)
@@ -116,22 +99,6 @@
 (defun since-unix-epoch ()
   (- (get-universal-time)
      *unix-epoch*))
-
-
-
-(defun curry (f &rest args)
-  (declare (type function f))
-  (lambda (arg) (apply f (append args (list arg)))))
-
-(defun split-string (string &optional (delimiter #\space))
-  (declare (type string string)
-     (type character delimiter)
-     (optimize speed))
-  (let ((pos (position delimiter string)))
-    (if pos
-  (cons (subseq string 0 pos)
-        (split-string (subseq string (1+ pos)) delimiter))
-  (list string))))
 
 
 (defun sethash (key hash val)
@@ -191,20 +158,3 @@
 
 (defun vecrem (predicate seq)
   (delete-if predicate seq :from-end t))
-
-(defun new-hash-table (&rest pairs)
-  (let ((table (make-hash-table :test #'equal)))
-    (loop :for (key val) :in pairs :do (setf (gethash key table) val))
-    table))
-
-
-(defun xor (one &rest args)
-  (if (null args)
-      one
-      (if one
-    (if (car args)
-        nil
-        (apply #'xor one (cdr args)))
-    (if (car args)
-        (apply #'xor (car args) (cdr args))
-        (apply #'xor one (cdr args))))))
