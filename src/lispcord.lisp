@@ -87,19 +87,38 @@
           (lc:id mentionable)))
 
 (defun demention (string &aux (len (1- (length string))))
-  (let ((one (char string 0))
-        (two (char string 1))
-        (thr (char string 2))
-        (lst (char string len)))
-    (if (and (char= one #\<) (char= lst #\>))
-        (cond ((char= two #\#)
-               (getcache-id (parse-snowflake (subseq string 2 len))
-                            :channel))
-              ((char= two #\@)
-               (case thr
-                 (#\! (getcache-id (parse-snowflake (subseq string 3 len))
-                                   :user))
-                 (#\& (getcache-id (parse-snowflake (subseq string 3 len))
-                                   :role))
-                 (t (getcache-id (parse-snowflake (subseq string 2 len))
-                                   :user))))))))
+  (when (> (length string) 3)
+    (let ((one (char string 0))
+          (two (char string 1))
+          (thr (char string 2))
+          (lst (char string len)))
+      (when (and (char= one #\<)
+                 (char= lst #\>))
+        (case two
+          (#\#
+           (getcache-id (parse-snowflake (subseq string 2 len))
+                        :channel))
+          (#\@
+           (case thr
+             (#\! (getcache-id (parse-snowflake (subseq string 3 len))
+                               :user))
+             (#\& (getcache-id (parse-snowflake (subseq string 3 len))
+                               :role))
+             (t (getcache-id (parse-snowflake (subseq string 2 len))
+                             :user)))))))))
+
+(defun render-msg (msg)
+  (let* ((words (split-sequence #\Space (lc:content msg)))
+         (parts (mapf words (word)
+                  (or (demention word) word)))
+         (rendered-parts (mapf parts (part)
+                           (etypecase part
+                             (string part)
+                             (lc:guild-channel (str-concat "#" (lc:name part)))
+                             (lc:role (str-concat "@" (lc:name part)))
+                             (lc:user (let ((member (lc:member part (lc:guild msg))))
+                                        (str-concat "@"
+                                                    (if member
+                                                        (lc:nick member)
+                                                        (lc:name part)))))))))
+    (format nil "~{~A~^ ~}" rendered-parts)))
