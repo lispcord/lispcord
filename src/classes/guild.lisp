@@ -283,6 +283,11 @@
 (defmethod member ((u user) (g guild))
   (find-if (lambda (e) (eq u (lc:user e))) (members g)))
 
+(defun nick-or-name (user guild)
+  (if-let ((member (member user guild)))
+    (nick member)
+    (name user)))
+
 (defmethod %to-json ((g available-guild))
   (with-object
     (write-key-value "id" (id g))

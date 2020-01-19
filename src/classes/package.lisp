@@ -47,6 +47,7 @@
            #:partial-role
            #:guild
            #:member
+           #:nick-or-name
            #:embed
            #:embed-generic
            #:embed-footer
@@ -117,6 +118,7 @@
            #:user
            #:colonsp
            #:managedp
+           #:animatedp
            #:hoistp
            #:permissions
            #:mentionablep
@@ -205,8 +207,9 @@
            #:partial-role
            #:guild
            #:member
-           #:embed-generic
+           #:nick-or-name
            #:embed
+           #:embed-generic
            #:embed-footer
            #:embed-image
            #:embed-thumbnail
@@ -277,6 +280,7 @@
            #:user
            #:colonsp
            #:managedp
+           #:animatedp
            #:hoistp
            #:permissions
            #:mentionablep

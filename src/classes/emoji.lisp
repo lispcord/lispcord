@@ -36,6 +36,9 @@
    (managed  :initarg :managed
              :type t
              :accessor managedp)
+   (animated :initarg :animated
+             :type boolean
+             :accessor animatedp)
    (guild-id :initarg :gid
              :type (or null snowflake)
              :accessor guild-id)))
@@ -51,7 +54,8 @@
                        :roles (mapvec #'parse-snowflake (gethash "roles" table))
                        :user (cache :user (gethash "user" table))
                        :colons? "require_colons"
-                       :managed "managed"))
+                       :managed "managed"
+                       :animated "animated"))
 
 (defmethod update ((table hash-table) (e emoji))
   (from-table-update (table data)
@@ -59,7 +63,8 @@
                      ("name" (name e) data)
                      ("roles" (roles e) (mapvec #'parse-snowflake data))
                      ("require_colons" (colonsp e) data)
-                     ("managed" (managedp e) data))
+                     ("managed" (managedp e) data)
+                     ("animated" (animatedp e) data))
   e)
 
 (defmethod %to-json ((e emoji))
@@ -68,6 +73,7 @@
     (write-key-value "name" (name e))
     (write-key-value "roles" (roles e))
     (write-key-value "require_colons" (colonsp e))
-    (write-key-value "managed" (managedp e))))
+    (write-key-value "managed" (managedp e))
+    (write-key-value "animated" (animatedp e))))
 
 

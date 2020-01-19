@@ -77,35 +77,46 @@
       msg))
 
 (defun mention (mentionable)
-  (declare (type (or lc:user lc:channel lc:role)
+  (declare (type (or lc:user lc:channel lc:role lc:emoji)
                  mentionable))
   (format nil
           (typecase mentionable
             (lc:user "<@~a>")
             (lc:channel "<#~a>")
-            (lc:role "<@&~a>"))
+            (lc:role "<@&~a>")
+            (lc:emoji (str-concat (if (lc:animatedp mentionable) "<a:" "<:")
+                                  (lc:name mentionable)
+                                  ":~a>")))
           (lc:id mentionable)))
 
 (defun demention (string &aux (len (1- (length string))))
-  (when (> (length string) 3)
-    (let ((one (char string 0))
-          (two (char string 1))
-          (thr (char string 2))
-          (lst (char string len)))
-      (when (and (char= one #\<)
-                 (char= lst #\>))
-        (case two
-          (#\#
-           (getcache-id (parse-snowflake (subseq string 2 len))
-                        :channel))
-          (#\@
-           (case thr
-             (#\! (getcache-id (parse-snowflake (subseq string 3 len))
-                               :user))
-             (#\& (getcache-id (parse-snowflake (subseq string 3 len))
-                               :role))
-             (t (getcache-id (parse-snowflake (subseq string 2 len))
-                             :user)))))))))
+  (labels ((emoji-snowflake (n)
+             (let ((name-begin (position #\: string :start n :end len)))
+               (if name-begin
+                   (snowflake (1+ name-begin))
+                   (return-from demention))))
+           (snowflake (n)
+             (parse-snowflake (subseq string n len))))
+    (when (> (length string) 3)
+      (let ((one (char string 0))
+            (two (char string 1))
+            (thr (char string 2))
+            (lst (char string len)))
+        (when (and (char= one #\<)
+                   (char= lst #\>))
+          (case two
+            (#\#
+             (getcache-id (snowflake 2) :channel))
+            (#\@
+             (case thr
+               (#\! (getcache-id (snowflake 3) :user))
+               (#\& (getcache-id (snowflake 3) :role))
+               (t (getcache-id (snowflake 2) :user))))
+            (#\:
+             (getcache-id (emoji-snowflake 2) :emoji))
+            (#\a
+             (when (char= thr #\:)
+               (getcache-id (emoji-snowflake 3) :emoji)))))))))
 
 (defun render-msg (msg)
   (let* ((words (split-sequence #\Space (lc:content msg)))
@@ -116,9 +127,6 @@
                              (string part)
                              (lc:guild-channel (str-concat "#" (lc:name part)))
                              (lc:role (str-concat "@" (lc:name part)))
-                             (lc:user (let ((member (lc:member part (lc:guild msg))))
-                                        (str-concat "@"
-                                                    (if member
-                                                        (lc:nick member)
-                                                        (lc:name part)))))))))
+                             (lc:user (str-concat "@" (lc:nick-or-name part (lc:guild msg))))
+                             (lc:emoji (str-concat ":" (lc:name part) ":"))))))
     (format nil "~{~A~^ ~}" rendered-parts)))
