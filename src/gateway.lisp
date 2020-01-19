@@ -393,9 +393,9 @@
         (let ((*error-output* out))
           (v:info :lispcord.gateway "~a disconnecting..."
                   (if (bot-user bot) (lc:name (bot-user bot))))
-          (wsd:close-connection (bot-conn bot) reason code)
           (setf (bot-seq bot) 0)
           (setf (bot-session-id bot) nil)
+          (wsd:close-connection (bot-conn bot) reason code)
           (bt:destroy-thread (bot-heartbeat-thread bot))))))))
 
 (defun cleanup (bot)
