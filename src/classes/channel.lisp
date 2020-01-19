@@ -154,6 +154,25 @@
              :type snowflake
              :accessor owner-id)))
 
+(defclass news-channel (guild-channel)
+  ((nsfw         :initarg :nsfw
+                 :type t
+                 :accessor nsfw-p)
+   (topic        :initarg :topic
+                 :type (or null string)
+                 :accessor topic)
+   (last-message :initarg :last-message
+                 :type (or null snowflake)
+                 :accessor last-message)
+   (last-pinned  :initarg :last-pinned
+                 :type (or null string)
+                 :accessor last-pinned)))
+
+(defclass store-channel (guild-channel)
+  ((nsfw         :initarg :nsfw
+                 :type t
+                 :accessor nsfw-p)))
+
 (defmethod guild ((c guild-channel))
   (getcache-id (guild-id c) :guild))
 
@@ -218,6 +237,31 @@
                        :pos "position"
                        :g-id (parse-snowflake (gethash "guild_id" table))))
 
+(defun %guild-news-fj (table)
+  (instance-from-table (table 'news-channel)
+                       :id (parse-snowflake (gethash "id" table))
+                       :g-id (parse-snowflake (gethash "guild_id" table))
+                       :name "name"
+                       :pos "position"
+                       :overwrites (mapvec (curry #'from-json :overwrite)
+                                           (gethash "permission_overwrites" table))
+                       :nsfw "nsfw"
+                       :topic "topic"
+                       :last-message (%maybe-sf (gethash "last_message_id" table))
+                       :parent-id (%maybe-sf (gethash "parent_id" table))
+                       :last-pinned "last_pin_timestamp"))
+
+(defun %guild-store-fj (table)
+  (instance-from-table (table 'news-channel)
+                       :id (parse-snowflake (gethash "id" table))
+                       :g-id (parse-snowflake (gethash "guild_id" table))
+                       :name "name"
+                       :pos "position"
+                       :overwrites (mapvec (curry #'from-json :overwrite)
+                                           (gethash "permission_overwrites" table))
+                       :nsfw "nsfw"
+                       :parent-id (%maybe-sf (gethash "parent_id" table))))
+
 (defmethod from-json ((c (eql :channel)) (table hash-table))
   (case (gethash "type" table)
     (0 (%guild-text-fj table))
@@ -225,6 +269,8 @@
     (2 (%guild-voice-fj table))
     (3 (%group-dm-fj table))
     (4 (%guild-category-fj table))
+    (5 (%guild-news-fj table))
+    (6 (%guild-store-fj table))
     (otherwise (v:error :lispcord.classes "Channel type ~A not recognised!~%This should only happen if discord creates a new channel type and lispcord wasn't updated yet~%Please file an issue at https://github.com/lispcord/lispcord/issues" (gethash "type" table)))))
 
 (defmethod update ((table hash-table) (c channel))
@@ -287,4 +333,23 @@
     (write-key-value "icon" (icon gdm))
     (write-key-value "owner_id" (owner gdm))))
 
+(defmethod %to-json ((gnc news-channel))
+  (with-object
+    (write-key-value "id" (id gnc))
+    (write-key-value "guild_id" (guild-id gnc))
+    (write-key-value "name" (name gnc))
+    (write-key-value "permission_overwrites" (overwrites gnc))
+    (write-key-value "parent_id" (parent-id gnc))
+    (write-key-value "nsfw" (nsfw-p gnc))
+    (write-key-value "topic" (topic gnc))
+    (write-key-value "last_message_id" (last-message gnc))
+    (write-key-value "last_pin_timestamp" (last-pinned gnc))))
 
+(defmethod %to-json ((gsc store-channel))
+  (with-object
+    (write-key-value "id" (id gnc))
+    (write-key-value "guild_id" (guild-id gnc))
+    (write-key-value "name" (name gnc))
+    (write-key-value "permission_overwrites" (overwrites gnc))
+    (write-key-value "parent_id" (parent-id gnc))
+    (write-key-value "nsfw" (nsfw-p gnc))))

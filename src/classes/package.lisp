@@ -41,6 +41,8 @@
 					 #:voice-channel
 					 #:dm-channel
 					 #:group-dm
+                     #:news-channel
+                     #:store-channel
 					 #:role
 					 #:partial-role
 					 #:guild
@@ -197,6 +199,8 @@
 					 #:voice-channel
 					 #:dm-channel
 					 #:group-dm
+                     #:news-channel
+                     #:store-channel
 					 #:role
 					 #:partial-role
 					 #:guild
