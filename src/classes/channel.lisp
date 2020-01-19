@@ -225,7 +225,7 @@
     (2 (%guild-voice-fj table))
     (3 (%group-dm-fj table))
     (4 (%guild-category-fj table))
-    (otherwise (dprint :error "Channel type ~A not recognised!~%This should only happen if discord creates a new channel type and lispcord wasn't updated yet~%Please file an issue at https://github.com/MegaLoler/lispcord/issues" (gethash "type" table)))))
+    (otherwise (v:error :lispcord.classes "Channel type ~A not recognised!~%This should only happen if discord creates a new channel type and lispcord wasn't updated yet~%Please file an issue at https://github.com/lispcord/lispcord/issues" (gethash "type" table)))))
 
 (defmethod update ((table hash-table) (c channel))
   (from-table-update (table data)

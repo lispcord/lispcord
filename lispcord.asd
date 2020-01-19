@@ -6,6 +6,7 @@
     :serial t
     :depends-on (:drakma
                  :alexandria
+                 :verbose
                  :split-sequence
                  :babel
                  :websocket-driver-client

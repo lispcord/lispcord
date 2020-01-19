@@ -5,7 +5,7 @@
 (defun refresh-gateway-url ()
   (doit  (get-rq "gateway")
          (gethash "url" it)
-         (:! dprint :debug "~&Gateway-url: ~a~%" it)
+         (:! v:debug :lispcord.gateway "Gateway-url: ~a" it)
          (str-concat it +api-suffix+)
          (setf *gateway-url* it)))
 
@@ -15,7 +15,7 @@
 
 (defun send-payload (bot &key op data)
   (doit (jmake `(("op" . ,op) ("d" . ,data)))
-        (:! dprint :debug "~&Send payload: ~a~%" it)
+        (:! v:debug :lispcord.gateway "Send payload: ~a" it)
         (wsd:send (bot-conn bot) it)))
 
 (defun make-status (bot status game afk)
@@ -28,7 +28,7 @@
       ("status" . ,status))))
 
 (defun send-identify (bot)
-  (dprint :info "~&Send identify for ~a~%" (bot-token bot))
+  (v:info :lispcord.gateway "Send identify for ~a" (bot-token bot))
   (send-payload bot
                 :op 2
                 :data `(("token" . ,(lispcord.core:bot-auth bot))
@@ -44,7 +44,7 @@
                                                     nil)))))
 
 (defun send-resume (bot)
-  (dprint :info "~&Resuming connection for session ~a...~%"
+  (v:info :lispcord.gateway "Resuming connection for session ~a..."
           (bot-session-id bot))
   (send-payload bot
                 :op 6
@@ -54,7 +54,7 @@
 
 
 (defun on-ready (bot payload)
-  (dprint :info "~&Ready payload received; Session-id: ~a~%"
+  (v:info :lispcord.gateway "Ready payload received; Session-id: ~a"
           (gethash "session_id" payload))
   (setf (bot-session-id bot) (gethash "session_id" payload))
   (setf (bot-user bot) (cache :user (gethash "user" payload)))
@@ -80,11 +80,11 @@
 (defun make-heartbeat-thread (bot seconds
                               &optional (stream *error-output*))
   (declare (type rational seconds))
-  (dprint :info "~&Initiating heartbeat every ~d seconds~%" seconds)
+  (v:info :lispcord.gateway "Initiating heartbeat every ~d seconds" seconds)
   (make-thread (lambda ()
                  (let ((*error-output* stream))
                    (loop
-                      (dprint :debug "Dispatching heartbeat!")
+                      (v:debug :lispcord.gateway "Dispatching heartbeat!")
                       (send-heartbeat bot)
                       (sleep seconds))))))
 
@@ -211,7 +211,7 @@
   (when-let ((u (getcache-id (parse-snowflake
                                (gethash "id" (gethash "user" data)))
                               :user)))
-    (dprint :debug "User uncached: ~a~%"
+    (v:debug :lispcord.gateway "User uncached: ~a"
             (gethash "id" (gethash "user" data)))
     (setf (lc:status u) (gethash "status" data))
     (setf (lc:game u) (from-json :game (gethash "game" data))))
@@ -233,8 +233,8 @@
         (seq (gethash "s" msg))
         (data (gethash "d" msg)))
     (setf (bot-seq bot) seq)
-    (dprint :info "[Event] ~a~%" event)
-    (dprint :debug "[Payload] ~a~%" msg)
+    (v:info :lispcord.gateway "[Event] ~a" event)
+    (v:debug :lispcord.gateway "[Payload] ~a" msg)
     (switch (event :test #'string=)
       ;; on handshake
       ("READY"
@@ -368,14 +368,14 @@
 
       ;; unrecognised event!
       (:else
-       (dprint :warn "unrecognised event! ~a~%" event)))))
+       (v:warn :lispcord.gateway "unrecognised event! ~a" event)))))
 
 
 ;; opcode 10
 (defun on-hello (bot msg)
   (let ((heartbeat-interval (gethash "heartbeat_interval" (gethash "d" msg))))
     (declare (type (unsigned-byte 32) heartbeat-interval))
-    (dprint :debug "Heartbeat Inverval: ~a~%" heartbeat-interval)
+    (v:debug :lispcord.gateway "Heartbeat Inverval: ~a" heartbeat-interval)
     (setf (bot-heartbeat-thread bot)
           (make-heartbeat-thread bot (/ heartbeat-interval 1000)))
     (if (bot-session-id bot)
@@ -391,7 +391,7 @@
      (bt:make-thread
       (lambda ()
         (let ((*error-output* out))
-          (dprint :info "~a disconnecting...~%"
+          (v:info :lispcord.gateway "~a disconnecting..."
                   (if (bot-user bot) (lc:name (bot-user bot))))
           (wsd:close-connection (bot-conn bot) reason code)
           (setf (bot-seq bot) 0)
@@ -399,13 +399,13 @@
           (bt:destroy-thread (bot-heartbeat-thread bot))))))))
 
 (defun cleanup (bot)
-  (dprint :warn "Cleanup loop engaged!~%Bot: ~a" (lc:name (bot-user bot)))
+  (v:warn :lispcord.gateway "Cleanup loop engaged! Bot: ~a" (lc:name (bot-user bot)))
   (disconnect bot)
   (sleep (random 5))
   (connect bot))
 
 (defun reconnect (bot &optional reason code)
-  (dprint :warn "Attempting to reconnect!~%Bot: ~a" (lc:name (bot-user bot)))
+  (v:warn :lispcord.gateway "Attempting to reconnect! Bot: ~a" (lc:name (bot-user bot)))
   (wsd:close-connection (bot-conn bot) reason code)
   (setf (bot-conn bot) nil)
   (setf (bot-heartbeat-thread bot) nil))
@@ -421,9 +421,9 @@
       (7  (reconnect bot))   ;Requests Reconnect
       (9  (cleanup bot))         ;Invalid Sessions Event
       (10 (on-hello bot msg))    ;Hello Event
-      (11 (dprint :debug "Received Heartbeat ACK~%"))
+      (11 (v:debug :lispcord.gateway "Received Heartbeat ACK"))
       (T ;; not sure if this should be an error to the user or not?
-       (dprint :error "Received invalid opcode! ~a~%" op)))))
+       (v:error :lispcord.gateway "Received invalid opcode! ~a" op)))))
 
 
 (defun connect (bot)
@@ -434,7 +434,7 @@
   
   (wsd:on :open (bot-conn bot)
           (lambda ()
-            (dprint :info "Connected!~%")))
+            (v:info :lispcord.gateway "Connected!")))
   
   (wsd:on :message (bot-conn bot)
           (lambda (message)
@@ -442,7 +442,7 @@
   
   (wsd:on :error (bot-conn bot)
           (lambda (error)
-            (dprint :error "Websocket error: ~a~%" error)
+            (v:error :lispcord.gateway "Websocket error: ~a" error)
             (refresh-gateway-url)))
   
   (wsd:on :close (bot-conn bot)
@@ -451,7 +451,7 @@
                             (null nil)
                             (string reason)
                             (vector (babel:octets-to-string reason)))))
-              (dprint :warn "Websocket closed with code: ~a~%Reason: ~a~%" code reason)
+              (v:warn :lispcord.gateway "Websocket closed with code: ~a Reason: ~a" code reason)
               (when (bot-session-id bot)
                 (disconnect bot reason code))
               (dispatch-event :on-close

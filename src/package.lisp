@@ -157,8 +157,6 @@
      #:unban
      #:get-roles
      #:get-me
-     #:leave
-
-     #:set-log-level))
+     #:leave))
 
 

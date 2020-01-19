@@ -37,7 +37,7 @@
   (:documentation "Returns the cached parent object corresponding to th e parrent-id of object"))
 
 ;;; When working on a class, please comment on the relevant github issue
-;;; at https://github.com/MegaLoler/lispcord/issues that you are working
+;;; at https://github.com/lispcord/lispcord/issues that you are working
 ;;; on it :)
 
 

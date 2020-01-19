@@ -21,7 +21,7 @@
   "This function should only be called with the cache's lock held"
   (let ((id (parse-snowflake (gethash "id" table))))
     (let ((entity (gethash id cache-data)))
-      (dprint :debug "Cache-hit: ~20a :: ~a~%" id key)
+      (v:debug :lispcord.cache "Cache-hit: ~20a :: ~a" id key)
       (if entity
           (update table entity)
           (setf (gethash id cache-data) (from-json key table))))))

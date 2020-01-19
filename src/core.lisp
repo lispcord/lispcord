@@ -45,7 +45,7 @@ It may be set by make-bot!")
                     &aux
                       (url (str-concat +base-url+ endpoint))
                       (final (rl-buffer endpoint)))
-  (dprint :debug "~&HTTP-~a-Request to: ~a~%~@[  content: ~a~%~]"
+  (v:debug :lispcord.core "~&HTTP-~a-Request to: ~a~%~@[  content: ~a~%~]"
           type url content)
   (multiple-value-bind (body status headers uri
                              stream closedp reason)

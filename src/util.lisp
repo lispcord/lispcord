@@ -20,10 +20,7 @@
      #:snowflake
      #:parse-snowflake
      #:to-string
-     #:optimal-id-compare
-
-     #:set-log-level
-     #:dprint))
+     #:optimal-id-compare))
 
 (in-package :lispcord.util)
 
@@ -68,30 +65,8 @@
            `(setf ,it ,f)))
      forms))))
 
-;;; Set up a logging framework so bot authors can
-;;;  gather various levels of information
-(defparameter *debug-level* (the keyword :debug)
-  "The debug level can be one of: :error, :warn, :info, :debug")
-
-(defvar *debug-levels*
-  `((:error . ,(lambda (l) (case l (:error t))))
-    (:warn . ,(lambda (l) (case l ((:error :warn) t))))
-    (:info . ,(lambda (l) (case l ((:error :warn :info) t))))
-    (:debug . ,(lambda (l) (case l ((:error :warn :info :debug) t))))))
-
-(defun set-log-level (level)
-  (declare (type keyword level))
-  (ecase level
-    ((:info :error :warn :debug) (setf *debug-level* level))))
-
-
-;;unfortunately "log" is package locked
-(defun dprint (level message &rest arguments)
-  (declare (type keyword *debug-level*))
-  (when (funcall
-   (the function (cdr (assoc *debug-level* *debug-levels*)))
-   level)
-    (apply #'format *error-output* message arguments)))
+(defmethod v:format-message ((stream stream) (message v:message))
+  (format stream "~&~a" (v:content message)))
 
 (defparameter *unix-epoch* (encode-universal-time 0 0 0 1 1 1970 0)
   "Seconds since until 1970")

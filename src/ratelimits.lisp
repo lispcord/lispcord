@@ -39,7 +39,7 @@
       ((>= rl 1) (decf (gethash final *ratelimitsrems*)) final)
       ((minusp cd) (clear final) final)
       (t
-       (dprint :warn "Hitting ratelimit! Trying ~a again in: ~a~%" route cd)
+       (v:warn :lispcord.ratelimits "Hitting ratelimit! Trying ~a again in: ~a" route cd)
        (sleep cd)
        (clear final)
        (rl-buffer endpoint))))))
@@ -50,14 +50,14 @@
     (let ((limit? (geta :x-ratelimit-limit headers))
     (rem? (geta :x-ratelimit-remaining headers))
     (reset? (geta :x-ratelimit-reset headers)))
-      (dprint :debug "limit: ~a~%Remaining: ~a~%reset: ~a~%"
+      (v:debug :lispcord.ratelimits "limit: ~a; Remaining: ~a; reset: ~a"
         limit? rem? reset?)
       (when (and limit? (not (= (int limit?) (gethash final *ratelimitlimits* 0))))
-  (dprint :debug "New ratelimit-limit ~a for ~a~%" limit? final)
+  (v:debug :lispcord.ratelimits "New ratelimit-limit ~a for ~a" limit? final)
   (setf (gethash final *ratelimitlimits*) (int limit?)))
       (when rem?
-  (dprint :debug "New ratelimit-remainder ~a for ~a~%" rem? final)
+  (v:debug :lispcord.ratelimits "New ratelimit-remainder ~a for ~a" rem? final)
   (setf (gethash final *ratelimitsrems*) (int rem?)))
       (when (and reset? (not (= (int reset?) (gethash final *ratelimitsresets* 0))))
-  (dprint :debug "New ratelimit-reset ~a for ~a~%" reset? final)
+  (v:debug :lispcord.ratelimits "New ratelimit-reset ~a for ~a" reset? final)
   (setf (gethash final *ratelimitsresets*) (int reset?))))))
