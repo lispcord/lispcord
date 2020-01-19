@@ -283,10 +283,18 @@
 (defmethod member ((u user) (g guild))
   (find-if (lambda (e) (eq u (lc:user e))) (members g)))
 
-(defun nick-or-name (user guild)
-  (if-let ((member (member user guild)))
+(defmethod nick-or-name ((u user) (g  guild))
+  "Member u of the guild g"
+  (if-let ((member (member u g)))
     (nick member)
-    (name user)))
+    (name u)))
+
+(defmethod nick-or-name ((u user) (m message))
+  "Member u of the guild with message m"
+  (let ((c (channel m)))
+    (if (typep c 'guild-channel)
+        (nick-or-name u (guild c))
+        (name u))))
 
 (defmethod %to-json ((g available-guild))
   (with-object

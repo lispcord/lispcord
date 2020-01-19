@@ -37,8 +37,10 @@
 ;; without needing to rewrite all the type declerations!
 (deftype snowflake () '(unsigned-byte 64))
 
+(declaim (ftype (function (string) (or fixnum null)) parse-snowflake))
 (defun parse-snowflake (snowflake-string)
-  (parse-integer snowflake-string))
+  "Parses a snowflake string to fixnum or returns nil if snowflake is invalid."
+  (parse-integer snowflake-string :junk-allowed t))
 
 (defun to-string (obj)
   (format nil "~a" obj))
