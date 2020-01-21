@@ -147,6 +147,13 @@
       (from-json :webhook obj)
       (cache :user obj)))
 
+(defmethod nick-or-name ((u user) (m message))
+  "Member u of the guild with message m"
+  (let ((c (channel m)))
+    (if (typep c 'guild-channel)
+        (nick-or-name u (guild c))
+        (name u))))
+
 (defmethod from-json ((c (eql :message)) (table hash-table))
   (instance-from-table (table 'message)
                        :id (parse-snowflake (gethash "id" table))

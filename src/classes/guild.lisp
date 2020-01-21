@@ -289,13 +289,6 @@
     (nick member)
     (name u)))
 
-(defmethod nick-or-name ((u user) (m message))
-  "Member u of the guild with message m"
-  (let ((c (channel m)))
-    (if (typep c 'guild-channel)
-        (nick-or-name u (guild c))
-        (name u))))
-
 (defmethod %to-json ((g available-guild))
   (with-object
     (write-key-value "id" (id g))
