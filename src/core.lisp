@@ -13,6 +13,7 @@ It may be set by make-bot!")
   (afk-since nil :type (or null fixnum))
   (event-handlers (make-hash-table) :type hash-table)
   conn
+  (running nil :type boolean)
   (auth-as-bot t :type boolean)
   heartbeat-thread)
 

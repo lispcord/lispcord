@@ -15,6 +15,7 @@
            #:getcache-id
            #:cache
            #:decache-id
+           #:cache-update
            
            #:make-game
            #:make-channel

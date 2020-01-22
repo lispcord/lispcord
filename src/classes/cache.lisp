@@ -17,14 +17,14 @@
 
 (defvar *emojis* (make-cache 200))
 
-(defun resolve-cache (cache-data table key)
-  "This function should only be called with the cache's lock held"
+(defun resolve-cache (cache table key)
   (let ((id (parse-snowflake (gethash "id" table))))
-    (let ((entity (gethash id cache-data)))
-      (v:debug :lispcord.cache "Cache-hit: ~20a :: ~a" id key)
-      (if entity
-          (update table entity)
-          (setf (gethash id cache-data) (from-json key table))))))
+    (bt:with-recursive-lock-held ((cache-lock cache))
+      (let ((entity (gethash id (cache-data cache))))
+        (v:debug :lispcord.cache "Cache-hit: ~20a :: ~a" id key)
+        (if entity
+            (update table entity)
+            (setf (gethash id (cache-data cache)) (from-json key table)))))))
 
 (defun key-cache (key)
   (case key
@@ -37,16 +37,19 @@
 (defun cache (key table)
   (when table
     (let ((cache (key-cache key)))
-      (bt:with-lock-held ((cache-lock cache))
-        (resolve-cache (cache-data cache) table key)))))
+      (resolve-cache cache table key))))
 
 
 (defun getcache-id (id key)
   (let ((cache (key-cache key)))
-    (bt:with-lock-held ((cache-lock cache))
-      (gethash id (cache-data cache)))))
+    (gethash id (cache-data cache))))
 
 (defun decache-id (id key)
   (let ((cache (key-cache key)))
-    (bt:with-lock-held ((cache-lock cache))
-      (remhash id (cache-data cache)))))
+    (remhash id (cache-data cache))))
+
+(defun cache-update (id key table)
+  (let ((cache (key-cache key)))
+    (bt:with-recursive-lock-held ((cache-lock cache))
+      (decache-id id key)
+      (cache key table))))

@@ -31,7 +31,7 @@
      #:bot-afk-since
      #:bot-event-handlers
      #:bot-conn
-     #:bot-done
+     #:bot-running
      #:bot-heartbeat-thread
      #:bot-auth-as-bot
 

@@ -28,10 +28,10 @@
       ("status" . ,status))))
 
 (defun send-identify (bot)
-  (v:info :lispcord.gateway "Send identify for ~a" (bot-token bot))
+  (v:info :lispcord.gateway "Send identify for ~a" (bot-auth bot))
   (send-payload bot
                 :op 2
-                :data `(("token" . ,(lispcord.core:bot-auth bot))
+                :data `(("token" . ,(bot-auth bot))
                         ("properties" . (("$os" . ,+os+)
                                          ("$browser" . ,+lib+)
                                          ("$device" . ,+lib+)))
@@ -48,7 +48,7 @@
           (bot-session-id bot))
   (send-payload bot
                 :op 6
-                :data `(("token" . ,(bot-token bot))
+                :data `(("token" . ,(bot-auth bot))
                         ("session_id" . ,(bot-session-id bot))
                         ("seq" . ,(bot-seq bot)))))
 
@@ -373,6 +373,7 @@
 
 ;; opcode 10
 (defun on-hello (bot msg)
+  (v:debug :lispcord.gateway "Hello from gateway")
   (let ((heartbeat-interval (gethash "heartbeat_interval" (gethash "d" msg))))
     (declare (type (unsigned-byte 32) heartbeat-interval))
     (v:debug :lispcord.gateway "Heartbeat Inverval: ~a" heartbeat-interval)
@@ -384,31 +385,36 @@
 
 
 
-
 (defun disconnect (bot &optional reason code)
-  (let ((out *error-output*))
-    (bt:join-thread
-     (bt:make-thread
-      (lambda ()
-        (let ((*error-output* out))
-          (v:info :lispcord.gateway "~a disconnecting..."
-                  (if (bot-user bot) (lc:name (bot-user bot))))
-          (setf (bot-seq bot) 0)
-          (setf (bot-session-id bot) nil)
-          (wsd:close-connection (bot-conn bot) reason code)
-          (bt:destroy-thread (bot-heartbeat-thread bot))))))))
+  (when (bot-running bot)
+    (let ((out *error-output*))
+      (bt:join-thread
+       (bt:make-thread
+        (lambda ()
+          (let ((*error-output* out))
+            (v:info :lispcord.gateway "~a disconnecting..."
+                    (if (bot-user bot) (lc:name (bot-user bot))))
+            (setf (bot-running bot) nil)
+            (setf (bot-seq bot) 0)
+            (setf (bot-session-id bot) nil)
+            (wsd:close-connection (bot-conn bot) reason code)
+            (bt:destroy-thread (bot-heartbeat-thread bot)))))))))
 
 (defun cleanup (bot)
   (v:warn :lispcord.gateway "Cleanup loop engaged! Bot: ~a" (lc:name (bot-user bot)))
-  (disconnect bot)
+  (setf (bot-session-id bot) nil)
   (sleep (random 5))
-  (connect bot))
+  (send-identify bot))
 
 (defun reconnect (bot &optional reason code)
-  (v:warn :lispcord.gateway "Attempting to reconnect! Bot: ~a" (lc:name (bot-user bot)))
-  (wsd:close-connection (bot-conn bot) reason code)
-  (setf (bot-conn bot) nil)
-  (setf (bot-heartbeat-thread bot) nil))
+  (cond ((bot-user bot)
+         (v:warn :lispcord.gateway "Attempting to reconnect! Bot: ~a" (lc:name (bot-user bot)))
+         (wsd:close-connection (bot-conn bot) reason code)
+         (setf (bot-conn bot) nil)
+         (setf (bot-heartbeat-thread bot) nil)
+         (connect bot))
+        (t
+         (v:error :lispcord.gateway "Bot requested to reconnect before a succesfull connection!"))))
 
 
 ;; receive message from websocket and dispatch to handler
@@ -430,6 +436,7 @@
   (assert (typep bot 'bot))
   (unless *gateway-url* (refresh-gateway-url))
   (setf (bot-conn bot) (wsd:make-client *gateway-url*))
+  (setf (bot-running bot) t)
   (wsd:start-connection (bot-conn bot))
   
   (wsd:on :open (bot-conn bot)
@@ -452,8 +459,17 @@
                             (string reason)
                             (vector (babel:octets-to-string reason)))))
               (v:warn :lispcord.gateway "Websocket closed with code: ~a Reason: ~a" code reason)
-              (when (bot-session-id bot)
-                (disconnect bot reason code))
-              (dispatch-event :on-close
-                              (list reason code)
-                              bot)))))
+              (cond ((or (not (bot-running bot))
+                         (member code (list 4004 ;; Authentication failed
+                                            4006 ;; Invalid session
+                                            ))) 
+                     ;; Either the bot is terminating or there's a good reason to disconnect us
+                     (when (bot-session-id bot)
+                       (disconnect bot reason code))
+                     (dispatch-event :on-close
+                                     (list reason code)
+                                     bot))
+                    (t
+                     ;; Gateway disconnected us for unknown reason
+                     (sleep (random 5))
+                     (reconnect bot reason code)))))))

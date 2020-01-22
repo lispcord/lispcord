@@ -372,8 +372,7 @@
                  :available (not (gethash "unavailable" table))))
 
 (defmethod update ((table hash-table) (g guild))
-  (decache-id (id g) :guild)
-  (cache :guild table))
+  (cache-update (id g) :guild table))
 
 (defmethod update ((table hash-table) (g available-guild))
   (from-table-update (table data)
