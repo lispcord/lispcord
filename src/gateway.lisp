@@ -437,7 +437,12 @@
   (unless *gateway-url* (refresh-gateway-url))
   (setf (bot-conn bot) (wsd:make-client *gateway-url*))
   (setf (bot-running bot) t)
-  (wsd:start-connection (bot-conn bot))
+  (handler-case
+      (wsd:start-connection (bot-conn bot))
+    ;; Gateway connection failed, refresh the gateway url and try again
+    (usocket:timeout-error ()
+      (refresh-gateway-url)
+      (return-from connect (connect bot))))
   
   (wsd:on :open (bot-conn bot)
           (lambda ()
