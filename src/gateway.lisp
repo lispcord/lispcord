@@ -1,5 +1,7 @@
 (in-package :lispcord.gateway)
 
+;;;; Utils
+
 (defvar *gateway-url* nil)
 
 (defun refresh-gateway-url ()
@@ -9,9 +11,25 @@
          (str-concat it +api-suffix+)
          (setf *gateway-url* it)))
 
+;;;; Heartbeat thread
 
+(defun make-heartbeat-thread (bot seconds
+                              &optional (stream *error-output*))
+  (declare (type rational seconds))
+  (v:info :lispcord.gateway "Initiating heartbeat every ~d seconds" seconds)
+  (bt:make-thread (lambda ()
+                    (let ((*error-output* stream))
+                      ;; While connection exists and the thread is actual
+                      (loop :while (and (eq (bot-heartbeat-thread bot)
+                                            (bt:current-thread))
+                                        (bot-conn bot))
+                         :do (v:debug :lispcord.gateway "Dispatching heartbeat!")
+                         :do (send-heartbeat bot)
+                         :do (sleep seconds)))
+                    (v:debug :lispcord.gateway "Terminating a heartbeat thread"))
+                  :name "Heartbeat"))
 
-
+;;;; Sending 
 
 (defun send-payload (bot &key op data)
   (doit (jmake `(("op" . ,op) ("d" . ,data)))
@@ -53,23 +71,10 @@
                         ("seq" . ,(bot-seq bot)))))
 
 
-(defun on-ready (bot payload)
-  (v:info :lispcord.gateway "Ready payload received; Session-id: ~a"
-          (gethash "session_id" payload))
-  (setf (bot-session-id bot) (gethash "session_id" payload))
-  (setf (bot-user bot) (cache :user (gethash "user" payload)))
-  ;;dispatch event
-  (dispatch-event :on-ready (list (from-json :ready payload)) bot))
-
-
-
-
 (defun send-status-update (bot &optional game (status :online))
   (send-payload bot
                 :op 3
                 :data (make-status bot status game nil)))
-
-
 
 
 (defun send-heartbeat (bot)
@@ -77,20 +82,16 @@
                 :op 1
                 :data (bot-seq bot)))
 
-(defun make-heartbeat-thread (bot seconds
-                              &optional (stream *error-output*))
-  (declare (type rational seconds))
-  (v:info :lispcord.gateway "Initiating heartbeat every ~d seconds" seconds)
-  (make-thread (lambda ()
-                 (let ((*error-output* stream))
-                   (loop
-                      (v:debug :lispcord.gateway "Dispatching heartbeat!")
-                      (send-heartbeat bot)
-                      (sleep seconds))))))
 
+;;;; Handlers
 
-
-
+(defun on-ready (bot payload)
+  (v:info :lispcord.gateway "Ready payload received; Session-id: ~a"
+          (gethash "session_id" payload))
+  (setf (bot-session-id bot) (gethash "session_id" payload))
+  (setf (bot-user bot) (cache :user (gethash "user" payload)))
+  ;;dispatch event
+  (dispatch-event :on-ready (list (from-json :ready payload)) bot))
 
 
 (defun on-emoji-update (data bot)
@@ -209,10 +210,10 @@
 
 (defun on-presence (data bot)
   (when-let ((u (getcache-id (parse-snowflake
-                               (gethash "id" (gethash "user" data)))
-                              :user)))
+                              (gethash "id" (gethash "user" data)))
+                             :user)))
     (v:debug :lispcord.gateway "User uncached: ~a"
-            (gethash "id" (gethash "user" data)))
+             (gethash "id" (gethash "user" data)))
     (setf (lc:status u) (gethash "status" data))
     (setf (lc:game u) (from-json :game (gethash "game" data))))
   (dispatch-event :on-presence-update
@@ -367,8 +368,11 @@
        (on-presence data bot))
 
       ;; unrecognised event!
-      (:else
-       (v:warn :lispcord.gateway "unrecognised event! ~a" event)))))
+      (t
+       (v:debug :lispcord.gateway "unrecognised event! ~a:~%~a" event
+                (typecase data
+                  (hash-table (alexandria:hash-table-plist data))
+                  (list (mapcar #'alexandria:hash-table-plist data))))))))
 
 
 ;; opcode 10
@@ -384,39 +388,6 @@
         (send-identify bot))))
 
 
-
-(defun disconnect (bot &optional reason code)
-  (when (bot-running bot)
-    (let ((out *error-output*))
-      (bt:join-thread
-       (bt:make-thread
-        (lambda ()
-          (let ((*error-output* out))
-            (v:info :lispcord.gateway "~a disconnecting..."
-                    (if (bot-user bot) (lc:name (bot-user bot))))
-            (setf (bot-running bot) nil)
-            (setf (bot-seq bot) 0)
-            (setf (bot-session-id bot) nil)
-            (wsd:close-connection (bot-conn bot) reason code)
-            (bt:destroy-thread (bot-heartbeat-thread bot)))))))))
-
-(defun cleanup (bot)
-  (v:warn :lispcord.gateway "Cleanup loop engaged! Bot: ~a" (lc:name (bot-user bot)))
-  (setf (bot-session-id bot) nil)
-  (sleep (random 5))
-  (send-identify bot))
-
-(defun reconnect (bot &optional reason code)
-  (cond ((bot-user bot)
-         (v:warn :lispcord.gateway "Attempting to reconnect! Bot: ~a" (lc:name (bot-user bot)))
-         (wsd:close-connection (bot-conn bot) reason code)
-         (setf (bot-conn bot) nil)
-         (setf (bot-heartbeat-thread bot) nil)
-         (connect bot))
-        (t
-         (v:error :lispcord.gateway "Bot requested to reconnect before a succesfull connection!"))))
-
-
 ;; receive message from websocket and dispatch to handler
 (defun on-recv (bot msg)
   (let ((op (gethash "op" msg)))
@@ -424,13 +395,56 @@
       (0  (with-simple-restart (abort "Skip handling this event")
             (on-dispatch bot msg))) ;Dispatch Event
       (1  (send-heartbeat bot))  ;Requests Heartbeat
-      (7  (reconnect bot))   ;Requests Reconnect
-      (9  (cleanup bot))         ;Invalid Sessions Event
+      (7  (reconnect bot))       ;Requests Reconnect
+      (9  (new-session bot))     ;Invalid Sessions Event
       (10 (on-hello bot msg))    ;Hello Event
       (11 (v:debug :lispcord.gateway "Received Heartbeat ACK"))
       (T ;; not sure if this should be an error to the user or not?
        (v:error :lispcord.gateway "Received invalid opcode! ~a" op)))))
 
+;;;; Connection
+
+(defun terminate-wsd-connection (bot &optional reason code)
+  (when (bot-conn bot)
+    (v:debug :lispcord.gateway "Terminating wsd connection!")
+    ;; The thread will terminate if it's not in the bot instance
+    (setf (bot-heartbeat-thread bot) nil)
+    ;; Otherwise it will try to reconnect recursively
+    (wsd:remove-all-listeners (bot-conn bot))
+    (wsd:close-connection (bot-conn bot) reason code)
+    (setf (bot-conn bot) nil)))
+
+
+(defun disconnect (bot &optional reason code)
+  (when (bot-running bot)
+    (v:info :lispcord.gateway "~a disconnecting..."
+            (if (bot-user bot) (lc:name (bot-user bot))))
+    (setf (bot-running bot) nil)
+    (setf (bot-seq bot) 0)
+    (setf (bot-session-id bot) nil)
+    (terminate-wsd-connection bot reason code)))
+
+(defun new-session (bot)
+  (v:warn :lispcord.gateway "Requesting new session. Bot: ~a" (lc:name (bot-user bot)))
+  (setf (bot-session-id bot) nil)
+  (sleep (random 5))
+  (send-identify bot))
+
+(defun reconnect-full (bot &optional reason code)
+  "Used either when Discord refuses to send us Hello or on unknown errors."
+  (v:warn :lispcord.gateway "Performing full reconnect! Bot: ~a"
+          (if (bot-user bot) (lc:name (bot-user bot)) nil))
+  (disconnect bot reason code)
+  (sleep 1)
+  (connect bot))
+
+(defun reconnect (bot &optional reason code)
+  (cond ((bot-user bot)
+         (v:warn :lispcord.gateway "Attempting to reconnect! Bot: ~a" (lc:name (bot-user bot)))
+         (terminate-wsd-connection bot reason code)
+         (connect bot))
+        (t
+         (v:error :lispcord.gateway "Bot requested to reconnect before a succesfull connection!"))))
 
 (defun connect (bot)
   (assert (typep bot 'bot))
@@ -466,15 +480,22 @@
               (v:warn :lispcord.gateway "Websocket closed with code: ~a Reason: ~a" code reason)
               (cond ((or (not (bot-running bot))
                          (member code (list 4004 ;; Authentication failed
-                                            4006 ;; Invalid session
                                             ))) 
                      ;; Either the bot is terminating or there's a good reason to disconnect us
+                     ;; Give up
                      (when (bot-session-id bot)
                        (disconnect bot reason code))
                      (dispatch-event :on-close
                                      (list reason code)
                                      bot))
+                    ((null code)
+                     ;; Gateway didn't tell us the reason for disconnect.
+                     ;; This usually happens in case of network failures
+                     ;; Try to resume the same session
+                     (sleep 5)
+                     (reconnect bot reason code))
                     (t
-                     ;; Gateway disconnected us for unknown reason
-                     (sleep (random 5))
-                     (reconnect bot reason code)))))))
+                     ;; Gateway disconnected us for unknown reason (e.g. code 1000 Unknown error)
+                     ;; Get a new session
+                     (sleep 5)
+                     (reconnect-full bot reason code)))))))

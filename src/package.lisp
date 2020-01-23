@@ -52,7 +52,6 @@
 (defpackage :lispcord.gateway
   (:use :cl
         :alexandria
-        :bordeaux-threads
         :lispcord.util
         :lispcord.pipes
         :lispcord.core
@@ -64,7 +63,7 @@
     #:getcache-id
     #:decache-id)
   (:export #:connect
-     #:disconnect))
+           #:disconnect))
 
 (defpackage :lispcord.http
   (:use :cl
