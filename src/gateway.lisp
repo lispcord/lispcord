@@ -18,13 +18,18 @@
   (declare (type rational seconds))
   (v:info :lispcord.gateway "Initiating heartbeat every ~d seconds" seconds)
   (bt:make-thread (lambda ()
+                    (setf (bot-heartbeat-ack bot) t)
                     (let ((*error-output* stream))
                       ;; While connection exists and the thread is actual
                       (loop :while (and (eq (bot-heartbeat-thread bot)
                                             (bt:current-thread))
                                         (bot-conn bot))
+                         :do (when (not (bot-heartbeat-ack bot))
+                               (v:warn :lispcord.gateway "Discord didn't reply to heartbeat. Reconnecting.")
+                               (event-emitter:emit :no-heartbeat (bot-conn bot)))
                          :do (v:debug :lispcord.gateway "Dispatching heartbeat!")
                          :do (send-heartbeat bot)
+                         :do (setf (bot-heartbeat-ack bot) nil)
                          :do (sleep seconds)))
                     (v:debug :lispcord.gateway "Terminating a heartbeat thread"))
                   :name "Heartbeat"))
@@ -387,6 +392,10 @@
         (send-resume bot)
         (send-identify bot))))
 
+;; opcode 11
+(defun on-heartbeat-ack (bot)
+  (setf (bot-heartbeat-ack bot) t)
+  (v:debug :lispcord.gateway "Received Heartbeat ACK"))
 
 ;; receive message from websocket and dispatch to handler
 (defun on-recv (bot msg)
@@ -398,7 +407,7 @@
       (7  (reconnect bot))       ;Requests Reconnect
       (9  (new-session bot))     ;Invalid Sessions Event
       (10 (on-hello bot msg))    ;Hello Event
-      (11 (v:debug :lispcord.gateway "Received Heartbeat ACK"))
+      (11 (on-heartbeat-ack bot));Heartbeat Ack Event
       (T ;; not sure if this should be an error to the user or not?
        (v:error :lispcord.gateway "Received invalid opcode! ~a" op)))))
 
@@ -455,6 +464,7 @@
       (wsd:start-connection (bot-conn bot))
     ;; Gateway connection failed, refresh the gateway url and try again
     (usocket:timeout-error ()
+      (sleep 5)
       (refresh-gateway-url)
       (return-from connect (connect bot))))
   
@@ -470,6 +480,13 @@
           (lambda (error)
             (v:error :lispcord.gateway "Websocket error: ~a" error)
             (refresh-gateway-url)))
+
+  ;; Sent by the heartbeat thread if it doesn't get replies from the gateway server
+  (wsd:on :no-heartbeat (bot-conn bot)
+          (lambda ()
+            (sleep 5)
+            (refresh-gateway-url)
+            (reconnect-full bot)))
   
   (wsd:on :close (bot-conn bot)
           (lambda (&key code reason)

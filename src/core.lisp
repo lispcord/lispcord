@@ -14,6 +14,7 @@ It may be set by make-bot!")
   (event-handlers (make-hash-table) :type hash-table)
   conn
   (running nil :type boolean)
+  (heartbeat-ack t :type boolean)
   (auth-as-bot t :type boolean)
   heartbeat-thread)
 

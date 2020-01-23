@@ -32,6 +32,7 @@
      #:bot-event-handlers
      #:bot-conn
      #:bot-running
+     #:bot-heartbeat-ack
      #:bot-heartbeat-thread
      #:bot-auth-as-bot
 
