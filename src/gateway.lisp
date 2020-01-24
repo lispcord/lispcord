@@ -2,14 +2,37 @@
 
 ;;;; Utils
 
+(defun network-retry-loop (func delay refresh-gateway retries &optional (retry 0))
+  (handler-case
+      (funcall func)
+    ((or usocket:ns-try-again-condition usocket:timeout-error) ()
+      (unless (and retries
+                   (> retry retries))
+        (v:error :lispcord.gateway "Network not available. Retrying connection.")
+        (when delay
+          (sleep delay))
+        (when refresh-gateway
+          (refresh-gateway-url))
+        ;; Handle and retry
+        (recur network-retry-loop func delay refresh-gateway retries (1+ retry)))
+      ;; Decline
+      (v:error :lispcord.gateway "Max retries reached."))))
+
+(eval-when (:compile-toplevel :load-toplevel :execute)
+  (defmacro with-network-retry ((&key (delay 5) (refresh-gateway nil) (retries nil)) &body body)
+    `(network-retry-loop (lambda () ,@body) ,delay ,refresh-gateway ,retries)))
+
+;;;; Gateway url
+
 (defvar *gateway-url* nil)
 
 (defun refresh-gateway-url ()
-  (doit  (get-rq "gateway")
-         (gethash "url" it)
-         (:! v:debug :lispcord.gateway "Gateway-url: ~a" it)
-         (str-concat it +api-suffix+)
-         (setf *gateway-url* it)))
+  (with-network-retry (:refresh-gateway nil)
+    (doit (get-rq "gateway")
+          (gethash "url" it)
+          (:! v:debug :lispcord.gateway "Gateway-url: ~a" it)
+          (str-concat it +api-suffix+)
+          (setf *gateway-url* it))))
 
 ;;;; Heartbeat thread
 
@@ -26,12 +49,13 @@
                                         (bot-conn bot))
                          :do (when (not (bot-heartbeat-ack bot))
                                (v:warn :lispcord.gateway "Discord didn't reply to heartbeat. Reconnecting.")
-                               (event-emitter:emit :no-heartbeat (bot-conn bot)))
+                               (event-emitter:emit :no-heartbeat (bot-conn bot))
+                               (return))
                          :do (v:debug :lispcord.gateway "Dispatching heartbeat!")
                          :do (send-heartbeat bot)
                          :do (setf (bot-heartbeat-ack bot) nil)
                          :do (sleep seconds)))
-                    (v:debug :lispcord.gateway "Terminating a heartbeat thread"))
+                    (v:debug :lispcord.gateway "Terminating a stale heartbeat thread"))
                   :name "Heartbeat"))
 
 ;;;; Sending 
@@ -458,61 +482,60 @@
 (defun connect (bot)
   (assert (typep bot 'bot))
   (unless *gateway-url* (refresh-gateway-url))
-  (setf (bot-conn bot) (wsd:make-client *gateway-url*))
-  (setf (bot-running bot) t)
-  (handler-case
-      (wsd:start-connection (bot-conn bot))
-    ;; Gateway connection failed, refresh the gateway url and try again
-    (usocket:timeout-error ()
-      (sleep 5)
-      (refresh-gateway-url)
-      (return-from connect (connect bot))))
-  
-  (wsd:on :open (bot-conn bot)
-          (lambda ()
-            (v:info :lispcord.gateway "Connected!")))
-  
-  (wsd:on :message (bot-conn bot)
-          (lambda (message)
-            (on-recv bot (jparse message))))
-  
-  (wsd:on :error (bot-conn bot)
-          (lambda (error)
-            (v:error :lispcord.gateway "Websocket error: ~a" error)
-            (refresh-gateway-url)))
+  (let ((conn (wsd:make-client *gateway-url*)))
+    (setf (bot-conn bot) conn)
+    (setf (bot-running bot) t)
+    (with-network-retry (:refresh-gateway t)
+      (wsd:start-connection conn))
+    
+    (wsd:on :open conn
+            (lambda ()
+              (v:info :lispcord.gateway "Connected!")))
+    
+    (wsd:on :message conn
+            (lambda (message)
+              (on-recv bot (jparse message))))
+    
+    (wsd:on :error conn
+            (lambda (error)
+              (v:error :lispcord.gateway "Websocket error: ~a" error)
+              (refresh-gateway-url)))
 
-  ;; Sent by the heartbeat thread if it doesn't get replies from the gateway server
-  (wsd:on :no-heartbeat (bot-conn bot)
-          (lambda ()
-            (sleep 5)
-            (refresh-gateway-url)
-            (reconnect-full bot)))
-  
-  (wsd:on :close (bot-conn bot)
-          (lambda (&key code reason)
-            (let ((reason (typecase reason
-                            (null nil)
-                            (string reason)
-                            (vector (babel:octets-to-string reason)))))
-              (v:warn :lispcord.gateway "Websocket closed with code: ~a Reason: ~a" code reason)
-              (cond ((or (not (bot-running bot))
-                         (member code (list 4004 ;; Authentication failed
-                                            ))) 
-                     ;; Either the bot is terminating or there's a good reason to disconnect us
-                     ;; Give up
-                     (when (bot-session-id bot)
-                       (disconnect bot reason code))
-                     (dispatch-event :on-close
-                                     (list reason code)
-                                     bot))
-                    ((null code)
-                     ;; Gateway didn't tell us the reason for disconnect.
-                     ;; This usually happens in case of network failures
-                     ;; Try to resume the same session
-                     (sleep 5)
-                     (reconnect bot reason code))
-                    (t
-                     ;; Gateway disconnected us for unknown reason (e.g. code 1000 Unknown error)
-                     ;; Get a new session
-                     (sleep 5)
-                     (reconnect-full bot reason code)))))))
+    ;; Sent by the heartbeat thread if it doesn't get replies from the gateway server
+    (wsd:on :no-heartbeat conn
+            (lambda ()
+              (sleep 5)
+              (refresh-gateway-url)
+              (reconnect-full bot)))
+    
+    (wsd:on :close conn
+            (named-lambda close-handler (&key code reason)
+              (unless (eq conn (bot-conn bot))
+                (v:info :lispcord.gateay "Closing stale connection")
+                (return-from close-handler))
+              (let ((reason (typecase reason
+                              (null nil)
+                              (string reason)
+                              (vector (babel:octets-to-string reason)))))
+                (v:warn :lispcord.gateway "Websocket closed with code: ~a Reason: ~a" code reason)
+                (cond ((or (not (bot-running bot))
+                           (member code (list 4004 ;; Authentication failed
+                                              ))) 
+                       ;; Either the bot is terminating or there's a good reason to disconnect us
+                       ;; Give up
+                       (when (bot-session-id bot)
+                         (disconnect bot reason code))
+                       (dispatch-event :on-close
+                                       (list reason code)
+                                       bot))
+                      ((null code)
+                       ;; Gateway didn't tell us the reason for disconnect.
+                       ;; This usually happens in case of network failures
+                       ;; Try to resume the same session
+                       (sleep 5)
+                       (reconnect bot reason code))
+                      (t
+                       ;; Gateway disconnected us for unknown reason (e.g. code 1000 Unknown error)
+                       ;; Get a new session
+                       (sleep 5)
+                       (reconnect-full bot reason code))))))))

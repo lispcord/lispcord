@@ -14,6 +14,7 @@
      #:*unix-epoch*
      #:vec-extend
      #:vecrem
+     #:recur
 
      #:split-sequence
 
@@ -135,3 +136,6 @@
 
 (defun vecrem (predicate seq)
   (delete-if predicate seq :from-end t))
+
+(defmacro recur (name &rest args)
+  `(return-from ,name (,name ,@args)))
