@@ -520,6 +520,7 @@
                 (v:warn :lispcord.gateway "Websocket closed with code: ~a Reason: ~a" code reason)
                 (cond ((or (not (bot-running bot))
                            (member code (list 4004 ;; Authentication failed
+                                              4005 ;; Already authenticated
                                               ))) 
                        ;; Either the bot is terminating or there's a good reason to disconnect us
                        ;; Give up

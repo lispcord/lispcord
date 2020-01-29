@@ -1,8 +1,5 @@
 (in-package :lispcord.http)
 
-(defun get-me (&optional (bot *client*))
-  (user bot))
-
 (defmethod from-id (id (c (eql :user)) &optional (bot *client*))
   (let ((u (getcache-id id :user)))
     (if u
