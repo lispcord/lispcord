@@ -110,6 +110,13 @@
          :type t
          :accessor nsfw-p)))
 
+(defmethod channels ((cat category))
+  (let ((g (guild cat)))
+    (remove-if-not (lambda (chan)
+                     (eql (lc:id cat)
+                          (lc:parent-id chan)))
+                   (lc:channels g))))
+
 (defclass text-channel (guild-channel)
   ((nsfw         :initarg :nsfw
                  :type t

@@ -2,11 +2,11 @@
 (in-package :lispcord.http)
 
 (defmethod from-id (id (g (eql :guild)) &optional (bot *client*))
-  (if (getcache-id id :guild)
-      (getcache-id id :guild)
-      (cache :guild
-             (discord-req (str-concat "guilds/" id)
-        :bot bot))))
+  (alexandria:if-let ((cached (getcache-id id :guild)))
+    cached
+    (cache :guild
+           (discord-req (str-concat "guilds/" id)
+                        :bot bot))))
 
 (defmethod erase ((g lc:guild) &optional (bot *client*))
   (discord-req (str-concat "guilds/" (lc:id g))
