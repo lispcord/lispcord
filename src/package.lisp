@@ -68,6 +68,7 @@
 
 (defpackage :lispcord.http
   (:use :cl
+        :alexandria
   :jonathan
   :lispcord.constants
   :lispcord.util
