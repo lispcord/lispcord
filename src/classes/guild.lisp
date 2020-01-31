@@ -45,7 +45,7 @@
                 :type fixnum
                 :accessor position)
    (permissions :initarg :perms
-                :type fixnum
+                :type permissions
                 :accessor permissions)
    (managed     :initarg :managed
                 :type t
@@ -67,7 +67,7 @@
                        :color "color"
                        :hoist "hoist"
                        :pos "position"
-                       :perms "permissions"
+                       :perms (make-permissions (gethash "permissions" table))
                        :managed "managed"
                        :mentionable "mentionable"))
 
@@ -276,6 +276,11 @@
    (presences          :initarg :presences
                        :type (vector presence)
                        :accessor presences)))
+
+(defmethod role-everyone ((g guild))
+  "Returns the @everyone role of the guild"
+  ;; It always has the same id as the guild
+  (getcache-id (guild-id g) :role))
 
 (defmethod owner ((g guild))
   (getcache-id (owner-id g) :user))

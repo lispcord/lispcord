@@ -8,28 +8,30 @@
           :type string
           :accessor type)
    (allow :initarg :allow
-          :type fixnum
+          :type permissions
           :accessor allow)
    (deny  :initarg :deny
-          :type fixnum
+          :type permissions
           :accessor deny)))
 
 (defun make-overwrite (id &optional (allow 0) (deny 0) (type "role"))
-  (make-instance 'overwrite :id id :allow allow :deny deny :type type))
+  (make-instance 'overwrite :id id :type type
+                 :allow (make-permissions allow)
+                 :deny (make-permissions deny)))
 
 (defmethod from-json ((c (eql :overwrite)) (table hash-table))
   (instance-from-table (table 'overwrite)
                        :id (parse-snowflake (gethash "id" table))
                        :type "type"
-                       :allow "allow"
-                       :deny "deny"))
+                       :allow (make-permissions (gethash "allow" table))
+                       :deny (make-permissions (gethash "deny" table))))
 
 (defmethod %to-json ((o overwrite))
   (with-object
     (write-key-value "id" (id o))
     (write-key-value "type" (type o))
-    (write-key-value "allow" (allow o))
-    (write-key-value "deny" (deny o))))
+    (write-key-value "allow" (value (allow o)))
+    (write-key-value "deny" (value (deny o)))))
 
 
 (defclass chnl nil nil)
@@ -76,7 +78,7 @@
       (if nsfw (write-key-value "nsfw" nsfw))
       (if bit (write-key-value "bitrate" bit))
       (if lim (write-key-value "user_limit" lim))
-      (if ovw (write-key-value "permission_overwrites"ovw))
+      (if ovw (write-key-value "permission_overwrites" ovw))
       (if parent (write-key-value "parent_id" parent))
       (if type (write-key-value "type" type)))))
 

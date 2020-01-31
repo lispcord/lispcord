@@ -21,6 +21,7 @@
             :components
             ((:file "package")
              (:file "core")
+             (:file "permissions")
              (:file "cache")
              (:file "emoji")
              (:file "user")
