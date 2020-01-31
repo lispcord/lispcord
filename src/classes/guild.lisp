@@ -60,6 +60,10 @@
 (defmethod guild ((r role))
   (getcache-id (guild-id r) :guild))
 
+(defmethod overwrite ((c channel) (m role))
+  "Returns permission overwrite for role in channel"
+  (find (id m) (overwrites c) :key 'id))
+
 (defmethod from-json ((c (eql :role)) (table hash-table))
   (instance-from-table (table 'role)
                        :id (parse-snowflake (gethash "id" table))
@@ -120,6 +124,23 @@
 (defmethod guild ((m member))
   (getcache-id (guild-id m) :guild))
 
+(defmethod has-permission ((m member) key &optional channel)
+  (let ((base-permissions (base-permissions m)))
+    (if channel
+        (has-permission (compute-overwrites base-permissions m channel) key)
+        (has-permission base-permissions key))))
+
+(defmethod has-permission ((u user) key &optional channel)
+  (if channel
+      (if-let ((member (member u (guild channel))))
+        (has-permission member key channel)
+        (error "User ~S is not a member of ~S" u channel))
+      (error "Global users don't have permissions. Either replace the user object with member, or specify the channel.")))
+
+(defmethod overwrite ((c channel) (m member))
+  "Returns permission overwrite for member in channel"
+  (find (id (user m)) (overwrites c) :key 'id))
+
 ;;The Modify and Add Member REST-calls can use this
 (defmethod %to-json ((m member))
   (with-object
@@ -157,7 +178,7 @@
              :type snowflake
              :accessor user-id)
    (roles    :initarg :roles
-             :type (or null (vector snowflake))
+             :type (or null (simple-vector 0) (vector snowflake))
              :accessor roles)
    (game     :initarg :game
              :type (or null game)
@@ -202,7 +223,7 @@
                        :type string
                        :accessor name)
    (icon               :initarg :icon
-                       :type string
+                       :type (or null string)
                        :accessor icon)
    (splash             :initarg :splash
                        :type (or null string)
@@ -280,7 +301,7 @@
 (defmethod role-everyone ((g guild))
   "Returns the @everyone role of the guild"
   ;; It always has the same id as the guild
-  (getcache-id (guild-id g) :role))
+  (getcache-id (id g) :role))
 
 (defmethod owner ((g guild))
   (getcache-id (owner-id g) :user))

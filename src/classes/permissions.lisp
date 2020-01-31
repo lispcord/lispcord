@@ -38,30 +38,72 @@
                                     (:manage-webhooks       . #x20000000)
                                     (:manage-emojis         . #x40000000)))
 
+(defun permission-value (key)
+  (let ((pair (assoc key *permission-values*)))
+    (if pair
+        (cdr pair)
+        (error "Unknown permission: ~S" key))))
+
 (defparameter *all-permissions* (reduce 'logior (mapcar 'cdr *permission-values*)))
 
 (defmethod make-permissions ((permissions list))
   (make-instance 'permissions
                  :value
                  (reduce #'logior
-                         (mapf permissions (p)
-                           (cdr (assoc p *permission-values*))))))
+                         (mapcar 'permission-value permissions))))
 
 (defmethod make-permissions ((value integer))
   (make-instance 'permissions :value value))
 
 (defun permissions-add (permissions other)
-  (setf (value permissions)
-        (logior (value permissions)
-                (value other))))
+  (make-permissions (logior (value permissions)
+                            (value other))))
 
 (defun permissions-remove (permissions other)
-  (setf (value permissions)
-        (logandc2 (value permissions)
-                  (value other))))
+  (make-permissions (logandc2 (value permissions)
+                              (value other))))
 
-(defmethod has-permission ((p permissions) key)
-  (logtest (value p) (cdr (assoc key *permission-values*))))
+(defun permissions-overwrite (permissions overwrites)
+  (if overwrites
+      (permissions-add (permissions-remove permissions
+                                           (deny overwrites))
+                       (allow overwrites))
+      permissions))
+
+(defgeneric has-permission (obj key &optional channel))
+
+(defmethod has-permission ((p permissions) key &optional channel)
+  "Returns if permissions object has `key` permission"
+  (declare (ignore channel))
+  (unless (listp key)
+    (setf key (list key)))
+  (every (lambda (k)
+           (logtest (value p) (permission-value k)))
+         key))
 
 ;;; Translation from
 ;;; https://discordapp.com/developers/docs/topics/permissions#permission-overwrites
+
+(defun base-permissions (member)
+  (let ((guild (guild member)))
+    (if (owner guild)
+        (make-permissions *all-permissions*)
+        (let* ((role-everyone (role-everyone guild))
+               (permissions (permissions role-everyone)))
+          (loop for role across (roles member)
+            do (setf permissions (permissions-add permissions (permissions role))))
+          (if (has-permission permissions :administrator)
+              (make-permissions *all-permissions*)
+              permissions)))))
+
+(defun compute-overwrites (permissions member channel)
+  (let ((guild (guild member)))
+    (if (has-permission permissions :administrator)
+        (make-permissions *all-permissions*)
+        (progn
+          (when-let ((overwrite-everyone (overwrite channel :everyone)))
+            (setf permissions (permissions-overwrite permissions overwrite-everyone)))
+          (loop for role across (roles member)
+             do (permissions-overwrite permissions (overwrite channel role)))
+          (permissions-overwrite permissions (overwrite channel member))))))
+

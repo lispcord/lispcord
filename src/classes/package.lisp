@@ -122,6 +122,7 @@
            #:animatedp
            #:hoistp
            #:permissions
+           #:has-permission
            #:mentionablep
            #:nick
            #:deafp
@@ -284,6 +285,7 @@
            #:animatedp
            #:hoistp
            #:permissions
+           #:has-permission
            #:mentionablep
            #:nick
            #:deafp

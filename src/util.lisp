@@ -36,7 +36,7 @@
 
 ;; this type allows us to later potentially convert the IDs to numbers
 ;; without needing to rewrite all the type declerations!
-(deftype snowflake () '(unsigned-byte 64))
+(deftype snowflake () '(unsigned-byte 128))
 
 (declaim (ftype (function (string) (or fixnum null)) parse-snowflake))
 (defun parse-snowflake (snowflake-string)

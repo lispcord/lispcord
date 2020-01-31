@@ -191,6 +191,9 @@
 (defmethod owner ((c group-dm))
   (getcache-id (owner-id c) :user))
 
+(defmethod overwrite ((c channel) (_ (eql :everyone)))
+  (find (guild-id c) (overwrites c) :key 'id))
+
 (defun %guild-text-fj (table)
   (instance-from-table (table 'text-channel)
                        :id (parse-snowflake (gethash "id" table))
