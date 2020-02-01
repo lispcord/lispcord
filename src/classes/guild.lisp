@@ -312,7 +312,8 @@
 (defmethod nick-or-name ((u user) (g  guild))
   "Member u of the guild g"
   (if-let ((member (member u g)))
-    (nick member)
+    (or (nick member)
+        (name u))
     (name u)))
 
 (defmethod %to-json ((g available-guild))
