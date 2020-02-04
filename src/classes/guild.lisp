@@ -4,8 +4,8 @@
   ((name        :initarg :name     :accessor name)
    (color       :initarg :color    :accessor color)
    (hoist       :initarg :hoist    :accessor hoistp)
-   (permissions :initargs :perms   :accessor permissions)
-   (mentionable :initargs :mention :accessor mentionablep)))
+   (permissions :initarg :perms   :accessor permissions)
+   (mentionable :initarg :mention :accessor mentionablep)))
 
 (defmethod make-role (&key
                         (name "new role")

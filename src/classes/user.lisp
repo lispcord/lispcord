@@ -6,7 +6,7 @@
          :type string
          :accessor name)
    (type :initarg :type
-         :type (integer 0 1)
+         :type (cl:member 0 1 2 4)
          :accessor type)
    (url  :initarg :url
          :type (or null string)

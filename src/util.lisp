@@ -25,7 +25,7 @@
 
 (in-package :lispcord.util)
 
-(declaim (inline parse-snowflake
+#-ccl(declaim (inline parse-snowflake
      to-string
      str-concat
      jparse

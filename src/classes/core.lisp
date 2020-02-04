@@ -19,7 +19,7 @@
                         `(,k (setf ,a ,op)))))
               ,table)))
 
-(declaim (inline %maybe-sf))
+#-ccl(declaim (inline %maybe-sf))
 (defun %maybe-sf (string)
   "only parses the string if it's there :D"
   (when string (parse-snowflake string)))

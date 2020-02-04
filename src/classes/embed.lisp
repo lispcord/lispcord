@@ -91,8 +91,8 @@
 				 :type string
 				 :accessor name)
    (url  :initarg :url
-				 :type string
-				 :accessor url)))
+         :type (or null string)
+         :accessor url)))
 
 (defmethod from-json ((c (eql :e-provider)) (table hash-table))
   (instance-from-table (table 'embed-provider)
@@ -110,14 +110,14 @@
 									 :type string
 									 :accessor name)
    (url            :initarg :url
-									 :type string
-									 :accessor url)
+                   :type (or null string)
+                   :accessor url)
    (icon-url       :initarg :icon
-									 :type string
-									 :accessor icon-url)
+                   :type (or null string)
+                   :accessor icon-url)
    (proxy-icon-url :initarg :proxy-icon-url
-									 :type string
-									 :accessor proxy-icon)))
+                   :type (or null string)
+                   :accessor proxy-icon)))
 
 (defmethod from-json ((c (eql :e-author)) (table hash-table))
   (instance-from-table (table 'embed-author)
@@ -171,29 +171,29 @@
 								:type string
 								:accessor url)
    (timestamp   :initarg :timestamp
-								:type string
-								:accessor timestamp)
+                :type (or null string)
+                :accessor timestamp)
    (color       :initarg :color
 								:type fixnum
 								:accessor color)
    (footer      :initarg :footer
-								:type embed-footer
-								:accessor footer)
+                :type (or null embed-footer)
+                :accessor footer)
    (image       :initarg :image
-								:type embed-image
-								:accessor image)
+                :type (or null embed-image)
+                :accessor image)
    (thumbnail   :initarg :thumbnail
-								:type embed-thumbnail
-								:accessor thumbnail)
+                :type (or null embed-thumbnail)
+                :accessor thumbnail)
    (video       :initarg :video
-								:type embed-video
-								:accessor video)
+                :type (or null embed-video)
+                :accessor video)
    (provider    :initarg :provider
-								:type embed-provider
-								:accessor provider)
+                :type (or null embed-provider)
+                :accessor provider)
    (author      :initarg :author
-								:type embed-author
-								:accessor author)
+                :type (or null embed-author)
+                :accessor author)
    (fields      :initarg :fields
 								:type (vector embed-field)
 								:accessor fields)))

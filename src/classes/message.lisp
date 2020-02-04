@@ -48,13 +48,13 @@
 
 (defclass reaction ()
   ((count :initarg :count
-          :type fixnum
+          :type (or null fixnum)
           :accessor count)
    (me    :initarg :me
-          :type t
+          :type boolean
           :accessor me-p)
    (emoji :initarg :emoji
-          :type emoji
+          :type (or null emoji)
           :accessor emoji)))
 
 (defmethod from-json ((c (eql :reaction)) (table hash-table))
