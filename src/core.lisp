@@ -39,7 +39,7 @@ It may be set by make-bot!")
 
 
 
-(defun discord-req (endpoint
+(defmethod discord-req (endpoint
                     &key bot content
                       (content-type "application/json")
                       (type :get)
