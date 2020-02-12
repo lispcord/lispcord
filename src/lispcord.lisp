@@ -35,7 +35,8 @@
 
 (defun sanitize-content (content)
   (declare (type string content))
-  #-(or ecl ccl)(substitute #\EXTRATERRESTRIAL_ALIEN #\@ content))
+  #+sbcl (substitute #\EXTRATERRESTRIAL_ALIEN #\@ content)
+  #-sbcl content)
 
 
 (defmacro defbot (symbol token
