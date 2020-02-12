@@ -78,6 +78,7 @@
       msg))
 
 (defun mention (mentionable)
+  "Convert a mentionable object to the format used in Discord messages"
   (declare (type (or lc:user lc:channel lc:role lc:emoji)
                  mentionable))
   (format nil
@@ -91,6 +92,7 @@
           (lc:id mentionable)))
 
 (defun demention (string &aux (len (1- (length string))))
+  "Parse a mentionable from the string and convert it to a mentionable object"
   (labels ((emoji-snowflake (n)
              (let ((name-begin (position #\: string :start n :end len)))
                (if name-begin
@@ -120,15 +122,3 @@
              (when (char= thr #\:)
                (getcache-id (emoji-snowflake 3) :emoji)))))))))
 
-(defun render-msg (msg)
-  (let* ((words (split-sequence #\Space (lc:content msg)))
-         (parts (mapf words (word)
-                  (or (demention word) word)))
-         (rendered-parts (mapf parts (part)
-                           (etypecase part
-                             (string part)
-                             (lc:guild-channel (str-concat "#" (lc:name part)))
-                             (lc:role (str-concat "@" (lc:name part)))
-                             (lc:user (str-concat "@" (lc:nick-or-name part (lc:guild msg))))
-                             (lc:emoji (str-concat ":" (lc:name part) ":"))))))
-    (format nil "~{~A~^ ~}" rendered-parts)))

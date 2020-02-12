@@ -127,7 +127,6 @@
      #:remove-mention
      #:mention
      #:demention
-     #:render-msg
          
      #:reply
      #:me
