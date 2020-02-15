@@ -20,6 +20,7 @@
             :serial t
             :components
             ((:file "package")
+             (:file "definer")
              (:file "core")
              (:file "permissions")
              (:file "cache")

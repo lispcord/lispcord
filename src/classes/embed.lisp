@@ -3,14 +3,14 @@
 
 (defclass embed-footer ()
   ((text           :initarg :text
-									 :type string
-									 :accessor text)
+                   :type string
+                   :accessor text)
    (icon           :initarg :icon
-									 :type string
-									 :accessor icon)
+                   :type (or null string)
+                   :accessor icon)
    (icon-proxy-url :initarg :icon-proxy-url
-									 :type string
-									 :accessor icon-proxy)))
+                   :type (or null string)
+                   :accessor icon-proxy)))
 
 (defmethod from-json ((c (eql :e-footer)) (table hash-table))
   (instance-from-table (table 'embed-footer)
@@ -26,17 +26,17 @@
 
 (defclass embed-generic ()
   ((url       :initarg :url
-							:type string
-							:accessor url)
+              :type (or null string)
+              :accessor url)
    (proxy-url :initarg :proxy
-							:type string
-							:accessor proxy-url)
+              :type (or null string)
+              :accessor proxy-url)
    (height    :initarg :height
-							:type fixnum
-							:accessor height)
+              :type (or null fixnum)
+              :accessor height)
    (width     :initarg :width
-							:type fixnum
-							:accessor width)))
+              :type (or null fixnum)
+              :accessor width)))
 
 (defun make-embed-generic (&key url)
   (make-instance 'embed-generic
@@ -64,14 +64,14 @@
 
 (defclass embed-video ()
   ((url    :initarg :url
-					 :type string
-					 :accessor url)
+           :type (or null string)
+           :accessor url)
    (height :initarg :height
-					 :type fixnum
-					 :accessor height)
+           :type (or null fixnum)
+           :accessor height)
    (width  :initarg :width
-					 :type fixnum
-					 :accessor width)))
+           :type (or null fixnum)
+           :accessor width)))
 
 (defmethod from-json ((c (eql :e-video)) (table hash-table))
   (instance-from-table (table 'embed-video)
@@ -88,8 +88,8 @@
 
 (defclass embed-provider ()
   ((name :initarg :name
-				 :type string
-				 :accessor name)
+         :type (or null string)
+         :accessor name)
    (url  :initarg :url
          :type (or null string)
          :accessor url)))
@@ -107,8 +107,8 @@
 
 (defclass embed-author ()
   ((name           :initarg :name
-									 :type string
-									 :accessor name)
+                   :type (or null string)
+                   :accessor name)
    (url            :initarg :url
                    :type (or null string)
                    :accessor url)
@@ -136,14 +136,14 @@
 
 (defclass embed-field ()
   ((name   :initarg :name
-					 :type string
-					 :accessor name)
+           :type string
+           :accessor name)
    (value  :initarg :value
-					 :type string
-					 :accessor value)
+           :type string
+           :accessor value)
    (inline :initarg :inline
-					 :type t
-					 :accessor inline)))
+           :type boolean
+           :accessor inline)))
 
 (defmethod from-json ((c (eql :e-field)) (table hash-table))
   (instance-from-table (table 'embed-field)
@@ -159,23 +159,23 @@
 
 (defclass embed ()
   ((title       :initarg :title
-								:type string
-								:accessor title)
+                :type (or null string)
+                :accessor title)
    (type        :initarg :type
-								:type string
-								:accessor type)
+                :type (or null string)
+                :accessor type)
    (description :initarg :description
-								:type string
-								:accessor description)
+                :type (or null string)
+                :accessor description)
    (url         :initarg :url
-								:type string
-								:accessor url)
+                :type (or null string)
+                :accessor url)
    (timestamp   :initarg :timestamp
                 :type (or null string)
                 :accessor timestamp)
    (color       :initarg :color
-								:type fixnum
-								:accessor color)
+                :type (or null fixnum)
+                :accessor color)
    (footer      :initarg :footer
                 :type (or null embed-footer)
                 :accessor footer)
@@ -195,8 +195,8 @@
                 :type (or null embed-author)
                 :accessor author)
    (fields      :initarg :fields
-								:type (vector embed-field)
-								:accessor fields)))
+                :type (vector embed-field)
+                :accessor fields)))
 
 (defun make-embed (&key title type description url timestamp color footer image thumbnail video provider author fields)
   (make-instance 'embed

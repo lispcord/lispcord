@@ -92,7 +92,7 @@
 
 (defclass guild-channel (channel)
   ((guild-id      :initarg :g-id
-                  :type (or null snowflake)
+                  :type snowflake
                   :accessor guild-id)
    (name          :initarg :name
                   :type string
@@ -109,7 +109,7 @@
 
 (defclass category (guild-channel)
   ((nsfw :initarg :nsfw
-         :type t
+         :type boolean
          :accessor nsfw-p)))
 
 (defmethod channels ((cat category))
@@ -130,7 +130,7 @@
                  :type (or null snowflake)
                  :accessor last-message)
    (last-pinned  :initarg :last-pinned
-                 :type (or null string)
+                 :type string
                  :accessor last-pinned)))
 
 (defclass voice-channel (guild-channel)

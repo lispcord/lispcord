@@ -99,27 +99,30 @@
     (write-key-value "mentionable" (mentionablep r))))
 
 (defclass member ()
-  ((user      :initarg :user
-              :type user
-              :accessor user)
-   (nick      :initarg :nick
-              :type (or null string)
-              :accessor nick)
-   (roles     :initarg :roles
-              :type (vector role)
-              :accessor roles)
-   (joined-at :initarg :joined-at
-              :type (or null string)
-              :accessor joined-at)
-   (deaf      :initarg :deaf
-              :type t
-              :accessor deafp)
-   (mute      :initarg :mute
-              :type t
-              :accessor mutep)
-   (guild-id  :initarg :gid
-              :type (or null snowflake)
-              :accessor guild-id)))
+  ((user          :initarg :user
+                  :type user
+                  :accessor user)
+   (nick          :initarg :nick
+                  :type (or null string)
+                  :accessor nick)
+   (roles         :initarg :roles
+                  :type (vector role)
+                  :accessor roles)
+   (joined-at     :initarg :joined-at
+                  :type (or null string)
+                  :accessor joined-at)
+   (premium-since :initarg :premium-since
+                  :type (or null string)
+                  :accessor premium-since)
+   (deaf          :initarg :deaf
+                  :type t
+                  :accessor deafp)
+   (mute          :initarg :mute
+                  :type t
+                  :accessor mutep)
+   (guild-id      :initarg :gid
+                  :type (or null snowflake)
+                  :accessor guild-id)))
 
 (defmethod guild ((m member))
   (getcache-id (guild-id m) :guild))
@@ -174,21 +177,33 @@
   m)
 
 (defclass presence ()
-  ((user     :initarg :user
-             :type snowflake
-             :accessor user-id)
-   (roles    :initarg :roles
-             :type (or null (simple-vector 0) (vector snowflake))
-             :accessor roles)
-   (game     :initarg :game
-             :type (or null game)
-             :accessor game)
-   (guild-id :initarg :guild-id
-             :type (or null snowflake)
-             :accessor guild-id)
-   (status   :initarg :status
-             :type (or null string)
-             :accessor status)))
+  ((user          :initarg :user
+                  :type snowflake
+                  :accessor user-id)
+   (roles         :initarg :roles
+                  :type (vector snowflake)
+                  :accessor roles)
+   (game          :initarg :game
+                  :type (or null game)
+                  :accessor game)
+   (guild-id      :initarg :guild-id
+                  :type snowflake
+                  :accessor guild-id)
+   (status        :initarg :status
+                  :type (or null string)
+                  :accessor status)
+   (activities    :initarg :activities
+                  :type (vector game)
+                  :accessor activities)
+   (client-status :initarg client-status
+                  :type (or null client-status)
+                  :accessor client-status)
+   (premium-since :initarg premium-since
+                  :type (or null string)
+                  :accessor premium-since)
+   (nick          :initarg nick
+                  :type (or null string)
+                  :accessor nick)))
 
 (defmethod user ((p presence))
   (getcache-id (user-id p) :user))
@@ -199,7 +214,12 @@
                        :roles (mapvec #'parse-snowflake (gethash "roles" table))
                        :game (from-json :game (gethash "game" table))
                        :guild-id (%maybe-sf (gethash "guild_id" table))
-                       :status "status"))
+                       :status "status"
+                       :activities (mapvec (lambda (e) (from-json :game e))
+                                           (gethash "activities" table))
+                       :client-status (from-json :client-status (gethash "client_status" table))
+                       :premium-since "premium_since"
+                       :nick "nick"))
 
 (defmethod %to-json ((p presence))
   (with-object
@@ -207,7 +227,33 @@
     (write-key-value "roles" (roles p))
     (write-key-value "game" (game p))
     (write-key-value "guild_id" (guild-id p))
-    (write-key-value "status" (status p))))
+    (write-key-value "status" (status p))
+    (write-key-value "activities" (activities p))
+    (write-key-value "client_status" (client-status p))
+    (write-key-value "nick" (nick p))))
+
+(defclass client-status ()
+  ((desktop :initarg :desktop
+            :type string
+            :accessor desktop)
+   (mobile  :initarg :mobile
+            :type string
+            :accessor mobile)
+   (web     :initarg :web
+            :type string
+            :accessor web)))
+
+(defmethod from-json ((c (eql :client-status)) (table hash-table))
+  (instance-from-table (table 'presence)
+                       :desktop "desktop"
+                       :mobile  "mobile"
+                       :web     "web"))
+
+(defmethod %to-json ((cs client-status))
+  (with-object
+    (write-key-value "desktop" (desktop cs))
+    (write-key-value "mobile"  (mobile cs))
+    (write-key-value "web"     (web cs))))
 
 
 (defclass guild ()

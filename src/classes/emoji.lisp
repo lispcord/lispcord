@@ -19,10 +19,10 @@
 
 (defclass emoji ()
   ((id       :initarg :id
-             :type snowflake
+             :type (or null snowflake)
              :accessor id)
    (name     :initarg :name
-             :type string
+             :type (or null string)
              :accessor name)
    (roles    :initarg :roles
              :type (vector snowflake)
@@ -31,10 +31,10 @@
              :type (or null user)
              :accessor user)
    (colons?  :initarg :colons?
-             :type t
+             :type boolean
              :accessor colonsp)
    (managed  :initarg :managed
-             :type t
+             :type boolean
              :accessor managedp)
    (animated :initarg :animated
              :type boolean

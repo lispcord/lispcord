@@ -33,10 +33,10 @@
                                   :test #'eq))
             (t (warn "the object interned for prefix ~a is not a list or the keyword \":global\"" (char (lc:content msg) 0)))))))
 
+(defconstant +extraterrestrial-alien+ #.(elt "👽" 0))
 (defun sanitize-content (content)
   (declare (type string content))
-  #+sbcl (substitute #\EXTRATERRESTRIAL_ALIEN #\@ content)
-  #-sbcl content)
+  (substitute +extraterrestrial-alien+ #\@ content))
 
 
 (defmacro defbot (symbol token
