@@ -5,30 +5,21 @@
   ((text           :initarg :text
                    :type string
                    :accessor text)
-   (icon           :initarg :icon
+   (icon-url       :initarg :icon-url
                    :type (or null string)
-                   :accessor icon)
-   (icon-proxy-url :initarg :icon-proxy-url
+                   :accessor icon-url)
+   (proxy-icon-url :initarg :proxy-icon-url
                    :type (or null string)
-                   :accessor icon-proxy)))
+                   :accessor proxy-icon-url)))
 
-(defmethod from-json ((c (eql 'embed-footer)) (table hash-table))
-  (instance-from-table (table 'embed-footer)
-                       :text "text"
-                       :icon "icon_url"
-                       :icon-proxy-url "icon_proxy_url"))
-
-(defmethod %to-json ((e embed-footer))
-  (with-object
-    (write-key-value "text" (text e))
-    (write-key-value "icon_url" (icon e))
-    (write-key-value "icon_proxy_url" (icon-proxy e))))
+(define-converters (embed-footer)
+  text icon-url proxy-icon-url)
 
 (defclass embed-generic ()
   ((url       :initarg :url
               :type (or null string)
               :accessor url)
-   (proxy-url :initarg :proxy
+   (proxy-url :initarg :proxy-url
               :type (or null string)
               :accessor proxy-url)
    (height    :initarg :height
@@ -38,29 +29,18 @@
               :type (or null fixnum)
               :accessor width)))
 
+(define-converters (embed-generic)
+  url proxy-url height width)
+
 (defun make-embed-generic (&key url)
   (make-instance 'embed-generic
                  :url url
-                 :proxy nil
+                 :proxy-url nil
                  :height nil
                  :width nil))
 
 (deftype embed-image () 'embed-generic)
 (deftype embed-thumbnail () 'embed-generic)
-
-(defmethod from-json ((c (eql 'embed-generic)) (table hash-table))
-  (instance-from-table (table 'embed-generic)
-                       :url "url"
-                       :proxy "proxy_url"
-                       :height "height"
-                       :width "width"))
-
-(defmethod %to-json ((e embed-generic))
-  (with-object
-    (if (url e) (write-key-value "url" (url e)))
-    (if (proxy-url e) (write-key-value "proxy_url" (proxy-url e)))
-    (if (height e) (write-key-value "height" (height e)))
-    (if (width e) (write-key-value "width" (width e)))))
 
 (defclass embed-video ()
   ((url    :initarg :url
@@ -73,18 +53,8 @@
            :type (or null fixnum)
            :accessor width)))
 
-(defmethod from-json ((c (eql 'embed-video)) (table hash-table))
-  (instance-from-table (table 'embed-video)
-                       :url "url"
-                       :height "height"
-                       :width "width"))
-
-(defmethod %to-json ((e embed-video))
-  (with-object
-    (write-key-value "url" (url e))
-    (write-key-value "height" (height e))
-    (write-key-value "width" (width e))))
-
+(define-converters (embed-video)
+  url height width)
 
 (defclass embed-provider ()
   ((name :initarg :name
@@ -94,16 +64,8 @@
          :type (or null string)
          :accessor url)))
 
-(defmethod from-json ((c (eql 'embed-provider)) (table hash-table))
-  (instance-from-table (table 'embed-provider)
-    :name "name"
-    :url "url"))
-
-(defmethod %to-json ((e embed-provider))
-  (with-object
-    (write-key-value "name" (name e))
-    (write-key-value "url" (url e))))
-
+(define-converters (embed-video)
+  name url)
 
 (defclass embed-author ()
   ((name           :initarg :name
@@ -112,27 +74,15 @@
    (url            :initarg :url
                    :type (or null string)
                    :accessor url)
-   (icon-url       :initarg :icon
+   (icon-url       :initarg :icon-url
                    :type (or null string)
                    :accessor icon-url)
    (proxy-icon-url :initarg :proxy-icon-url
                    :type (or null string)
-                   :accessor proxy-icon)))
+                   :accessor proxy-icon-url)))
 
-(defmethod from-json ((c (eql 'embed-author)) (table hash-table))
-  (instance-from-table (table 'embed-author)
-    :name "name"
-    :url "url"
-    :icon "icon_url"
-    :proxy-icon-url "proxy_icon_url"))
-
-(defmethod %to-json ((e embed-author))
-  (with-object
-    (write-key-value "name" (name e))
-    (write-key-value "url" (url e))
-    (write-key-value "icon_url" (icon-url e))
-    (write-key-value "proxy_icon_url" (proxy-icon e))))
-
+(define-converters (embed-author)
+  name url icon-url proxy-icon-url)
 
 (defclass embed-field ()
   ((name   :initarg :name
@@ -145,17 +95,8 @@
            :type boolean
            :accessor inline)))
 
-(defmethod from-json ((c (eql 'embed-field)) (table hash-table))
-  (instance-from-table (table 'embed-field)
-    :name "name"
-    :value "value"
-    :inline "inline"))
-
-(defmethod %to-json ((e embed-field))
-  (with-object
-    (write-key-value "name" (name e))
-    (write-key-value "value" (value e))
-    (write-key-value "inline" (inline e))))
+(define-converters (embed-author)
+  name value inline)
 
 (defclass embed ()
   ((title       :initarg :title
@@ -214,35 +155,12 @@
                  :author author
                  :fields fields))
 
-(defmethod from-json ((c (eql 'embed)) (table hash-table))
-  (instance-from-table (table 'embed)
-                       :title "title"
-                       :type "type"
-                       :description "description"
-                       :url "url"
-                       :timestamp "timestamp"
-                       :color "color"
-                       :footer (from-json 'embed-footer (gethash "footer" table))
-                       :image (from-json 'embed-generic (gethash "image" table))
-                       :thumbnail (from-json 'embed-generic (gethash "thumbnail" table))
-                       :video (from-json 'embed-video (gethash "video" table))
-                       :provider (from-json 'embed-provider (gethash "provider" table))
-                       :author (from-json 'embed-author (gethash "provider" table))
-                       :fields (map 'vector (curry #'from-json 'embed-field)
-                                    (gethash "fields" table))))
-
-(defmethod %to-json ((e embed))
-  (with-object
-    (if (title e) (write-key-value "title" (title e)))
-    (if (type e) (write-key-value "type" (type e)))
-    (if (description e) (write-key-value "description" (description e)))
-    (if (url e) (write-key-value "url" (url e)))
-    (if (timestamp e) (write-key-value "timestamp" (timestamp e)))
-    (if (color e) (write-key-value "color" (color e)))
-    (if (footer e) (write-key-value "footer" (footer e)))
-    (if (image e) (write-key-value "image" (image e)))
-    (if (thumbnail e) (write-key-value "thumbnail" (thumbnail e)))
-    (if (video e) (write-key-value "video" (video e)))
-    (if (provider e) (write-key-value "provider" (provider e)))
-    (if (author e) (write-key-value "author" (author e)))
-    (if (fields e) (write-key-value "fields" (fields e)))))
+(define-converters (embed)
+  title type description url timestamp color
+  (footer    (subtable 'embed-footer))
+  (image     (subtable 'embed-image))
+  (thumbnail (subtable 'embed-thumbnail))
+  (video     (subtable 'embed-video))
+  (provider  (subtable 'embed-provider))
+  (author    (subtable 'embed-author))
+  (fields    (subtable-vector 'embed-field)))

@@ -67,6 +67,6 @@
                        :role-id (%maybe-sf (gethash "role_id" table))
                        :e-behaviour "expire_behaviour"
                        :e-grace "expire_grace_period"
-                       :user (cache :user (gethash "user" table))
+                       :user (cache 'user (gethash "user" table))
                        :account (from-json 'account (gethash "account" table))
                        :synced-at "synced-at"))

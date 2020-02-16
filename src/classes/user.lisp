@@ -128,7 +128,7 @@
     :id (parse-snowflake (gethash "id" table))
     :g-id (parse-snowflake (gethash "guild_id" table))
     :c-id (parse-snowflake (gethash "channel_id" table))
-    :user (cache :user (gethash "user" table))
+    :user (cache 'user (gethash "user" table))
     :avatar "avatar"
     :token "token"))
 
@@ -154,7 +154,7 @@
 (defmethod from-json ((c (eql 'ready)) (table hash-table))
   (instance-from-table (table 'ready)
     :v "v"
-    :me (cache :user (gethash "user" table))
+    :me (cache 'user (gethash "user" table))
     :channels (mapvec (curry #'cache :channel)
           (gethash "private_channels" table))
     :guilds (mapvec (curry #'cache :guild)

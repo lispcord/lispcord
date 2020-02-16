@@ -57,9 +57,6 @@
                 :type (or null snowflake)
                 :accessor guild-id)))
 
-(defmethod guild ((r role))
-  (getcache-id (guild-id r) :guild))
-
 (defmethod overwrite ((c channel) (m role))
   "Returns permission overwrite for role in channel"
   (find (id m) (overwrites c) :key 'id))
@@ -124,9 +121,6 @@
                   :type (or null snowflake)
                   :accessor guild-id)))
 
-(defmethod guild ((m member))
-  (getcache-id (guild-id m) :guild))
-
 (defmethod has-permission ((m member) key &optional channel)
   (let ((base-permissions (base-permissions m)))
     (if channel
@@ -156,7 +150,7 @@
 
 (defmethod from-json ((c (eql 'member)) (table hash-table))
   (instance-from-table (table 'member)
-                       :user (cache :user (gethash "user" table))
+                       :user (cache 'user (gethash "user" table))
                        :nick "nick"
                        :roles (mapvec (lambda (e) (getcache-id (parse-snowflake e) :role))
                                       (gethash "roles" table))
@@ -167,7 +161,7 @@
 
 (defmethod update ((table hash-table) (m member))
   (from-table-update (table data)
-                     ("user" (user m) (cache :user data))
+                     ("user" (user m) (cache 'user data))
                      ("nick" (nick m) data)
                      ("roles" (roles m) (mapvec #'parse-snowflake data))
                      ("joined_at" (joined-at m) data)
@@ -348,9 +342,6 @@
   "Returns the @everyone role of the guild"
   ;; It always has the same id as the guild
   (getcache-id (id g) :role))
-
-(defmethod owner ((g guild))
-  (getcache-id (owner-id g) :user))
 
 (defmethod member ((u user) (g guild))
   (find-if (lambda (e) (eq u (lc:user e))) (members g)))

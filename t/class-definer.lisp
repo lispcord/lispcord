@@ -6,17 +6,25 @@
 (defclass test-class ()
   ((slot :initarg :slot :accessor slotp)))
 
+(defclass test-subclass (test-class)
+  ((subslot :initarg :subslot :accessor subslot)))
+
 (defmethod print-object ((o test-class) s)
   (print-unreadable-object (o s :type t :identity t)
     (format s "~S" (slotp o))))
-
-(print-object )
 
 (defun test-equal (a b)
   (and (typep a 'test-class)
        (typep b 'test-class)
        (equal (slot-value a 'slot)
               (slot-value b 'slot))))
+
+(defun subtest-equal (a b)
+  (and (typep a 'test-subclass)
+       (typep b 'test-subclass)
+       (test-equal a b)
+       (equal (slot-value a 'subslot)
+              (slot-value b 'subslot))))
 
 (define-test define-converters
   :parent class-definer-suite
@@ -25,8 +33,8 @@
       (lispcord.classes::make-converter 'slot))
   (is equalp '(slot parse-integer nil)
       (lispcord.classes::make-converter 'slot 'parse-integer))
-  (is equalp '(slot parse-integer 0)
-      (lispcord.classes::make-converter 'slot 'parse-integer 0))
+  (is equalp '(slot parse-integer princ-to-string)
+      (lispcord.classes::make-converter 'slot 'parse-integer 'princ-to-string))
 
   (true
    (lispcord.classes::define-converters (test-class)
@@ -55,3 +63,10 @@
         (obj2 (make-instance 'test-class :slot "value")))
     (lispcord.classes::update definer-table obj1)
     (is test-equal obj2 obj1)))
+
+(define-test hierarchy
+  :parent class-definer-suite
+  :depends-on (define-converters to-json from-json)
+  (let ((obj (make-instance 'test-subclass :slot "value" :subslot "subvalue")))
+    (is subtest-equal obj
+        (lispcord.classes:from-json 'test-subclass (lispcord.util:jparse (jonathan:to-json obj))))))

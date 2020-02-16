@@ -11,11 +11,9 @@
                  :image image
                  :roles roles))
 
-(defmethod %to-json ((e partial-emoji))
-  (with-object
-    (write-key-value "name" (name e))
-    (write-key-value "image" (image e))
-    (write-key-value "roles" (or (roles e) :null))))
+(define-converters (partial-emoji)
+  name image
+  (roles 'identity (default-writer :null)))
 
 (defclass emoji ()
   ((id       :initarg :id
@@ -30,7 +28,7 @@
    (user     :initarg :user
              :type (or null user)
              :accessor user)
-   (colons?  :initarg :colons?
+   (require-colons :initarg :require-colons
              :type boolean
              :accessor colonsp)
    (managed  :initarg :managed
@@ -43,37 +41,11 @@
              :type (or null snowflake)
              :accessor guild-id)))
 
-(defmethod guild ((e emoji))
-  (getcache-id (guild-id e) :guild))
-
-
-(defmethod from-json ((c (eql 'emoji)) (table hash-table))
-  (instance-from-table (table 'emoji)
-                       :id (parse-snowflake (gethash "id" table))
-                       :name "name"
-                       :roles (mapvec #'parse-snowflake (gethash "roles" table))
-                       :user (cache :user (gethash "user" table))
-                       :colons? "require_colons"
-                       :managed "managed"
-                       :animated "animated"))
-
-(defmethod update ((table hash-table) (e emoji))
-  (from-table-update (table data)
-                     ("id" (id e) (parse-snowflake data))
-                     ("name" (name e) data)
-                     ("roles" (roles e) (mapvec #'parse-snowflake data))
-                     ("require_colons" (colonsp e) data)
-                     ("managed" (managedp e) data)
-                     ("animated" (animatedp e) data))
-  e)
-
-(defmethod %to-json ((e emoji))
-  (with-object
-    (write-key-value "id" (id e))
-    (write-key-value "name" (name e))
-    (write-key-value "roles" (roles e))
-    (write-key-value "require_colons" (colonsp e))
-    (write-key-value "managed" (managedp e))
-    (write-key-value "animated" (animatedp e))))
-
-
+(define-converters (emoji)
+  (id    'parse-snowflake)
+  (name)
+  (roles (vector-reader 'parse-snowflake))
+  (user  (caching-reader 'user))
+  (require-colons)
+  (managed)
+  (animated))

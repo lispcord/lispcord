@@ -61,7 +61,7 @@
   (instance-from-table (table 'reaction)
                        :count "count"
                        :me "me"
-                       :emoji (cache :emoji (gethash "emoji" table))))
+                       :emoji (cache 'emoji (gethash "emoji" table))))
 
 
 (defclass partial-message ()
@@ -136,16 +136,10 @@
                   :type message-type
                   :accessor type)))
 
-(defmethod channel ((m message))
-  (getcache-id (channel-id m) :channel))
-
-(defmethod guild ((m message))
-  (getcache-id (guild-id (channel m)) :guild))
-
 (defun user-or-webhook (obj)
   (if (gethash "webhook_id" obj)
       (from-json 'webhook obj)
-      (cache :user obj)))
+      (cache 'user obj)))
 
 (defmethod nick-or-name ((u user) (m message))
   "Member u of the guild with message m"
