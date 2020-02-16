@@ -9,7 +9,7 @@
          :type string
          :accessor name)))
 
-(defmethod from-json ((c (eql :account)) (table hash-table))
+(defmethod from-json ((c (eql 'account)) (table hash-table))
   (instance-from-table (table 'account)
                        :id "id"
                        :name "name"))
@@ -57,7 +57,7 @@
 (defmethod role ((i integration))
   (getcache-id (role-id i) :role))
 
-(defmethod from-json ((c (eql :integration)) (table hash-table))
+(defmethod from-json ((c (eql 'integration)) (table hash-table))
   (instance-from-table (table 'integration)
                        :id (parse-snowflake (gethash "id" table))
                        :name "name"
@@ -68,5 +68,5 @@
                        :e-behaviour "expire_behaviour"
                        :e-grace "expire_grace_period"
                        :user (cache :user (gethash "user" table))
-                       :account (from-json :account (gethash "account" table))
+                       :account (from-json 'account (gethash "account" table))
                        :synced-at "synced-at"))

@@ -34,6 +34,7 @@
            #:integration
            #:emoji
            #:partial-emoji
+           #:webhook
            #:channel
            #:partial-channel
            #:guild-channel
@@ -195,6 +196,7 @@
            #:integration
            #:emoji
            #:partial-emoji
+           #:webhook
            #:channel
            #:partial-channel
            #:guild-channel

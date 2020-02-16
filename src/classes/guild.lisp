@@ -64,7 +64,7 @@
   "Returns permission overwrite for role in channel"
   (find (id m) (overwrites c) :key 'id))
 
-(defmethod from-json ((c (eql :role)) (table hash-table))
+(defmethod from-json ((c (eql 'role)) (table hash-table))
   (instance-from-table (table 'role)
                        :id (parse-snowflake (gethash "id" table))
                        :name "name"
@@ -154,7 +154,7 @@
     (write-key-value "mute" (mutep m))
     (write-key-value "deaf" (deafp m))))
 
-(defmethod from-json ((c (eql :g-member)) (table hash-table))
+(defmethod from-json ((c (eql 'member)) (table hash-table))
   (instance-from-table (table 'member)
                        :user (cache :user (gethash "user" table))
                        :nick "nick"
@@ -208,16 +208,16 @@
 (defmethod user ((p presence))
   (getcache-id (user-id p) :user))
 
-(defmethod from-json ((c (eql :presence)) (table hash-table))
+(defmethod from-json ((c (eql 'presence)) (table hash-table))
   (instance-from-table (table 'presence)
                        :user (parse-snowflake (gethash "id" (gethash "user" table)))
                        :roles (mapvec #'parse-snowflake (gethash "roles" table))
-                       :game (from-json :game (gethash "game" table))
+                       :game (from-json 'game (gethash "game" table))
                        :guild-id (%maybe-sf (gethash "guild_id" table))
                        :status "status"
-                       :activities (mapvec (lambda (e) (from-json :game e))
+                       :activities (mapvec (lambda (e) (from-json 'game e))
                                            (gethash "activities" table))
-                       :client-status (from-json :client-status (gethash "client_status" table))
+                       :client-status (from-json 'client-status (gethash "client_status" table))
                        :premium-since "premium_since"
                        :nick "nick"))
 
@@ -243,7 +243,7 @@
             :type string
             :accessor web)))
 
-(defmethod from-json ((c (eql :client-status)) (table hash-table))
+(defmethod from-json ((c (eql 'client-status)) (table hash-table))
   (instance-from-table (table 'presence)
                        :desktop "desktop"
                        :mobile  "mobile"
@@ -432,11 +432,11 @@
                          :large "large"
                          :available (not (gethash "unavailable" table))
                          :member-cnt "member_count"
-                         :members (mapvec (curry #'parse-with-gid #'from-json :g-member)
+                         :members (mapvec (curry #'parse-with-gid #'from-json 'member)
                                           (gethash "members" table))
-                         :channels (mapvec (curry #'parse-with-gid #'cache :channel)
+                         :channels (mapvec (curry #'parse-with-gid #'cache 'channel)
                                            (gethash "channels" table))
-                         :presences (mapvec (curry #'from-json :presence)
+                         :presences (mapvec (curry #'from-json 'presence)
                                             (gethash "presences" table)))))
 
 (defun %unavailable-from-json (table)
@@ -472,7 +472,7 @@
                      ("system_channel_id" (system-channel-id g) (parse-snowflake data)))
   g)
 
-(defmethod from-json ((c (eql :guild)) (table hash-table))
+(defmethod from-json ((c (eql 'guild)) (table hash-table))
   (if (gethash "unavailable" table)
       (%unavailable-from-json table)
       (%available-from-json table)))

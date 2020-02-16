@@ -19,7 +19,7 @@
                  :allow (make-permissions allow)
                  :deny (make-permissions deny)))
 
-(defmethod from-json ((c (eql :overwrite)) (table hash-table))
+(defmethod from-json ((c (eql 'overwrite)) (table hash-table))
   (instance-from-table (table 'overwrite)
                        :id (parse-snowflake (gethash "id" table))
                        :type "type"
@@ -200,7 +200,7 @@
                        :g-id (parse-snowflake (gethash "guild_id" table))
                        :name "name"
                        :pos "position"
-                       :overwrites (mapvec (curry #'from-json :overwrite)
+                       :overwrites (mapvec (curry #'from-json 'overwrite)
                                            (gethash "permission_overwrites" table))
                        :nsfw "nsfw"
                        :topic "topic"
@@ -214,7 +214,7 @@
                        :g-id (parse-snowflake (gethash "guild_id" table))
                        :name "name"
                        :pos "position"
-                       :overwrites (mapvec (curry #'from-json :overwrite)
+                       :overwrites (mapvec (curry #'from-json 'overwrite)
                                            (gethash "permission_overwrites" table))
                        :bitrate "bitrate"
                        :user-limit "user_limit"
@@ -241,7 +241,7 @@
 (defun %guild-category-fj (table)
   (instance-from-table (table 'category)
                        :id (parse-snowflake (gethash "id" table))
-                       :overwrites (mapvec (curry #'from-json :overwrite)
+                       :overwrites (mapvec (curry #'from-json 'overwrite)
                                            (gethash "permission_overwrites" table))
                        :name "name"
                        :parent-id (%maybe-sf (gethash "parent_id" table))
@@ -255,7 +255,7 @@
                        :g-id (parse-snowflake (gethash "guild_id" table))
                        :name "name"
                        :pos "position"
-                       :overwrites (mapvec (curry #'from-json :overwrite)
+                       :overwrites (mapvec (curry #'from-json 'overwrite)
                                            (gethash "permission_overwrites" table))
                        :nsfw "nsfw"
                        :topic "topic"
@@ -269,12 +269,12 @@
                        :g-id (parse-snowflake (gethash "guild_id" table))
                        :name "name"
                        :pos "position"
-                       :overwrites (mapvec (curry #'from-json :overwrite)
+                       :overwrites (mapvec (curry #'from-json 'overwrite)
                                            (gethash "permission_overwrites" table))
                        :nsfw "nsfw"
                        :parent-id (%maybe-sf (gethash "parent_id" table))))
 
-(defmethod from-json ((c (eql :channel)) (table hash-table))
+(defmethod from-json ((c (eql 'channel)) (table hash-table))
   (case (gethash "type" table)
     (0 (%guild-text-fj table))
     (1 (%dm-fj table))
@@ -291,7 +291,7 @@
                      ("guild_id" (guild-id c) (parse-snowflake data))
                      ("position" (position c) data)
                      ("permission_overwrites"
-                      (overwrites c) (mapvec (curry #'from-json :overwrite)
+                      (overwrites c) (mapvec (curry #'from-json 'overwrite)
                                              data))
                      ("name" (name c) data)
                      ("topic" (topic c) data)

@@ -13,7 +13,7 @@
          :accessor url)))
 
 
-(defmethod from-json ((c (eql :game)) (table hash-table))
+(defmethod from-json ((c (eql 'game)) (table hash-table))
   (instance-from-table (table 'game)
                        :name "name"
                        :type "type"
@@ -86,7 +86,7 @@
     (write-key-value "verified" (verifiedp u))
     (write-key-value "email" (emailp u))))
 
-(defmethod from-json ((c (eql :user)) (table hash-table))
+(defmethod from-json ((c (eql 'user)) (table hash-table))
   (instance-from-table (table 'user)
                        :id (parse-snowflake (gethash "id" table))
                        :username "username"
@@ -123,7 +123,7 @@
          :type string
          :accessor token)))
 
-(defmethod from-json ((c (eql :webhook)) (table hash-table))
+(defmethod from-json ((c (eql 'webhook)) (table hash-table))
   (instance-from-table (table 'webhook)
     :id (parse-snowflake (gethash "id" table))
     :g-id (parse-snowflake (gethash "guild_id" table))
@@ -151,7 +151,7 @@
     :type string
     :accessor session-id)))
 
-(defmethod from-json ((c (eql :ready)) (table hash-table))
+(defmethod from-json ((c (eql 'ready)) (table hash-table))
   (instance-from-table (table 'ready)
     :v "v"
     :me (cache :user (gethash "user" table))

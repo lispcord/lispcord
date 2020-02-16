@@ -120,7 +120,7 @@
   (setf (bot-session-id bot) (gethash "session_id" payload))
   (setf (bot-user bot) (cache :user (gethash "user" payload)))
   ;;dispatch event
-  (dispatch-event :on-ready (list (from-json :ready payload)) bot))
+  (dispatch-event :on-ready (list (from-json 'lc:ready payload)) bot))
 
 
 (defun on-emoji-update (data bot)
@@ -146,7 +146,7 @@
                     bot)))
 
 (defun on-member-add (data bot)
-  (let ((member (from-json :g-member data))
+  (let ((member (from-json 'lc:member data))
         (g (getcache-id (parse-snowflake (gethash "guild_id" data))
                         :guild)))
     (setf (lc:members g) (vec-extend member (lc:members g)))
@@ -161,7 +161,7 @@
 (defun on-member-update (data bot)
   (let ((g (getcache-id (parse-snowflake (gethash "guild_id" data))
                         :guild))
-        (member (from-json :g-member data)))
+        (member (from-json 'lc:member data)))
     (nsubstitute-if member
                     (lambda (m) (eq (lc:user m) (lc:user member)))
                     (lc:members g))
@@ -244,9 +244,9 @@
     (v:debug :lispcord.gateway "User uncached: ~a"
              (gethash "id" (gethash "user" data)))
     (setf (lc:status u) (gethash "status" data))
-    (setf (lc:game u) (from-json :game (gethash "game" data))))
+    (setf (lc:game u) (from-json 'lc:game (gethash "game" data))))
   (dispatch-event :on-presence-update
-                  (list (from-json :presence data))
+                  (list (from-json 'lc:presence data))
                   bot))
 
 (defun on-typing-start (data bot)
@@ -352,7 +352,7 @@
       ;; received new message
       ("MESSAGE_CREATE"
        (dispatch-event :on-message-create
-                       (list (from-json :message data))
+                       (list (from-json 'lc:message data))
                        bot))
 
       ;; a message is edited // might need special parsing here

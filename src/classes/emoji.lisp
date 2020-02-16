@@ -47,7 +47,7 @@
   (getcache-id (guild-id e) :guild))
 
 
-(defmethod from-json ((c (eql :emoji)) (table hash-table))
+(defmethod from-json ((c (eql 'emoji)) (table hash-table))
   (instance-from-table (table 'emoji)
                        :id (parse-snowflake (gethash "id" table))
                        :name "name"

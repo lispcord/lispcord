@@ -26,7 +26,7 @@
               :type (or null fixnum)
               :accessor width)))
 
-(defmethod from-json ((c (eql :attachement)) (table hash-table))
+(defmethod from-json ((c (eql 'attachement)) (table hash-table))
   (instance-from-table (table 'attachement)
                        :id (parse-snowflake (gethash "id" table))
                        :file "filename"
@@ -57,7 +57,7 @@
           :type (or null emoji)
           :accessor emoji)))
 
-(defmethod from-json ((c (eql :reaction)) (table hash-table))
+(defmethod from-json ((c (eql 'reaction)) (table hash-table))
   (instance-from-table (table 'reaction)
                        :count "count"
                        :me "me"
@@ -144,7 +144,7 @@
 
 (defun user-or-webhook (obj)
   (if (gethash "webhook_id" obj)
-      (from-json :webhook obj)
+      (from-json 'webhook obj)
       (cache :user obj)))
 
 (defmethod nick-or-name ((u user) (m message))
@@ -154,7 +154,7 @@
         (nick-or-name u (guild c))
         (name u))))
 
-(defmethod from-json ((c (eql :message)) (table hash-table))
+(defmethod from-json ((c (eql 'message)) (table hash-table))
   (instance-from-table (table 'message)
                        :id (parse-snowflake (gethash "id" table))
                        :channel-id (parse-snowflake (gethash "channel_id" table))
@@ -168,11 +168,11 @@
                                          (gethash "mentions" table))
                        :mention-roles (mapvec #'parse-snowflake
                                               (gethash "mention_roles" table))
-                       :attachements (mapvec (curry #'from-json :attachement)
+                       :attachements (mapvec (curry #'from-json 'attachement)
                                              (gethash "attachements" table))
-                       :embeds (mapvec (curry #'from-json :embed)
+                       :embeds (mapvec (curry #'from-json 'embed)
                                        (gethash "embeds" table))
-                       :reactions (mapvec (curry #'from-json :reaction)
+                       :reactions (mapvec (curry #'from-json 'reaction)
                                           (gethash "embeds" table))
                        :nonce "nonce"
                        :pinned "pinned"

@@ -2,19 +2,19 @@
 
 (defmethod from-id (id (c (eql :channel))
                     &optional (bot *client*)
-                    &aux (this (getcache-id id :channel)))
+                    &aux (this (getcache-id id channel)))
   (if this
       this
       (let* ((req  (discord-req
                     (str-concat "channels/" id)
                     :bot bot)))
         (if req
-            (cache :channel req)))))
+            (cache channel req)))))
 
 
 (defmethod edit ((c lc:partial-channel) (chan lc:channel)
                  &optional (bot *client*))
-  (cache :channel (discord-req
+  (cache channel (discord-req
                    (str-concat "channels/" (lc:id chan))
                    :bot bot
                    :type :patch
@@ -22,7 +22,7 @@
 
 (defmethod edit ((c lc:channel) (chan lc:channel)
                  &optional (bot *client*))
-  (cache :channel (discord-req
+  (cache channel (discord-req
                    (str-concat "channels/" (lc:id chan))
                    :bot bot
                    :type :patch
@@ -46,7 +46,7 @@
                                       "application/json")))
          (reply-nonce (gethash "nonce" response)))
     (if (equal reply-nonce nonce)
-        (from-json :message response)
+        (from-json 'message response)
         (error "Could not send message, nonce failure of ~a ~a"
                nonce reply-nonce))))
 
@@ -63,7 +63,7 @@
     (if response 
         (decache-id
          (parse-snowflake (gethash "id" response))
-         :channel))))
+         channel))))
 
 (defun get-messages (channel &key around
                                before
@@ -79,7 +79,7 @@
                      ((or around before after)
                       (error ":BEFORE, :AROUND and :AFTER are exclusive to one another!~%"))
                      (t nil))))
-    (mapvec (curry #'from-json :message)
+    (mapvec (curry #'from-json 'message)
             (discord-req
              (format nil "channels/~a/messages?limit=~a~@[&~a~]"
                      (to-string (lc:id channel)) limit final)
@@ -87,7 +87,7 @@
 
 (defmethod from-id (message-id (c lc:channel)
                     &optional (bot *client*))
-  (from-json :message (discord-req
+  (from-json 'message (discord-req
                        (str-concat "channels/" (lc:id c)
                                    "/messages/" message-id)
                        :bot bot)))
@@ -198,7 +198,7 @@
 
 (defun get-pinned (channel &optional (bot *client*))
   (declare (type lc:channel channel))
-  (mapvec (curry #'from-json :message)
+  (mapvec (curry #'from-json 'message)
           (discord-req (str-concat "channels/" (lc:id channel)
                                    "/pins")
                        :bot bot)))

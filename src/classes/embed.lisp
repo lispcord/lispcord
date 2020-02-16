@@ -12,7 +12,7 @@
                    :type (or null string)
                    :accessor icon-proxy)))
 
-(defmethod from-json ((c (eql :e-footer)) (table hash-table))
+(defmethod from-json ((c (eql 'embed-footer)) (table hash-table))
   (instance-from-table (table 'embed-footer)
                        :text "text"
                        :icon "icon_url"
@@ -48,7 +48,7 @@
 (deftype embed-image () 'embed-generic)
 (deftype embed-thumbnail () 'embed-generic)
 
-(defmethod from-json ((c (eql :e-generic)) (table hash-table))
+(defmethod from-json ((c (eql 'embed-generic)) (table hash-table))
   (instance-from-table (table 'embed-generic)
                        :url "url"
                        :proxy "proxy_url"
@@ -73,7 +73,7 @@
            :type (or null fixnum)
            :accessor width)))
 
-(defmethod from-json ((c (eql :e-video)) (table hash-table))
+(defmethod from-json ((c (eql 'embed-video)) (table hash-table))
   (instance-from-table (table 'embed-video)
                        :url "url"
                        :height "height"
@@ -94,7 +94,7 @@
          :type (or null string)
          :accessor url)))
 
-(defmethod from-json ((c (eql :e-provider)) (table hash-table))
+(defmethod from-json ((c (eql 'embed-provider)) (table hash-table))
   (instance-from-table (table 'embed-provider)
     :name "name"
     :url "url"))
@@ -119,7 +119,7 @@
                    :type (or null string)
                    :accessor proxy-icon)))
 
-(defmethod from-json ((c (eql :e-author)) (table hash-table))
+(defmethod from-json ((c (eql 'embed-author)) (table hash-table))
   (instance-from-table (table 'embed-author)
     :name "name"
     :url "url"
@@ -145,7 +145,7 @@
            :type boolean
            :accessor inline)))
 
-(defmethod from-json ((c (eql :e-field)) (table hash-table))
+(defmethod from-json ((c (eql 'embed-field)) (table hash-table))
   (instance-from-table (table 'embed-field)
     :name "name"
     :value "value"
@@ -214,7 +214,7 @@
                  :author author
                  :fields fields))
 
-(defmethod from-json ((c (eql :embed)) (table hash-table))
+(defmethod from-json ((c (eql 'embed)) (table hash-table))
   (instance-from-table (table 'embed)
                        :title "title"
                        :type "type"
@@ -222,13 +222,13 @@
                        :url "url"
                        :timestamp "timestamp"
                        :color "color"
-                       :footer (from-json :e-footer (gethash "footer" table))
-                       :image (from-json :e-generic (gethash "image" table))
-                       :thumbnail (from-json :e-generic (gethash "thumbnail" table))
-                       :video (from-json :e-video (gethash "video" table))
-                       :provider (from-json :e-provider (gethash "provider" table))
-                       :author (from-json :e-author (gethash "provider" table))
-                       :fields (map 'vector (curry #'from-json :e-field)
+                       :footer (from-json 'embed-footer (gethash "footer" table))
+                       :image (from-json 'embed-generic (gethash "image" table))
+                       :thumbnail (from-json 'embed-generic (gethash "thumbnail" table))
+                       :video (from-json 'embed-video (gethash "video" table))
+                       :provider (from-json 'embed-provider (gethash "provider" table))
+                       :author (from-json 'embed-author (gethash "provider" table))
+                       :fields (map 'vector (curry #'from-json 'embed-field)
                                     (gethash "fields" table))))
 
 (defmethod %to-json ((e embed))
