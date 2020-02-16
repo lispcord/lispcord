@@ -45,4 +45,14 @@
              (:file "guild")
              (:file "user")))
          (:file "gateway")
-         (:file "lispcord")))))
+         (:file "lispcord"))))
+    :in-order-to ((asdf:test-op (asdf:test-op :lispcord-tests)))
+
+(defsystem #:lispcord-tests
+  :depends-on (:lispcord :parachute)
+  :pathname "t"
+  :serial t
+  :components ((:file "package")
+               (:file "classes-definer"))
+  :perform (test-op (o s)
+                    (uiop:symbol-call :parachute :test :lispcord-tests)))
