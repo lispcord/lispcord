@@ -63,18 +63,6 @@
    (game          :type (or null game)
                   :accessor game)))
 
-(defmethod update ((table hash-table) (u user))
-  (from-table-update (table data)
-                     ("id" (id u) (parse-snowflake data))
-                     ("username" (name u) data)
-                     ("discriminator" (discrim u) data)
-                     ("avatar" (avatar u) data)
-                     ("bot" (botp u) data)
-                     ("mfa" (mfa-p u) data)
-                     ("verified" (verifiedp u) data)
-                     ("email" (emailp u) data))
-  u)
-
 (defmethod %to-json ((u user))
   (with-object
     (write-key-value "id" (id u))

@@ -13,7 +13,7 @@
 
 (define-converters (partial-emoji)
   name image
-  (roles 'identity (default-writer :null)))
+  (roles 'identity (defaulting-writer :null)))
 
 (defclass emoji ()
   ((id       :initarg :id

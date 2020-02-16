@@ -22,8 +22,8 @@
 (define-converters (overwrite)
   (id    'parse-snowflake)
   (type)
-  (allow 'make-permissions 'value)
-  (deny  'make-permissions 'value))
+  (allow 'make-permissions)
+  (deny  'make-permissions))
 
 (defclass chnl nil nil)
 
@@ -84,7 +84,7 @@
   (guild-id 'parse-snowflake)
   (name)
   (position)
-  (permission-overwrites (cache-vector-getter 'overwrite))
+  (permission-overwrites (caching-vector-reader 'overwrite))
   (parent-id '%maybe-sf))
 
 (defclass category (guild-channel)
@@ -146,7 +146,7 @@
                  :accessor last-pinned)))
 
 (define-converters (dm-channel)
-  (recipients (cache-vector-getter 'user))
+  (recipients (caching-vector-reader 'user))
   (last-message '%maybe-sf)
   (last-pinned))
 

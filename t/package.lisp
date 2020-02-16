@@ -1,3 +1,3 @@
 
-(defpackage #:lispcord-tests
+(defpackage #:lispcord-test
   (:use :cl :parachute))

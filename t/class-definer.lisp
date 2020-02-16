@@ -1,17 +1,21 @@
 
-(in-package lispcord-tests)
+(in-package lispcord-test)
 
 (define-test class-definer-suite)
 
 (defclass test-class ()
-  ((slot :initarg :slot :accessor slotp)))
+  ((slot :initarg :slot :accessor slotp :initform :unbound)))
 
 (defclass test-subclass (test-class)
-  ((subslot :initarg :subslot :accessor subslot)))
+  ((subslot :initarg :subslot :accessor subslot :initform :unbound)))
 
 (defmethod print-object ((o test-class) s)
   (print-unreadable-object (o s :type t :identity t)
     (format s "~S" (slotp o))))
+
+(defmethod print-object ((o test-subclass) s)
+  (print-unreadable-object (o s :type t :identity t)
+    (format s "~S ~S" (slotp o) (subslot o))))
 
 (defun test-equal (a b)
   (and (typep a 'test-class)
@@ -29,16 +33,20 @@
 (define-test define-converters
   :parent class-definer-suite
 
-  (is equalp '(slot identity nil)
+  (is equalp
+      '(slot identity identity)
       (lispcord.classes::make-converter 'slot))
-  (is equalp '(slot parse-integer nil)
+  (is equalp
+      '(slot parse-integer identity)
       (lispcord.classes::make-converter 'slot 'parse-integer))
-  (is equalp '(slot parse-integer princ-to-string)
+  (is equalp
+      '(slot parse-integer princ-to-string)
       (lispcord.classes::make-converter 'slot 'parse-integer 'princ-to-string))
 
   (true
-   (lispcord.classes::define-converters (test-class)
-     (slot))))
+   (lispcord.classes::define-converters (test-class) slot))
+  (true
+   (lispcord.classes::define-converters (test-subclass) (subslot))))
 
 (defvar definer-json "{\"slot\":\"value\"}")
 (defvar definer-table
@@ -64,7 +72,7 @@
     (lispcord.classes::update definer-table obj1)
     (is test-equal obj2 obj1)))
 
-(define-test hierarchy
+(define-test subclass
   :parent class-definer-suite
   :depends-on (define-converters to-json from-json)
   (let ((obj (make-instance 'test-subclass :slot "value" :subslot "subvalue")))

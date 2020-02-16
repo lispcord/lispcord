@@ -157,10 +157,10 @@
 
 (define-converters (embed)
   title type description url timestamp color
-  (footer    (subtable 'embed-footer))
-  (image     (subtable 'embed-image))
-  (thumbnail (subtable 'embed-thumbnail))
-  (video     (subtable 'embed-video))
-  (provider  (subtable 'embed-provider))
-  (author    (subtable 'embed-author))
-  (fields    (subtable-vector 'embed-field)))
+  (footer    (subtable-reader 'embed-footer))
+  (image     (subtable-reader 'embed-image))
+  (thumbnail (subtable-reader 'embed-thumbnail))
+  (video     (subtable-reader 'embed-video))
+  (provider  (subtable-reader 'embed-provider))
+  (author    (subtable-reader 'embed-author))
+  (fields    (subtable-vector-reader 'embed-field)))

@@ -46,13 +46,13 @@
                (:file "gateway")
                (:file "lispcord"))
 
-  :in-order-to ((asdf:test-op (asdf:test-op :lispcord-tests))))
+  :in-order-to ((asdf:test-op (asdf:test-op :lispcord-test))))
 
-(asdf:defsystem #:lispcord-tests
+(asdf:defsystem #:lispcord-test
   :depends-on (:lispcord :parachute)
   :pathname "t"
   :serial t
   :components ((:file "package")
-               (:file "classes-definer"))
+               (:file "class-definer"))
   :perform (test-op (o s)
-                    (uiop:symbol-call :parachute :test :lispcord-tests)))
+                    (uiop:symbol-call :parachute :test :lispcord-test)))

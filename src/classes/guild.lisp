@@ -72,18 +72,6 @@
                        :managed "managed"
                        :mentionable "mentionable"))
 
-(defmethod update ((table hash-table) (r role))
-  (from-table-update (table data)
-                     ("id" (id r) (parse-snowflake data))
-                     ("name" (name r) data)
-                     ("color" (color r) data)
-                     ("hoist" (hoistp r) data)
-                     ("position" (position r) data)
-                     ("permissions" (permissions r) data)
-                     ("managed" (managedp r) data)
-                     ("mentionable" (mentionablep r) data))
-  r)
-
 (defmethod %to-json ((r role))
   (with-object
     (write-key-value "id" (id r))
@@ -158,17 +146,6 @@
                        :mute "mute"
                        :deaf "deaf"
                        :gid (parse-snowflake (gethash "guild_id" table))))
-
-(defmethod update ((table hash-table) (m member))
-  (from-table-update (table data)
-                     ("user" (user m) (cache 'user data))
-                     ("nick" (nick m) data)
-                     ("roles" (roles m) (mapvec #'parse-snowflake data))
-                     ("joined_at" (joined-at m) data)
-                     ("mute" (mutep m) data)
-                     ("deaf" (deafp m) data)
-                     ("guild_id" (guild-id m) (parse-snowflake data)))
-  m)
 
 (defclass presence ()
   ((user          :initarg :user
@@ -434,34 +411,6 @@
   (make-instance 'guild
                  :id (parse-snowflake (gethash "id" table))
                  :available (not (gethash "unavailable" table))))
-
-(defmethod update ((table hash-table) (g guild))
-  (cache-update (id g) :guild table))
-
-(defmethod update ((table hash-table) (g available-guild))
-  (from-table-update (table data)
-                     ("id" (id g) (parse-snowflake data))
-                     ("name" (name g) data)
-                     ("icon" (icon g) data)
-                     ("splash" (splash g) data)
-                     ("owner_id" (owner-id g) (parse-snowflake data))
-                     ("region" (region g) data)
-                     ("afk_channel_id" (afk-id g) (parse-snowflake data))
-                     ("afk_timeout" (afk-to g) data)
-                     ("embed_enabled" (embedp g) data)
-                     ("embed_channel_id" (embed-id g) (parse-snowflake data))
-                     ("verification_level" (verify-level g) data)
-                     ("default_message_notification" (notify-level g) data)
-                     ("explicit_content_filter" (content-filter g) data)
-                     ("roles" (roles g) (mapvec (curry #'cache :role) data))
-                     ("emojis" (emojis g) (mapvec (curry #'cache :emoji) data))
-                     ("features" (features g) (coerce data 'vector))
-                     ("mfa_level" (mfa-level g) data)
-                     ("application_id" (app-id g) (parse-snowflake data))
-                     ("widget_enabled" (widgetp g) data)
-                     ("widget_channel_id" (widget-id g) (parse-snowflake data))
-                     ("system_channel_id" (system-channel-id g) (parse-snowflake data)))
-  g)
 
 (defmethod from-json ((c (eql 'guild)) (table hash-table))
   (if (gethash "unavailable" table)
