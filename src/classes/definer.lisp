@@ -12,6 +12,14 @@
             (:constructor make-converter (slot &optional (reader 'identity) (writer 'identity))))
   slot reader writer)
 
+(defun converters-for (obj)
+  (let* ((class (class-of obj))
+         (superclasses (c2mop:class-precedence-list class)))
+    (mapcan (lambda (c)
+              (when-let ((hash (gethash (class-name c) *converters* nil)))
+                (hash-table-values hash)))
+            superclasses)))
+
 (defmacro defclass* (name direct-superclasses direct-slots &rest options)
   "Defclass defaulting initarg and accessor name to slot name"
   (let ((accessor-names nil))
@@ -63,42 +71,35 @@ writer is the function to convert the data from lisp slot value to json.
   (slot->key (converter-slot converter)))
 
 (defmethod %to-json (obj)
-  (with-object
-    (maphash (lambda (type converters)
-               (when (typep obj type)
-                 (loop :for (slot reader writer) :in (hash-table-values converters)
-                       :do (when (slot-boundp obj slot)
-                             (write-key-value (slot->key slot)
-                                              (funcall writer (slot-value obj slot)))))))
-             *converters*)))
+  (let ((converters (converters-for obj)))
+    (with-object
+      (loop :for (slot reader writer) :in converters
+            :do (when (slot-boundp obj slot)
+                  (write-key-value (slot->key slot)
+                                   (funcall writer (slot-value obj slot))))))))
 
 (defmethod from-json ((class-name symbol) (table hash-table))
   (let* ((obj (make-instance class-name))
          (slots (mapcar #'c2mop:slot-definition-name
-                        (c2mop:class-slots obj))))
+                        (c2mop:class-slots (class-of obj)))))
     (update table obj)
     ;; We don't make a difference between optional and nullable values
     ;; I.e. if it's not there we pretend that it was null in json
-    (dolist (slot slots)
-      (unless (slot-boundp obj slot)
-        (let ((reader (converter-reader (gethash slot (gethash class-name *converters*)))))
-          (setf (slot-value obj slot)
-                (funcall reader nil)))))))
+    (let ((converters (converters-for obj)))
+      (dolist (slot slots)
+        (unless (slot-boundp obj slot)
+          (let ((reader (converter-reader (find slot converters :key #'converter-slot))))
+            (setf (slot-value obj slot)
+                  (funcall reader nil))))))
+    obj))
 
 (defmethod update ((table hash-table) obj)
-  (let ((table (copy-hash-table table)))
-    (maphash (lambda (type converters)
-               (when (typep obj type)
-                 (loop :for (slot reader writer) :in (hash-table-values converters)
-                       :do (let ((key (slot->key slot)))
-                             (when (gethash key table nil)
-                               (setf (slot-value obj slot)
-                                     (funcall reader (gethash key table)))
-                               (remhash key table))))
-                 obj))
-             *converters*)
-    (when (not (zerop (hash-table-size table)))
-      (v:warn :lispcord.classes "Remaining unprocessed json fields: ~S~%This should only happen if Discord modifies API and lispcord wasn't updated yet~%Please file an issue at https://github.com/lispcord/lispcord/issues")))
+  (let ((converters (converters-for obj)))
+    (loop :for (slot reader writer) :in converters
+          :do (let ((key (slot->key slot)))
+                (when (gethash key table nil)
+                  (setf (slot-value obj slot)
+                        (funcall reader (gethash key table)))))))
   obj)
 
 ;;;; Reader/writer function generators

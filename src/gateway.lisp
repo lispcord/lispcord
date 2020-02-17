@@ -118,7 +118,7 @@
   (v:info :lispcord.gateway "Ready payload received; Session-id: ~a"
           (gethash "session_id" payload))
   (setf (bot-session-id bot) (gethash "session_id" payload))
-  (setf (bot-user bot) (cache :user (gethash "user" payload)))
+  (setf (bot-user bot) (cache 'lc:user (gethash "user" payload)))
   ;;dispatch event
   (dispatch-event :on-ready (list (from-json 'lc:ready payload)) bot))
 
@@ -126,7 +126,7 @@
 (defun on-emoji-update (data bot)
   (with-table (data emojis "emojis"
                     id "guild_id")
-    (let ((g (cache :guild (plist-hash-table `("id" ,id "emojis" ,emojis)
+    (let ((g (cache 'lc:guild (plist-hash-table `("id" ,id "emojis" ,emojis)
                                              :test #'equal))))
       (dispatch-event :on-emoji-update
                       (list (lc:emojis g) g)
@@ -136,9 +136,9 @@
 (defun on-member-remove (data bot)
   (let* ((user (getcache-id (parse-snowflake
                              (gethash "id" (gethash "user" data)))
-                            :user))
+                            'lc:user))
          (g-id (parse-snowflake (gethash "guild_id" data)))
-         (g (getcache-id g-id :guild)))
+         (g (getcache-id g-id 'lc:guild)))
     (setf (lc:members g)
           (vecrem (lambda (e) (eq user (lc:user e))) (lc:members g)))
     (dispatch-event :on-member-remove
@@ -148,7 +148,7 @@
 (defun on-member-add (data bot)
   (let ((member (from-json 'lc:member data))
         (g (getcache-id (parse-snowflake (gethash "guild_id" data))
-                        :guild)))
+                        'lc:guild)))
     (setf (lc:members g) (vec-extend member (lc:members g)))
     (dispatch-event :on-member-add (list member g) bot)))
 
@@ -160,7 +160,7 @@
 
 (defun on-member-update (data bot)
   (let ((g (getcache-id (parse-snowflake (gethash "guild_id" data))
-                        :guild))
+                        'lc:guild))
         (member (from-json 'lc:member data)))
     (nsubstitute-if member
                     (lambda (m) (eq (lc:user m) (lc:user member)))
@@ -168,25 +168,25 @@
     (dispatch-event :on-member-update (list member g) bot)))
 
 (defun on-role-add (data bot)
-  (let ((role (cache :role (gethash "role" data)))
+  (let ((role (cache 'lc:role (gethash "role" data)))
         (g (getcache-id (parse-snowflake (gethash "guild_id" data))
-                        :guild)))
+                        'lc:guild)))
     (setf (lc:guild-id role) (parse-snowflake (gethash "guild_id" data)))
     (setf (lc:roles g) (vec-extend role (lc:roles g)))
     (dispatch-event :on-role-create (list role g) bot)))
 
 (defun on-role-update (data bot)
-  (let ((role (cache :role (gethash "role" data)))
+  (let ((role (cache 'lc:role (gethash "role" data)))
         (g (getcache-id (parse-snowflake (gethash "guild_id" data))
-                        :guild)))
+                        'lc:guild)))
     (dispatch-event :on-role-update (list role g) bot)))
 
 (defun on-role-delete (data bot)
   (with-table (data guild-id "guild_id" role-id "role_id")
     (let* ((g-id (parse-snowflake guild-id))
            (r-id (parse-snowflake role-id))
-           (g (getcache-id g-id :guild)))
-      (decache-id r-id :role)
+           (g (getcache-id g-id 'lc:guild)))
+      (decache-id r-id 'lc:role)
       (setf (lc:roles g)
             (vecrem (lambda (e)
                       (funcall optimal-id-compare r-id (lc:id e)))
@@ -195,44 +195,44 @@
 
 
 (defun on-channel-create (data bot)
-  (let ((c (cache :channel data)))
+  (let ((c (cache 'lc:channel data)))
     (when (typep c 'lc:guild-channel)
-      (let ((g (getcache-id (lc:guild-id c) :guild)))
+      (let ((g (getcache-id (lc:guild-id c) 'lc:guild)))
         (setf (lc:channels g) (vec-extend c (lc:channels g)))))
     (dispatch-event :on-channel-create (list c) bot)))
 
 (defun on-channel-delete (data bot)
-  (let ((c (cache :channel data)))
+  (let ((c (cache 'lc:channel data)))
     (when (typep c 'lc:guild-channel)
-      (let ((g (getcache-id (lc:guild-id c) :guild)))
+      (let ((g (getcache-id (lc:guild-id c) 'lc:guild)))
         (setf (lc:channels g)
               (vecrem (lambda (e) (eq e c)) (lc:channels g)))))
-    (decache-id (lc:id c) :channel)
+    (decache-id (lc:id c) 'lc:channel)
     (dispatch-event :on-channel-delete (list c) bot)))
 
 (defun on-channel-pin-update (data bot)
   (let ((id (parse-snowflake (gethash "channel_id" data))))
     (dispatch-event :on-pin-update
-                    (list (getcache-id id :channel)
+                    (list (getcache-id id 'lc:channel)
                           (gethash "last_pin_timestamp" data))
                     bot)))
 
 
 (defun on-guild-ban (data bot kind)
-  (let ((u (cache :user (gethash "user" data)))
+  (let ((u (cache 'lc:user (gethash "user" data)))
         (g (getcache-id (parse-snowflake (gethash "guild_id" data))
-                        :guild)))
+                        'lc:guild)))
     (dispatch-event kind (list u g) bot)))
 
 
 (defun on-reaction (data bot kind)
   (let ((emoji (if (gethash "id" (gethash "emoji" data))
-                   (cache :emoji (gethash "emoji" data))
+                   (cache 'lc:emoji (gethash "emoji" data))
                    (gethash "emoji" data)))
         (user (getcache-id (parse-snowflake (gethash "user_id" data))
-                           :user))
+                           'lc:user))
         (channel (getcache-id (parse-snowflake (gethash "channel_id" data))
-                              :channel))
+                              'lc:channel))
         (mid (parse-snowflake (gethash "message_id" data))))
     (dispatch-event kind (list emoji mid user channel) bot)))
 
@@ -240,7 +240,7 @@
 (defun on-presence (data bot)
   (when-let ((u (getcache-id (parse-snowflake
                               (gethash "id" (gethash "user" data)))
-                             :user)))
+                             'lc:user)))
     (v:debug :lispcord.gateway "User uncached: ~a"
              (gethash "id" (gethash "user" data)))
     (setf (lc:status u) (gethash "status" data))
@@ -251,9 +251,9 @@
 
 (defun on-typing-start (data bot)
   (let ((c (getcache-id (parse-snowflake (gethash "channel_id" data))
-                        :channel))
+                        'lc:channel))
         (u (getcache-id (parse-snowflake (gethash "user_id" data))
-                        :user))
+                        'lc:user))
         (ts (gethash "timestamp" data)))
     (dispatch-event :on-typing-start (list u c ts) bot)))
 
@@ -279,7 +279,7 @@
        (on-typing-start data bot))
 
       ("USER_UPDATE"
-       (dispatch-event :on-user-update (list (cache :user data)) bot))
+       (dispatch-event :on-user-update (list (cache 'lc:user data)) bot))
 
       ;; channel made known
       ("CHANNEL_CREATE"
@@ -287,7 +287,7 @@
 
       ("CHANNEL_UPDATE"
        (dispatch-event :on-channel-update
-                       (list (cache :channel data))
+                       (list (cache 'lc:channel data))
                        bot))
 
       ("CHANNEL_DELETE"
@@ -299,18 +299,18 @@
       ;; guild made known
       ("GUILD_CREATE"
        (dispatch-event :on-guild-create
-                       (list (cache :guild data))
+                       (list (cache 'lc:guild data))
                        bot))
 
       ("GUILD_UPDATE"
        (dispatch-event :on-guild-update
-                       (list (cache :guild data))
+                       (list (cache 'lc:guild data))
                        bot))
 
       ("GUILD_DELETE"
-       (let ((g (cache :guild data)))
+       (let ((g (cache 'lc:guild data)))
          (dispatch-event :on-guild-delete (list g) bot)
-         (decache-id (lc:id g) :guild)))
+         (decache-id (lc:id g) 'lc:guild)))
 
       ("GUILD_BAN_ADD"
        (on-guild-ban data bot :on-member-ban))
@@ -325,7 +325,7 @@
        (dispatch-event :on-integrations-update
                        (list (getcache-id
                               (parse-snowflake (gethash "guild_id" data))
-                              :guild))
+                              'lc:guild))
                        bot))
 
       ("GUILD_MEMBER_ADD"
@@ -367,14 +367,14 @@
                        (list (parse-snowflake (gethash "id" data))
                              (getcache-id
                               (parse-snowflake (gethash "channel_id" data))
-                              :channel))
+                              'lc:channel))
                        bot))
 
       ("MESSAGE_DELETE_BULK"
        (let ((ids (mapvec #'parse-snowflake (gethash "ids" data)))
              (c (getcache-id
                  (parse-snowflake (gethash "channel_id" data))
-                 :channel)))
+                 'lc:channel)))
          (dispatch-event :on-message-purge (list c ids) bot)))
 
       ("MESSAGE_REACTION_ADD"
@@ -386,7 +386,7 @@
       ("MESSAGE_REACTION_REMOVE_ALL"
        (let ((c (getcache-id
                  (parse-snowflake (gethash "channel_id" data))
-                 :channel))
+                 'lc:channel))
              (mid (parse-snowflake (gethash "message_id" data))))
          (dispatch-event :on-reaction-purge
                          (list c mid)
@@ -485,8 +485,6 @@
   (let ((conn (wsd:make-client *gateway-url*)))
     (setf (bot-conn bot) conn)
     (setf (bot-running bot) t)
-    (with-network-retry (:refresh-gateway t)
-      (wsd:start-connection conn))
     
     (wsd:on :open conn
             (lambda ()
@@ -539,4 +537,6 @@
                        ;; Gateway disconnected us for unknown reason (e.g. code 1000 Unknown error)
                        ;; Get a new session
                        (sleep 5)
-                       (reconnect-full bot reason code))))))))
+                       (reconnect-full bot reason code))))))
+    (with-network-retry (:refresh-gateway t)
+      (wsd:start-connection conn))))

@@ -17,7 +17,7 @@
 
 (defclass* reaction ()
   ((count :type (or null fixnum))
-   (me    :type boolean)
+   (me    :type boolean :accessor me-p)
    (emoji :type (or null emoji))))
 
 (define-converters (reaction)

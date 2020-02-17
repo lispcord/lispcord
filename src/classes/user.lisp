@@ -14,10 +14,10 @@
 
 (defclass* user ()
   ((id :type snowflake)
-   (username :type string)
+   (username :type string :accessor name)
    (discriminator :type string)
    (avatar :type (or null string))
-   (bot :type t)
+   (bot :type boolean :accessor botp)
    (mfa :type t)
    (verified :type t)
    (email :type t)
@@ -25,8 +25,8 @@
    (game          :type (or null game))))
 
 (define-converters (user)
-  (id 'parse-sowflake)
-  username discriminator avatar bot mfa verified email)
+  (id 'parse-snowflake)
+  username discriminator avatar bot mfa verified email status game)
 
 (defclass* webhook ()
   ((id :type snowflake)
@@ -45,16 +45,16 @@
   avatar token)
 
 (defclass* ready ()
-  ((version :type fixnum)
+  ((v :type fixnum)
    (user :type user)
-   (channels :type array)
+   (private-channels :type array)
    (guilds :type array)
    (session-id :type string)))
 
 (define-converters (ready)
   v
-  (me (caching-reader 'user))
-  (channels (caching-vector-reader 'channel))
+  (user (caching-reader 'user))
+  (private-channels (caching-vector-reader 'channel))
   (guilds (caching-vector-reader 'guild))
   session-id)
 
