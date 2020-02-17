@@ -15,13 +15,16 @@
      #:vec-extend
      #:vecrem
      #:recur
+     #:dolist*
 
      #:split-sequence
 
      #:snowflake
      #:parse-snowflake
      #:to-string
-     #:optimal-id-compare))
+     #:optimal-id-compare
+
+     #:export-pub))
 
 (in-package :lispcord.util)
 
@@ -139,3 +142,17 @@
 
 (defmacro recur (name &rest args)
   `(return-from ,name (,name ,@args)))
+
+(defmacro dolist* ((var lists) &body body)
+  (let ((lists (alexandria:ensure-list lists)))
+    (alexandria:with-gensyms (list)
+      `(dolist (,list (list ,@lists))
+         (dolist (,var ,list)
+           ,@body)))))
+
+(defmacro export-pub (symbol)
+  "Exports the symbol from the current package and current.pub package
+The .pub package should :use the current package"
+  (let ((package *package*))
+    `(progn (uiop:export* ,symbol ,(package-name package))
+            (uiop:export* ,symbol ,(format nil "~A.PUB" (package-name package))))))

@@ -20,13 +20,11 @@
                  :perms permissions
                  :mention (or mentionable :false)))
 
-(defmethod %to-json ((r partial-role))
-  (with-object
-    (write-key-value "name" (name r))
-    (write-key-value "color" (color r))
-    (write-key-value "hoist" (or (hoistp r) :false))
-    (write-key-value "permissions" (permissions r))
-    (write-key-value "mentionable" (or (mentionablep r) :false))))
+(define-converters (partial-role)
+  name color
+  (hoist (defaulting-writer :false))
+  permissions
+  (mentionable (defaulting-writer :false)))
 
 (defclass role ()
   ((id          :initarg :id
@@ -61,27 +59,12 @@
   "Returns permission overwrite for role in channel"
   (find (id m) (overwrites c) :key 'id))
 
-(defmethod from-json ((c (eql 'role)) (table hash-table))
-  (instance-from-table (table 'role)
-                       :id (parse-snowflake (gethash "id" table))
-                       :name "name"
-                       :color "color"
-                       :hoist "hoist"
-                       :pos "position"
-                       :perms (make-permissions (gethash "permissions" table))
-                       :managed "managed"
-                       :mentionable "mentionable"))
-
-(defmethod %to-json ((r role))
-  (with-object
-    (write-key-value "id" (id r))
-    (write-key-value "name" (name r))
-    (write-key-value "color" (color r))
-    (write-key-value "hoist" (hoistp r))
-    (write-key-value "position" (position r))
-    (write-key-value "permissions" (permissions r))
-    (write-key-value "managed" (managedp r))
-    (write-key-value "mentionable" (mentionablep r))))
+(define-converters (role)
+  (id 'parse-snowflake)
+  name color hoist position
+  (permissions 'make-permissions)
+  managed
+  mentionable)
 
 (defclass member ()
   ((user          :initarg :user
@@ -126,26 +109,12 @@
   "Returns permission overwrite for member in channel"
   (find (id (user m)) (overwrites c) :key 'id))
 
-;;The Modify and Add Member REST-calls can use this
-(defmethod %to-json ((m member))
-  (with-object
-    (write-key-value "user" (user m))
-    (write-key-value "nick" (nick m))
-    (write-key-value "roles" (roles m))
-    (write-key-value "joined_at" (joined-at m))
-    (write-key-value "mute" (mutep m))
-    (write-key-value "deaf" (deafp m))))
-
-(defmethod from-json ((c (eql 'member)) (table hash-table))
-  (instance-from-table (table 'member)
-                       :user (cache 'user (gethash "user" table))
-                       :nick "nick"
-                       :roles (mapvec (lambda (e) (getcache-id (parse-snowflake e) :role))
-                                      (gethash "roles" table))
-                       :joined-at "joined_at"
-                       :mute "mute"
-                       :deaf "deaf"
-                       :gid (parse-snowflake (gethash "guild_id" table))))
+(define-converters (member)
+  (user (caching-reader 'user))
+  (nick)
+  (roles (cache-vector-id-reader 'role))
+  joined-at mute deaf
+  (guild-id 'parse-snowflake))
 
 (defclass presence ()
   ((user          :initarg :user
@@ -179,29 +148,15 @@
 (defmethod user ((p presence))
   (getcache-id (user-id p) :user))
 
-(defmethod from-json ((c (eql 'presence)) (table hash-table))
-  (instance-from-table (table 'presence)
-                       :user (parse-snowflake (gethash "id" (gethash "user" table)))
-                       :roles (mapvec #'parse-snowflake (gethash "roles" table))
-                       :game (from-json 'game (gethash "game" table))
-                       :guild-id (%maybe-sf (gethash "guild_id" table))
-                       :status "status"
-                       :activities (mapvec (lambda (e) (from-json 'game e))
-                                           (gethash "activities" table))
-                       :client-status (from-json 'client-status (gethash "client_status" table))
-                       :premium-since "premium_since"
-                       :nick "nick"))
-
-(defmethod %to-json ((p presence))
-  (with-object
-    (write-key-value "name" (name p))
-    (write-key-value "roles" (roles p))
-    (write-key-value "game" (game p))
-    (write-key-value "guild_id" (guild-id p))
-    (write-key-value "status" (status p))
-    (write-key-value "activities" (activities p))
-    (write-key-value "client_status" (client-status p))
-    (write-key-value "nick" (nick p))))
+(define-converters (presence)
+  (user (lambda (d) (parse-snowflake (gethash "id" d))))
+  (roles (vector-reader 'parse-snowflake))
+  (game (subtable-reader 'game))
+  (guild-id '%maybe-sf)
+  status
+  (activities (subtable-vector-reader 'game))
+  (client-status (subtable-reader 'client-status))
+  premium-since nick)
 
 (defclass client-status ()
   ((desktop :initarg :desktop
@@ -214,26 +169,22 @@
             :type string
             :accessor web)))
 
-(defmethod from-json ((c (eql 'client-status)) (table hash-table))
-  (instance-from-table (table 'presence)
-                       :desktop "desktop"
-                       :mobile  "mobile"
-                       :web     "web"))
-
-(defmethod %to-json ((cs client-status))
-  (with-object
-    (write-key-value "desktop" (desktop cs))
-    (write-key-value "mobile"  (mobile cs))
-    (write-key-value "web"     (web cs))))
-
+(define-converters (client-status)
+  desktop mobile web)
 
 (defclass guild ()
   ((id                 :initarg :id
                        :type snowflake
                        :accessor id)
-   (available          :initarg :available
-                       :type t
-                       :accessor availablep)))
+   (unavailable        :initarg :unavailable
+                       :type boolean
+                       :accessor unavailable)))
+
+(define-converters (guild)
+  (id 'parse-snowflake)
+  (available))
+
+(defclass unavailable-guild (guild) ())
 
 (defclass available-guild (guild)
   ((name               :initarg :name
@@ -254,9 +205,9 @@
    (afk-id             :initarg :afk-id
                        :type (or null snowflake)
                        :accessor afk-id)
-   (afk-to             :initarg :afk-to
+   (afk-timeout        :initarg :afk-timeout
                        :type fixnum
-                       :accessor afk-to)
+                       :accessor afk-timeout)
    (embed?             :initarg :embed?
                        :type t
                        :accessor embedp)
@@ -330,89 +281,51 @@
         (name u))
     (name u)))
 
-(defmethod %to-json ((g available-guild))
-  (with-object
-    (write-key-value "id" (id g))
-    (write-key-value "name" (name g))
-    (write-key-value "icon" (icon g))
-    (write-key-value "joined_at" (joined-at g))
-    (write-key-value "splash" (splash g))
-    (write-key-value "owner_id" (owner g))
-    (write-key-value "region" (region g))
-    (write-key-value "afk_channel_id" (afk-id g))
-    (write-key-value "afk_timeout" (afk-to g))
-    (write-key-value "embed_enabled" (embedp g))
-    (write-key-value "embed_channel_id" (embed-id g))
-    (write-key-value "verification_level" (verify-level g))
-    (write-key-value "default_message_notification" (notify-level g))
-    (write-key-value "explicit_content_filter" (content-filter g))
-    (write-key-value "roles" (roles g))
-    (write-key-value "emojis" (emojis g))
-    (write-key-value "features" (features g))
-    (write-key-value "mfa_level" (mfa-level g))
-    (write-key-value "application_id" (app-id g))
-    (write-key-value "widget_enabled" (widgetp g))
-    (write-key-value "widget_channel_id" (widget-id g))
-    (write-key-value "system_channel_id" (system-channel-id g))
-    (write-key-value "large" (largep g))
-    (write-key-value "unavailable" (not (availablep g)))
-    (write-key-value "member_count" (member-count g))
-    (write-key-value "members" (members g))
-    (write-key-value "channels" (channels g))
-    (write-key-value "presences" (presences g))))
+;; Deprecated accessors
 
-(defmethod %to-json ((g guild))
-  (with-object
-    (write-key-value "id" (id g))
-    (write-key-value "unvailable" (not (availablep g)))))
+(defmethod availablep ((g guild))
+  (not (unavailable g)))
 
+(defmethod afk-to ((g guild))
+  (afk-timeout g))
 
-(defun %available-from-json (table)
-  (flet ((parse-with-gid (f type e)
-           (unless (gethash "guild_id" e)
-             (setf (gethash "guild_id" e) (gethash "id" table)))
-           (funcall f type e)))
-    (instance-from-table (table 'available-guild)
-                         :id (parse-snowflake (gethash "id" table))
-                         :name "name"
-                         :icon "icon"
-                         :splash "splash"
-                         :owner (parse-snowflake (gethash "owner_id" table))
-                         :region "region"
-                         :afk-id (%maybe-sf (gethash "afk_channel_id" table))
-                         :afk-to "afk_timeout"
-                         :embed? "embed_enabled"
-                         :embed-id (%maybe-sf (gethash "embed_channel_id" table))
-                         :verify-l "verification_level"
-                         :notify-l "default_message_notifications"
-                         :content "explicit_content_filter"
-                         :roles (mapvec (curry #'parse-with-gid #'cache :role)
-                                        (gethash "roles" table))
-                         :emojis (mapvec (curry #'parse-with-gid #'cache :emoji)
-                                         (gethash "emojis" table))
-                         :features (coerce (gethash "features" table) 'vector)
-                         :mfa "mfa_level"
-                         :app-id (%maybe-sf (gethash "application_id" table))
-                         :widget? "widget_enabled"
-                         :widget-id (%maybe-sf (gethash "widget_channel_id" table))
-                         :system-id (%maybe-sf (gethash "sytem_channel_id" table))
-                         :joined-at "joined_at"
-                         :large "large"
-                         :available (not (gethash "unavailable" table))
-                         :member-cnt "member_count"
-                         :members (mapvec (curry #'parse-with-gid #'from-json 'member)
-                                          (gethash "members" table))
-                         :channels (mapvec (curry #'parse-with-gid #'cache 'channel)
-                                           (gethash "channels" table))
-                         :presences (mapvec (curry #'from-json 'presence)
-                                            (gethash "presences" table)))))
+;; End of deprecated accessors
 
-(defun %unavailable-from-json (table)
-  (make-instance 'guild
-                 :id (parse-snowflake (gethash "id" table))
-                 :available (not (gethash "unavailable" table))))
+(define-converters (available-guild)
+  name icon splash region
+  (owner 'parse-snowflake)
+  afk-timeout
+  (afk-channel-id '%maybe-sf)
+  embed-enabled
+  (embed-channel-id '%maybe-sf)
+  verification-level
+  default-message-notifications
+  explicit-content-filter
+  (roles (caching-vector-reader 'role))
+  (emojis (caching-vector-reader 'emoji))
+  (features (lambda (v) (coerce v 'vector)))
+  mfa-level
+  (application-id '%maybe-sf)
+  widget-enabled
+  (widget-channel-id '%maybe-sf)
+  (system-channel-id '%maybe-sf)
+  joined-at large member-count
+  (members (subtable-vector-reader 'member))
+  (channels (caching-vector-reader 'channel))
+  (presences (subtable-vector-reader 'presence)))
 
 (defmethod from-json ((c (eql 'guild)) (table hash-table))
   (if (gethash "unavailable" table)
-      (%unavailable-from-json table)
-      (%available-from-json table)))
+      (from-json 'unavailable-guild table)
+      (from-json 'available-guild table)))
+
+(defmethod from-json :around ((c (eql 'available-guild)) (table hash-table))
+  "Remember guild-id for roles, emojis, members, and channels"
+  (let ((obj (call-next-method))
+        (gid (parse-snowflake (gethash "id" table))))
+    (with-slots (roles emojis members channels)
+        obj
+      (dolist* (obj (roles emojis members channels))
+        (unless (guild-id obj)
+          (setf (guild-id obj) gid))))
+    obj))

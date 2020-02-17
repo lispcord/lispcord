@@ -1,6 +1,5 @@
 (in-package :lispcord.classes)
 
-
 (defclass game ()
   ((name :initarg :name
          :type string
@@ -12,26 +11,11 @@
          :type (or null string)
          :accessor url)))
 
-
-(defmethod from-json ((c (eql 'game)) (table hash-table))
-  (instance-from-table (table 'game)
-                       :name "name"
-                       :type "type"
-                       :url "url"))
-
-
-(defmethod %to-json ((g game))
-  (with-object
-    (write-key-value "name" (name g))
-    (write-key-value "type" (type g))
-    (write-key-value "url" (url g))))
-
 (defun make-game (game-name &optional (type 0) (url nil))
   (make-instance 'game :name game-name :type type :url url))
 
-
-
-
+(define-converters (game)
+  name type url)
 
 (defclass user ()
   ((id            :initarg :id
@@ -63,31 +47,9 @@
    (game          :type (or null game)
                   :accessor game)))
 
-(defmethod %to-json ((u user))
-  (with-object
-    (write-key-value "id" (id u))
-    (write-key-value "username" (name u))
-    (write-key-value "discriminator" (discrim u))
-    (write-key-value "avatar" (avatar u))
-    (write-key-value "bot" (botp u))
-    (write-key-value "mfa" (mfa-p u))
-    (write-key-value "verified" (verifiedp u))
-    (write-key-value "email" (emailp u))))
-
-(defmethod from-json ((c (eql 'user)) (table hash-table))
-  (instance-from-table (table 'user)
-                       :id (parse-snowflake (gethash "id" table))
-                       :username "username"
-                       :discrim "discriminator"
-                       :avatar "avatar"
-                       :bot "bot"
-                       :mfa "mfa"
-                       :verified "verified"
-                       :email "email"))
-
-
-
-
+(define-converters (user)
+  (id 'parse-sowflake)
+  username discriminator avatar bot mfa verified email)
 
 (defclass webhook ()
   ((id         :initarg :id
@@ -111,16 +73,12 @@
          :type string
          :accessor token)))
 
-(defmethod from-json ((c (eql 'webhook)) (table hash-table))
-  (instance-from-table (table 'webhook)
-    :id (parse-snowflake (gethash "id" table))
-    :g-id (parse-snowflake (gethash "guild_id" table))
-    :c-id (parse-snowflake (gethash "channel_id" table))
-    :user (cache 'user (gethash "user" table))
-    :avatar "avatar"
-    :token "token"))
-
-
+(define-converters (webhook)
+  (id 'parse-snowflake)
+  (guild-id 'parse-snowflake)
+  (channel-id 'parse-snowflake)
+  (user (caching-reader 'user))
+  avatar token)
 
 (defclass ready ()
   ((version     :initarg :v
@@ -129,7 +87,7 @@
    (user        :initarg :me
           :type user
           :accessor user)
-   (dm-channels :initarg :channels
+   (channels :initarg :channels
     :type array
     :accessor channels)
    (guilds      :initarg :guilds
@@ -138,6 +96,13 @@
    (session-id  :initarg :session
     :type string
     :accessor session-id)))
+
+(define-converters (ready)
+  v
+  (me (caching-reader 'user))
+  (channels (cachine-vector-reader 'channel))
+  (guilds (caching-vector-reader 'guild))
+  session-id)
 
 (defmethod from-json ((c (eql 'ready)) (table hash-table))
   (instance-from-table (table 'ready)
