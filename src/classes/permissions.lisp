@@ -70,7 +70,9 @@
                        (allow overwrites))
       permissions))
 
-(defgeneric has-permission (obj key &optional channel))
+(export-pub has-permission)
+(defgeneric has-permission (obj key &optional channel)
+  (:documentation "If `obj` (user, member, or permissions) has `key` permission on `channel`"))
 
 (defmethod has-permission ((p permissions) key &optional channel)
   "Returns if permissions object has `key` permission"

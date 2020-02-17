@@ -68,20 +68,13 @@
   (parent-id '%maybe-sf))
 
 (defclass* category (guild-channel)
-  ((nsfw :type boolean :accessor nsfwp)))
+  ((nsfw :type boolean :accessor nsfw-p)))
 
 (define-converters (category)
   nsfw)
 
-(defmethod channels ((cat category))
-  (let ((g (guild cat)))
-    (remove-if-not (lambda (chan)
-                     (eql (id cat)
-                          (parent-id chan)))
-                   (channels g))))
-
 (defclass* text-channel (guild-channel)
-  ((nsfw               :type boolean :accessor nsfwp)
+  ((nsfw               :type boolean :accessor nsfw-p)
    (topic              :type (or null string))
    (last-message-id    :type (or null snowflake))
    (last-pin-timestamp :type string)))
@@ -121,7 +114,7 @@
   (owner-id 'parse-snowflake))
 
 (defclass* news-channel (guild-channel)
-  ((nsfw         :type boolean :accessor nsfwp)
+  ((nsfw         :type boolean :accessor nsfw-p)
    (topic        :type (or null string))
    (last-message :type (or null snowflake))
    (last-pinned  :type (or null string))))
@@ -133,13 +126,10 @@
   (last-pinned))
 
 (defclass* store-channel (guild-channel)
-  ((nsfw :type boolean :accessor nsfwp)))
+  ((nsfw :type boolean :accessor nsfw-p)))
 
 (define-converters (news-channel)
   (nsfw))
-
-(defmethod overwrite ((c channel) (_ (eql :everyone)))
-  (find (guild-id c) (overwrites c) :key 'id))
 
 (defmethod from-json ((c (eql 'channel)) (table hash-table))
   (from-json

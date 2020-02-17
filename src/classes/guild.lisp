@@ -31,16 +31,12 @@
   ((id          :type snowflake)
    (name        :type string)
    (color       :type fixnum)
-   (hoist       :type boolean :accessor hoistp)
+   (hoist       :type boolean :accessor hoist-p)
    (position    :type fixnum)
    (permissions :type permissions)
-   (managed     :type boolean :accessor managedp)
-   (mentionable :type boolean :accessor mentionablep)
+   (managed     :type boolean :accessor managed-p)
+   (mentionable :type boolean :accessor mentionable-p)
    (guild-id    :type (or null snowflake))))
-
-(defmethod overwrite ((c channel) (m role))
-  "Returns permission overwrite for role in channel"
-  (find (id m) (overwrites c) :key 'id))
 
 (define-converters (role)
   (id 'parse-snowflake)
@@ -55,26 +51,9 @@
    (roles         :type (vector role))
    (joined-at     :type (or null string))
    (premium-since :type (or null string))
-   (deaf          :type boolean :accessor deafp)
-   (mute          :type boolean :accessor mutep)
+   (deaf          :type boolean :accessor deaf-p)
+   (mute          :type boolean :accessor mute-p)
    (guild-id      :type (or null snowflake))))
-
-(defmethod has-permission ((m member) key &optional channel)
-  (let ((base-permissions (base-permissions m)))
-    (if channel
-        (has-permission (compute-overwrites base-permissions m channel) key)
-        (has-permission base-permissions key))))
-
-(defmethod has-permission ((u user) key &optional channel)
-  (if channel
-      (if-let ((member (member u (guild channel))))
-        (has-permission member key channel)
-        (error "User ~S is not a member of ~S" u channel))
-      (error "Global users don't have permissions. Either replace the user object with member, or specify the channel.")))
-
-(defmethod overwrite ((c channel) (m member))
-  "Returns permission overwrite for member in channel"
-  (find (id (user m)) (overwrites c) :key 'id))
 
 (define-converters (member)
   (user (caching-reader 'user))
@@ -117,7 +96,7 @@
 
 (defclass* guild ()
   ((id          :type snowflake)
-   (unavailable :type boolean :accessor unavailablep)))
+   (unavailable :type boolean :accessor unavailable-p)))
 
 (define-converters (guild)
   (id 'parse-snowflake)
@@ -129,12 +108,12 @@
   ((name :type string)
    (icon :type (or null string))
    (splash :type (or null string))
-   (owner :type boolean :accessor ownerp)
+   (owner :type boolean :accessor owner-p)
    (owner-id :type snowflake)
    (region :type string)
    (afk-id :type (or null snowflake))
    (afk-timeout :type fixnum)
-   (embed :type boolean :accessor embedp)
+   (embed :type boolean :accessor embed-p)
    (embed-id :type (or null snowflake))
    (verification-level :type fixnum)
    (notification-level :type fixnum)
@@ -144,40 +123,15 @@
    (features :type (or null (vector string)))
    (mfa-level :type fixnum)
    (application-id :type (or null snowflake))
-   (widget-enabled :type boolean :accessor widget-enabledp)
+   (widget-enabled :type boolean :accessor widget-enabled-p)
    (widget-channel-id :type (or null snowflake))
    (system-channel-id :type (or null snowflake))
    (joined-at :type (or null string))
-   (large :type boolean :accessor largep)
+   (large :type boolean :accessor large-p)
    (member-count :type (or null fixnum))
    (members :type (vector member))
    (channels :type (vector channel))
    (presences :type (vector presence))))
-
-(defmethod role-everyone ((g guild))
-  "Returns the @everyone role of the guild"
-  ;; It always has the same id as the guild
-  (getcache-id (id g) :role))
-
-(defmethod member ((u user) (g guild))
-  (find-if (lambda (e) (eq u (lc:user e))) (members g)))
-
-(defmethod nick-or-name ((u user) (g  guild))
-  "Member u of the guild g"
-  (if-let ((member (member u g)))
-    (or (nick member)
-        (name u))
-    (name u)))
-
-;; Deprecated accessors
-
-(defmethod availablep ((g guild))
-  (not (unavailable g)))
-
-(defmethod afk-to ((g guild))
-  (afk-timeout g))
-
-;; End of deprecated accessors
 
 (define-converters (available-guild)
   name icon splash region

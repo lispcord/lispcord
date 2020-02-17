@@ -21,9 +21,9 @@
    (name     :type (or null string))
    (roles    :type (vector snowflake))
    (user     :type (or null user))
-   (require-colons :type boolean :accessor require-colons)
-   (managed  :type boolean :accessor managedp)
-   (animated :type boolean :accessor animatedp)
+   (require-colons :type boolean :accessor require-colons-p)
+   (managed  :type boolean :accessor managed-p)
+   (animated :type boolean :accessor animated-p)
    (guild-id :type (or null snowflake))))
 
 (define-converters (emoji)
