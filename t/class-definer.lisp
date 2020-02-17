@@ -4,10 +4,10 @@
 (define-test class-definer-suite)
 
 (defclass test-class ()
-  ((slot :initarg :slot :accessor slotp :initform :unbound)))
+  ((slot :initarg :slot :accessor slotp)))
 
 (defclass test-subclass (test-class)
-  ((subslot :initarg :subslot :accessor subslot :initform :unbound)))
+  ((subslot :initarg :subslot :accessor subslot)))
 
 (defmethod print-object ((o test-class) s)
   (print-unreadable-object (o s :type t :identity t)
@@ -71,6 +71,13 @@
         (obj2 (make-instance 'test-class :slot "value")))
     (lispcord.classes::update definer-table obj1)
     (is test-equal obj2 obj1)))
+
+(define-test unbound
+  :parent class-definer-suite
+  :depends-on (define-converters to-json from-json)
+  (let ((obj (make-instance 'test-class)))
+    (is test-equal (make-instance 'test-class :slot nil)
+        (lispcord.classes::from-json 'test-class (lispcord.util:jparse (jonathan:to-json obj))))))
 
 (define-test subclass
   :parent class-definer-suite

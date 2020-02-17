@@ -1,33 +1,19 @@
 (in-package :lispcord.classes)
 
 
-(defclass embed-footer ()
-  ((text           :initarg :text
-                   :type string
-                   :accessor text)
-   (icon-url       :initarg :icon-url
-                   :type (or null string)
-                   :accessor icon-url)
-   (proxy-icon-url :initarg :proxy-icon-url
-                   :type (or null string)
-                   :accessor proxy-icon-url)))
+(defclass* embed-footer ()
+  ((text           :type string)
+   (icon-url       :type (or null string))
+   (proxy-icon-url :type (or null string))))
 
 (define-converters (embed-footer)
   text icon-url proxy-icon-url)
 
-(defclass embed-generic ()
-  ((url       :initarg :url
-              :type (or null string)
-              :accessor url)
-   (proxy-url :initarg :proxy-url
-              :type (or null string)
-              :accessor proxy-url)
-   (height    :initarg :height
-              :type (or null fixnum)
-              :accessor height)
-   (width     :initarg :width
-              :type (or null fixnum)
-              :accessor width)))
+(defclass* embed-generic ()
+  ((url       :type (or null string))
+   (proxy-url :type (or null string))
+   (height    :type (or null fixnum))
+   (width     :type (or null fixnum))))
 
 (define-converters (embed-generic)
   url proxy-url height width)
@@ -42,102 +28,52 @@
 (deftype embed-image () 'embed-generic)
 (deftype embed-thumbnail () 'embed-generic)
 
-(defclass embed-video ()
-  ((url    :initarg :url
-           :type (or null string)
-           :accessor url)
-   (height :initarg :height
-           :type (or null fixnum)
-           :accessor height)
-   (width  :initarg :width
-           :type (or null fixnum)
-           :accessor width)))
+(defclass* embed-video ()
+  ((url    :type (or null string))
+   (height :type (or null fixnum))
+   (width  :type (or null fixnum))))
 
 (define-converters (embed-video)
   url height width)
 
-(defclass embed-provider ()
-  ((name :initarg :name
-         :type (or null string)
-         :accessor name)
-   (url  :initarg :url
-         :type (or null string)
-         :accessor url)))
+(defclass* embed-provider ()
+  ((name :type (or null string))
+   (url  :type (or null string))))
 
 (define-converters (embed-video)
   name url)
 
-(defclass embed-author ()
-  ((name           :initarg :name
-                   :type (or null string)
-                   :accessor name)
-   (url            :initarg :url
-                   :type (or null string)
-                   :accessor url)
-   (icon-url       :initarg :icon-url
-                   :type (or null string)
-                   :accessor icon-url)
-   (proxy-icon-url :initarg :proxy-icon-url
-                   :type (or null string)
-                   :accessor proxy-icon-url)))
+(defclass* embed-author ()
+  ((name           :type (or null string))
+   (url            :type (or null string))
+   (icon-url       :type (or null string))
+   (proxy-icon-url :type (or null string))))
 
 (define-converters (embed-author)
   name url icon-url proxy-icon-url)
 
-(defclass embed-field ()
-  ((name   :initarg :name
-           :type string
-           :accessor name)
-   (value  :initarg :value
-           :type string
-           :accessor value)
-   (inline :initarg :inline
-           :type boolean
-           :accessor inline)))
+(defclass* embed-field ()
+  ((name   :type string)
+   (value  :type string)
+   (inline :type boolean)))
 
 (define-converters (embed-author)
   name value inline)
 
-(defclass embed ()
-  ((title       :initarg :title
-                :type (or null string)
-                :accessor title)
-   (type        :initarg :type
-                :type (or null string)
-                :accessor type)
-   (description :initarg :description
-                :type (or null string)
-                :accessor description)
-   (url         :initarg :url
-                :type (or null string)
-                :accessor url)
-   (timestamp   :initarg :timestamp
-                :type (or null string)
-                :accessor timestamp)
-   (color       :initarg :color
-                :type (or null fixnum)
-                :accessor color)
-   (footer      :initarg :footer
-                :type (or null embed-footer)
-                :accessor footer)
-   (image       :initarg :image
-                :type (or null embed-image)
-                :accessor image)
-   (thumbnail   :initarg :thumbnail
-                :type (or null embed-thumbnail)
-                :accessor thumbnail)
-   (video       :initarg :video
-                :type (or null embed-video)
-                :accessor video)
-   (provider    :initarg :provider
-                :type (or null embed-provider)
-                :accessor provider)
-   (author      :initarg :author
-                :type (or null embed-author)
-                :accessor author)
-   (fields      :initarg :fields
-                :type (vector embed-field)
-                :accessor fields)))
+(defclass* embed ()
+  ((title       :type (or null string))
+   (type        :type (or null string))
+   (description :type (or null string))
+   (url         :type (or null string))
+   (timestamp   :type (or null string))
+   (color       :type (or null fixnum))
+   (footer      :type (or null embed-footer))
+   (image       :type (or null embed-image))
+   (thumbnail   :type (or null embed-thumbnail))
+   (video       :type (or null embed-video))
+   (provider    :type (or null embed-provider))
+   (author      :type (or null embed-author))
+   (fields      :type (vector embed-field))))
 
 (defun make-embed (&key title type description url timestamp color footer image thumbnail video provider author fields)
   (make-instance 'embed

@@ -1,50 +1,24 @@
 (in-package :lispcord.classes)
 
-(defclass account ()
-  ((id   :initarg :id
-         :type string
-         :accessor id)
-   (name :initarg :name
-         :type string
-         :accessor name)))
+(defclass* account ()
+  ((id   :type string)
+   (name :type string)))
 
 (define-converters (account)
   id name)
 
 (defclass integration (integration-object)
-  ((id               :initarg :id
-                     :type snowflake
-                     :accessor id)
-   (name             :initarg :name
-                     :type string
-                     :accessor name)
-   (type             :initarg :type
-                     :type string
-                     :accessor type)
-   (enabled          :initarg :enabled
-                     :type t
-                     :accessor enabledp)
-   (syncing          :initarg :syncing
-                     :type t
-                     :accessor syncingp)
-   (role-id          :initarg :role-id
-                     :type snowflake
-                     :accessor role-id)
-   (expire-behavior  :initarg :expire-behavior
-                     :type fixnum
-                     :accessor expire-behaviour)
-   (expire-grace-period :initarg :expire-grace-period
-                     :type fixnum
-                     :accessor expire-grace-period)
-   (user             :initarg :user
-                     :type user
-                     :accessor user)
-   (account          :initarg :account
-                     :type account
-                     :accessor account)
-   (synced-at        :initarg :synced-at
-                     :type string
-                     :accessor synced-at)))
+  ((id        :type snowflake)
+   (name      :type string)
+   (type      :type string)
+   (enabled   :type t)
+   (syncing   :type t)
+   (role-id   :type snowflake)
+   (expire-behavior :type fixnum)
+   (expire-grace-period :type fixnum)
+   (user      :type user)
+   (account   :type account)
+   (synced-at :type string)))
 
 (defmethod role ((i integration))
   (getcache-id (role-id i) :role))

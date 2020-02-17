@@ -1,11 +1,11 @@
 (in-package :lispcord.classes)
 
-(defclass partial-role ()
-  ((name        :initarg :name     :accessor name)
-   (color       :initarg :color    :accessor color)
-   (hoist       :initarg :hoist    :accessor hoistp)
-   (permissions :initarg :perms   :accessor permissions)
-   (mentionable :initarg :mention :accessor mentionablep)))
+(defclass* partial-role ()
+  ((name)
+   (color)
+   (hoist)
+   (permissions)
+   (mentionable)))
 
 (defmethod make-role (&key
                         (name "new role")
@@ -26,34 +26,16 @@
   permissions
   (mentionable (defaulting-writer :false)))
 
-(defclass role ()
-  ((id          :initarg :id
-                :type snowflake
-                :accessor id)
-   (name        :initarg :name
-                :type string
-                :accessor name)
-   (color       :initarg :color
-                :type fixnum
-                :accessor color)
-   (hoist       :initarg :hoist
-                :type t
-                :accessor hoistp)
-   (position    :initarg :pos
-                :type fixnum
-                :accessor position)
-   (permissions :initarg :perms
-                :type permissions
-                :accessor permissions)
-   (managed     :initarg :managed
-                :type t
-                :accessor managedp)
-   (mentionable :initarg :mentionable
-                :type t
-                :accessor mentionablep)
-   (guild-id    :initarg :gid
-                :type (or null snowflake)
-                :accessor guild-id)))
+(defclass* role ()
+  ((id          :type snowflake)
+   (name        :type string)
+   (color       :type fixnum)
+   (hoist       :type boolean)
+   (position    :type fixnum)
+   (permissions :type permissions)
+   (managed     :type boolean)
+   (mentionable :type boolean)
+   (guild-id    :type (or null snowflake))))
 
 (defmethod overwrite ((c channel) (m role))
   "Returns permission overwrite for role in channel"
@@ -66,31 +48,15 @@
   managed
   mentionable)
 
-(defclass member ()
-  ((user          :initarg :user
-                  :type user
-                  :accessor user)
-   (nick          :initarg :nick
-                  :type (or null string)
-                  :accessor nick)
-   (roles         :initarg :roles
-                  :type (vector role)
-                  :accessor roles)
-   (joined-at     :initarg :joined-at
-                  :type (or null string)
-                  :accessor joined-at)
-   (premium-since :initarg :premium-since
-                  :type (or null string)
-                  :accessor premium-since)
-   (deaf          :initarg :deaf
-                  :type t
-                  :accessor deafp)
-   (mute          :initarg :mute
-                  :type t
-                  :accessor mutep)
-   (guild-id      :initarg :gid
-                  :type (or null snowflake)
-                  :accessor guild-id)))
+(defclass* member ()
+  ((user          :type user)
+   (nick          :type (or null string))
+   (roles         :type (vector role))
+   (joined-at     :type (or null string))
+   (premium-since :type (or null string))
+   (deaf          :type boolean)
+   (mute          :type boolean)
+   (guild-id      :type (or null snowflake))))
 
 (defmethod has-permission ((m member) key &optional channel)
   (let ((base-permissions (base-permissions m)))
@@ -116,34 +82,16 @@
   joined-at mute deaf
   (guild-id 'parse-snowflake))
 
-(defclass presence ()
-  ((user          :initarg :user
-                  :type snowflake
-                  :accessor user-id)
-   (roles         :initarg :roles
-                  :type (vector snowflake)
-                  :accessor roles)
-   (game          :initarg :game
-                  :type (or null game)
-                  :accessor game)
-   (guild-id      :initarg :guild-id
-                  :type snowflake
-                  :accessor guild-id)
-   (status        :initarg :status
-                  :type (or null string)
-                  :accessor status)
-   (activities    :initarg :activities
-                  :type (vector game)
-                  :accessor activities)
-   (client-status :initarg client-status
-                  :type (or null client-status)
-                  :accessor client-status)
-   (premium-since :initarg premium-since
-                  :type (or null string)
-                  :accessor premium-since)
-   (nick          :initarg nick
-                  :type (or null string)
-                  :accessor nick)))
+(defclass* presence ()
+  ((user          :type snowflake)
+   (roles         :type (vector snowflake))
+   (game          :type (or null game))
+   (guild-id      :type snowflake)
+   (status        :type (or null string))
+   (activities    :type (vector game))
+   (client-status :type (or null client-status))
+   (premium-since :type (or null string))
+   (nick          :type (or null string))))
 
 (defmethod user ((p presence))
   (getcache-id (user-id p) :user))
@@ -158,113 +106,51 @@
   (client-status (subtable-reader 'client-status))
   premium-since nick)
 
-(defclass client-status ()
-  ((desktop :initarg :desktop
-            :type string
-            :accessor desktop)
-   (mobile  :initarg :mobile
-            :type string
-            :accessor mobile)
-   (web     :initarg :web
-            :type string
-            :accessor web)))
+(defclass* client-status ()
+  ((desktop :type string)
+   (mobile  :type string)
+   (web     :type string)))
 
 (define-converters (client-status)
   desktop mobile web)
 
-(defclass guild ()
-  ((id                 :initarg :id
-                       :type snowflake
-                       :accessor id)
-   (unavailable        :initarg :unavailable
-                       :type boolean
-                       :accessor unavailable)))
+(defclass* guild ()
+  ((id          :type snowflake)
+   (unavailable :type boolean)))
 
 (define-converters (guild)
   (id 'parse-snowflake)
-  (available))
+  (unavailable))
 
-(defclass unavailable-guild (guild) ())
+(defclass* unavailable-guild (guild) ())
 
-(defclass available-guild (guild)
-  ((name               :initarg :name
-                       :type string
-                       :accessor name)
-   (icon               :initarg :icon
-                       :type (or null string)
-                       :accessor icon)
-   (splash             :initarg :splash
-                       :type (or null string)
-                       :accessor splash)
-   (owner              :initarg :owner
-                       :type snowflake
-                       :accessor owner-id)
-   (region             :initarg :region
-                       :type string
-                       :accessor region)
-   (afk-id             :initarg :afk-id
-                       :type (or null snowflake)
-                       :accessor afk-id)
-   (afk-timeout        :initarg :afk-timeout
-                       :type fixnum
-                       :accessor afk-timeout)
-   (embed?             :initarg :embed?
-                       :type t
-                       :accessor embedp)
-   (embed-id           :initarg :embed-id
-                       :type (or null snowflake)
-                       :accessor embed-id)
-   (verification-level :initarg :verify-l
-                       :type fixnum
-                       :accessor verify-level)
-   (notification-level :initarg :notify-l
-                       :type fixnum
-                       :accessor notify-level)
-   (content-filter     :initarg :content
-                       :type fixnum
-                       :accessor content-filter)
-   (roles              :initarg :roles
-                       :type (vector role)
-                       :accessor roles)
-   (emojis             :initarg :emojis
-                       :type (vector emoji)
-                       :accessor emojis)
-   (features           :initarg :features
-                       :type (or null (vector string))
-                       :accessor features)
-   (mfa-level          :initarg :mfa
-                       :type fixnum
-                       :accessor mfa-level)
-   (application-id     :initarg :app-id
-                       :type (or null snowflake)
-                       :accessor app-id)
-   (widget-enabled     :initarg :widget?
-                       :type t
-                       :accessor widgetp)
-   (widget-channel-id  :initarg :widget-id
-                       :type (or null snowflake)
-                       :accessor widget-id)
-   (system-channel-id  :initarg :system-id
-                       :type (or null snowflake)
-                       :accessor system-channel-id)
-   (joined-at          :initarg :joined-at
-                       :type (or null string)
-                       :accessor joined-at)
-   (large              :initarg :large
-                       :type t
-                       :accessor largep)
-   (member-count       :initarg :member-cnt
-                       :type (or null fixnum)
-                       :accessor member-count)
-   (members            :initarg :members
-                       :type (vector member)
-                       :accessor members)
-   (channels           :initarg :channels
-                       :type (vector channel)
-                       :accessor channels)
-   (presences          :initarg :presences
-                       :type (vector presence)
-                       :accessor presences)))
+(defclass* available-guild (guild)
+  ((name :type string)
+   (icon :type (or null string))
+   (splash :type (or null string))
+   (owner :type snowflake)
+   (region :type string)
+   (afk-id :type (or null snowflake))
+   (afk-timeout :type fixnum)
+   (embed? :type t)
+   (embed-id :type (or null snowflake))
+   (verification-level :type fixnum)
+   (notification-level :type fixnum)
+   (content-filter :type fixnum)
+   (roles :type (vector role))
+   (emojis :type (vector emoji))
+   (features :type (or null (vector string)))
+   (mfa-level :type fixnum)
+   (application-id :type (or null snowflake))
+   (widget-enabled :type t)
+   (widget-channel-id :type (or null snowflake))
+   (system-channel-id :type (or null snowflake))
+   (joined-at :type (or null string))
+   (large :type t)
+   (member-count :type (or null fixnum))
+   (members :type (vector member))
+   (channels :type (vector channel))
+   (presences :type (vector presence))))
 
 (defmethod role-everyone ((g guild))
   "Returns the @everyone role of the guild"

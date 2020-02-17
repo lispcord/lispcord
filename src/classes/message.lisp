@@ -2,54 +2,34 @@
 
 (deftype message-type () `(integer 0 7))
 
-(defclass attachment ()
-  ((id        :initarg :id
-              :type snowflake
-              :accessor id)
-   (filename  :initarg :file
-              :type string
-              :accessor file)
-   (size      :initarg :size
-              :type fixnum
-              :accessor size)
-   (url       :initarg :url
-              :type string
-              :accessor url)
-   (proxy-url :initarg :proxy
-              :type string
-              :accessor proxy-url)
-   (height    :initarg :height
-              :type (or null fixnum)
-              :accessor height)
-   (width     :initarg :width
-              :type (or null fixnum)
-              :accessor width)))
+(defclass* attachment ()
+  ((id        :type snowflake)
+   (filename  :type string)
+   (size      :type fixnum)
+   (url       :type string)
+   (proxy-url :type string)
+   (height    :type (or null fixnum))
+   (width     :type (or null fixnum))))
 
 (define-converters (attachment)
   (id 'parse-snowflake)
   filename size url proxy-url height width)
 
 (defclass reaction ()
-  ((count :initarg :count
-          :type (or null fixnum)
-          :accessor count)
-   (me    :initarg :me
-          :type boolean
-          :accessor me-p)
-   (emoji :initarg :emoji
-          :type (or null emoji)
-          :accessor emoji)))
+  ((count :type (or null fixnum))
+   (me    :type boolean)
+   (emoji :type (or null emoji))))
 
 (define-converters (reaction)
   count me
   (emoji (caching-reader 'emoji)))
 
 (defclass partial-message ()
-  ((content :initarg :content :accessor content)
-   (nonce   :initform (make-nonce) :accessor nonce)
-   (tts     :initarg :tts :accessor tts-p)
-   (file    :initarg :file :accessor file)
-   (embed   :initarg :embed :accessor embed)))
+  ((content)
+   (nonce :initform (make-nonce))
+   (tts)
+   (file)
+   (embed)))
 
 (defun make-message (content &key tts file embed)
   (make-instance 'partial-message
@@ -66,54 +46,22 @@
   (embed 'identity (defaulting-writer :null)))
 
 (defclass message ()
-  ((id            :initarg :id
-                  :type snowflake
-                  :accessor id)
-   (channel-id    :initarg :channel-id
-                  :type snowflake
-                  :accessor channel-id)
-   (author        :initarg :author
-                  :type (or webhook user)
-                  :accessor author)
-   (content       :initarg :content
-                  :type string
-                  :accessor content)
-   (timestamp     :initarg :timestamp
-                  :type string
-                  :accessor timestamp)
-   (edited-timestamp :initarg :edited-timestamp
-                  :type (or null string)
-                  :accessor edited-timestamp)
-   (tts           :initarg :tts
-                  :type t
-                  :accessor tts-p)
-   (mention-everyone :initarg :mention-everyone
-                  :type t
-                  :accessor mention-everyone)
-   (mentions      :initarg :mentions
-                  :type (vector user)
-                  :accessor mentions)
-   (mention-roles :initarg :mention-roles
-                  :type (vector role)
-                  :accessor mention-roles)
-   (attachments   :initarg :attachments
-                  :type (vector attachment)
-                  :accessor attachments)
-   (embeds        :initarg :embeds
-                  :type (vector embed)
-                  :accessor embeds)
-   (reactions     :initarg :reactions
-                  :type (vector reaction)
-                  :accessor reactions)
-   (nonce         :initarg :nonce
-                  :type (or null snowflake)
-                  :accessor nonce)
-   (pinned        :initarg :pinned
-                  :type t
-                  :accessor pinnedp)
-   (type          :initarg :type
-                  :type message-type
-                  :accessor type)))
+  ((id :type snowflake)
+   (channel-id :type snowflake)
+   (author :type (or webhook user))
+   (content :type string)
+   (timestamp :type string)
+   (edited-timestamp :type (or null string))
+   (tts :type t)
+   (mention-everyone :type t)
+   (mentions :type (vector user))
+   (mention-roles :type (vector role))
+   (attachments :type (vector attachment))
+   (embeds :type (vector embed))
+   (reactions :type (vector reaction))
+   (nonce :type (or null snowflake))
+   (pinned :type t)
+   (type :type message-type)))
 
 (defun user-or-webhook (obj)
   (if (gethash "webhook_id" obj)

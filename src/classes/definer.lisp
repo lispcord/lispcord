@@ -67,18 +67,32 @@ writer is the function to convert the data from lisp slot value to json.
              *converters*)))
 
 (defmethod from-json ((class-name symbol) (table hash-table))
-  (let ((obj (make-instance class-name)))
-    (update table obj)))
+  (let* ((obj (make-instance class-name))
+         (slots (mapcar #'c2mop:slot-definition-name
+                        (c2mop:class-slots obj))))
+    (update table obj)
+    ;; We don't make a difference between optional and nullable values
+    ;; I.e. if it's not there we pretend that it was null in json
+    (dolist (slot slots)
+      (unless (slot-boundp obj slot)
+        (let ((reader (converter-reader (gethash slot (gethash class-name *converters*)))))
+          (setf (slot-value obj slot)
+                (funcall reader nil)))))))
 
 (defmethod update ((table hash-table) obj)
-  (maphash (lambda (type converters)
-             (when (typep obj type)
-               (loop :for (slot reader writer) :in (hash-table-values converters)
-                     :do (when (gethash (slot->key slot) table nil)
-                           (setf (slot-value obj slot)
-                                 (funcall reader (gethash (slot->key slot) table)))))
-               obj))
-           *converters*)
+  (let ((table (copy-hash-table table)))
+    (maphash (lambda (type converters)
+               (when (typep obj type)
+                 (loop :for (slot reader writer) :in (hash-table-values converters)
+                       :do (let ((key (slot->key slot)))
+                             (when (gethash key table nil)
+                               (setf (slot-value obj slot)
+                                     (funcall reader (gethash key table)))
+                               (remhash key table))))
+                 obj))
+             *converters*)
+    (when (not (zerop (hash-table-size table)))
+      (v:warn :lispcord.classes "Remaining unprocessed json fields: ~S~%This should only happen if Discord modifies API and lispcord wasn't updated yet~%Please file an issue at https://github.com/lispcord/lispcord/issues")))
   obj)
 
 ;;;; Reader/writer function generators

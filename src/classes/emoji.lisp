@@ -1,9 +1,9 @@
 (in-package :lispcord.classes)
 
-(defclass partial-emoji ()
-  ((name :initarg :name :accessor name)
-   (image :initarg :image :accessor image)
-   (roles :initarg :roles :accessor roles)))
+(defclass* partial-emoji ()
+  ((name)
+   (image)
+   (roles)))
 
 (defun make-emoji (name image &optional roles)
   (make-instance 'new-emoji
@@ -15,31 +15,15 @@
   name image
   (roles 'identity (defaulting-writer :null)))
 
-(defclass emoji ()
-  ((id       :initarg :id
-             :type (or null snowflake)
-             :accessor id)
-   (name     :initarg :name
-             :type (or null string)
-             :accessor name)
-   (roles    :initarg :roles
-             :type (vector snowflake)
-             :accessor roles)
-   (user     :initarg :user
-             :type (or null user)
-             :accessor user)
-   (require-colons :initarg :require-colons
-             :type boolean
-             :accessor colonsp)
-   (managed  :initarg :managed
-             :type boolean
-             :accessor managedp)
-   (animated :initarg :animated
-             :type boolean
-             :accessor animatedp)
-   (guild-id :initarg :gid
-             :type (or null snowflake)
-             :accessor guild-id)))
+(defclass* emoji ()
+  ((id       :type (or null snowflake))
+   (name     :type (or null string))
+   (roles    :type (vector snowflake))
+   (user     :type (or null user))
+   (require-colons :type boolean)
+   (managed  :type boolean)
+   (animated :type boolean)
+   (guild-id :type (or null snowflake))))
 
 (define-converters (emoji)
   (id    'parse-snowflake)

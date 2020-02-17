@@ -10,6 +10,7 @@
                :babel
                :websocket-driver-client
                :jonathan
+               :closer-mop
                :bordeaux-threads)
 
   :serial t
