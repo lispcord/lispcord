@@ -15,7 +15,7 @@
   (id 'parse-snowflake)
   filename size url proxy-url height width)
 
-(defclass reaction ()
+(defclass* reaction ()
   ((count :type (or null fixnum))
    (me    :type boolean)
    (emoji :type (or null emoji))))
@@ -24,13 +24,14 @@
   count me
   (emoji (caching-reader 'emoji)))
 
-(defclass partial-message ()
+(defclass* partial-message ()
   ((content)
    (nonce :initform (make-nonce))
    (tts)
    (file)
    (embed)))
 
+(export-pub make-message)
 (defun make-message (content &key tts file embed)
   (make-instance 'partial-message
                  :content content
@@ -45,7 +46,7 @@
   (file 'identity (defaulting-writer :null))
   (embed 'identity (defaulting-writer :null)))
 
-(defclass message ()
+(defclass* message ()
   ((id :type snowflake)
    (channel-id :type snowflake)
    (author :type (or webhook user))

@@ -5,6 +5,7 @@
    (image)
    (roles)))
 
+(export-pub make-emoji)
 (defun make-emoji (name image &optional roles)
   (make-instance 'new-emoji
                  :name name
@@ -20,9 +21,9 @@
    (name     :type (or null string))
    (roles    :type (vector snowflake))
    (user     :type (or null user))
-   (require-colons :type boolean)
-   (managed  :type boolean)
-   (animated :type boolean)
+   (require-colons :type boolean :accessor require-colons)
+   (managed  :type boolean :accessor managedp)
+   (animated :type boolean :accessor animatedp)
    (guild-id :type (or null snowflake))))
 
 (define-converters (emoji)

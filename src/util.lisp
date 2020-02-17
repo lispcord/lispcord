@@ -154,5 +154,5 @@
   "Exports the symbol from the current package and current.pub package
 The .pub package should :use the current package"
   (let ((package *package*))
-    `(progn (uiop:export* ,symbol ,(package-name package))
-            (uiop:export* ,symbol ,(format nil "~A.PUB" (package-name package))))))
+    `(progn (uiop:export* ',symbol ,(package-name package))
+            (uiop:export* ',symbol ,(format nil "~A.PUB" (package-name package))))))

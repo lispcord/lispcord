@@ -14,18 +14,24 @@
 
 (defmacro defclass* (name direct-superclasses direct-slots &rest options)
   "Defclass defaulting initarg and accessor name to slot name"
-  (flet ((default-slot-options (direct-slot)
-           (destructuring-bind (name &rest keys &key
-                                                  (initarg (intern (symbol-name name) :keyword))
-                                                  (accessor name)
-                                                  &allow-other-keys)
-               direct-slot
-             `(,name :initarg ,initarg
-                     :accessor ,accessor
-                     ,@(remove-from-plist keys :initarg :accessor)))))
-    `(defclass ,name ,direct-superclasses
-       ,(mapcar #'default-slot-options direct-slots)
-       ,@options)))
+  (let ((accessor-names nil))
+    (flet ((default-slot-options (direct-slot)
+             (destructuring-bind (name &rest keys &key
+                                                    (initarg (intern (symbol-name name) :keyword))
+                                                    (accessor name)
+                                  &allow-other-keys)
+                 direct-slot
+               (push accessor accessor-names)
+               `(,name :initarg ,initarg
+                       :accessor ,accessor
+                       ,@(remove-from-plist keys :initarg :accessor)))))
+      `(progn
+         (defclass ,name ,direct-superclasses
+           ,(mapcar #'default-slot-options direct-slots)
+           ,@options)
+         (lispcord.util:export-pub ,name)
+         ,@(mapf (reverse accessor-names) (accessor-name)
+             `(lispcord.util:export-pub ,accessor-name))))))
 
 (defmacro define-converters ((class) &body converters)
   "converters have the form (slot reader writer)

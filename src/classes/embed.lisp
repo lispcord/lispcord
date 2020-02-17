@@ -1,6 +1,5 @@
 (in-package :lispcord.classes)
 
-
 (defclass* embed-footer ()
   ((text           :type string)
    (icon-url       :type (or null string))
@@ -18,6 +17,7 @@
 (define-converters (embed-generic)
   url proxy-url height width)
 
+(export-pub make-embed-generic)
 (defun make-embed-generic (&key url)
   (make-instance 'embed-generic
                  :url url
@@ -75,6 +75,7 @@
    (author      :type (or null embed-author))
    (fields      :type (vector embed-field))))
 
+(export-pub make-embed)
 (defun make-embed (&key title type description url timestamp color footer image thumbnail video provider author fields)
   (make-instance 'embed
                  :title title

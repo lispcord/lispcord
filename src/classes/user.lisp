@@ -5,6 +5,7 @@
    (type :type (cl:member 0 1 2 4))
    (url :type (or null string))))
 
+(export-pub make-game)
 (defun make-game (game-name &optional (type 0) (url nil))
   (make-instance 'game :name game-name :type type :url url))
 
@@ -27,7 +28,7 @@
   (id 'parse-sowflake)
   username discriminator avatar bot mfa verified email)
 
-(defclass webhook ()
+(defclass* webhook ()
   ((id :type snowflake)
    (guild-id :type (or null snowflake))
    (channel-id :type snowflake)
@@ -43,7 +44,7 @@
   (user (caching-reader 'user))
   avatar token)
 
-(defclass ready ()
+(defclass* ready ()
   ((version :type fixnum)
    (user :type user)
    (channels :type array)
@@ -53,7 +54,7 @@
 (define-converters (ready)
   v
   (me (caching-reader 'user))
-  (channels (cachine-vector-reader 'channel))
+  (channels (caching-vector-reader 'channel))
   (guilds (caching-vector-reader 'guild))
   session-id)
 

@@ -6,6 +6,7 @@
    (allow :type permissions)
    (deny  :type permissions)))
 
+(export-pub make-overwrite)
 (defun make-overwrite (id &optional (allow 0) (deny 0) (type "role"))
   (make-instance 'overwrite :id id :type type
                  :allow (make-permissions allow)
@@ -28,6 +29,7 @@
    (parent-id)
    (type)))
 
+(export-pub make-channel)
 (defun make-channel (&key name position topic nsfw
                        bitrate user-limit overwrites
                        parent-id type)
@@ -74,9 +76,9 @@
 (defmethod channels ((cat category))
   (let ((g (guild cat)))
     (remove-if-not (lambda (chan)
-                     (eql (lc:id cat)
-                          (lc:parent-id chan)))
-                   (lc:channels g))))
+                     (eql (id cat)
+                          (parent-id chan)))
+                   (channels g))))
 
 (defclass* text-channel (guild-channel)
   ((nsfw               :type boolean)

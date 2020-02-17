@@ -15,19 +15,19 @@
   "Only parses the string if it's there :D"
   (when string (parse-snowflake string)))
 
-(defun guild (c)
+(defmethod guild (c)
   "Returns the cached guild object corresponding to the guild-id of object"
   (getcache-id (guild-id c) :guild))
 
-(defun owner (c)
+(defmethod owner (c)
   "Returns the cached user object corresponding to the owner-id of object"
   (getcache-id (owner-id c) :user))
 
-(defun channel (c)
+(defmethod channel (c)
   "Returns the cached channel object corresponding to the channel-id of object"
-  (getcache-id (owner-id c) :user))
+  (getcache-id (channel-id c) :user))
 
-(defun parent (c)
+(defmethod parent (c)
   "Returns the cached channel object corresponding to the parent-id of object"
   (getcache-id (parent-id c) :channel))
 
