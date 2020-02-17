@@ -12,6 +12,21 @@
             (:constructor make-converter (slot &optional (reader 'identity) (writer 'identity))))
   slot reader writer)
 
+(defmacro defclass* (name direct-superclasses direct-slots &rest options)
+  "Defclass defaulting initarg and accessor name to slot name"
+  (flet ((default-slot-options (direct-slot)
+           (destructuring-bind (name &rest keys &key
+                                                  (initarg (intern (symbol-name name) :keyword))
+                                                  (accessor name)
+                                                  &allow-other-keys)
+               direct-slot
+             `(,name :initarg ,initarg
+                     :accessor ,accessor
+                     ,@(remove-from-plist keys :initarg :accessor)))))
+    `(defclass ,name ,direct-superclasses
+       ,(mapcar #'default-slot-options direct-slots)
+       ,@options)))
+
 (defmacro define-converters ((class) &body converters)
   "converters have the form (slot reader writer)
 
