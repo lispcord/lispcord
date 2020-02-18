@@ -25,7 +25,7 @@
    (nsfw)
    (bitrate)
    (user-limit)
-   (overwrites)
+   (permission-overwrites)
    (parent-id)
    (type)))
 
@@ -45,7 +45,7 @@
                  :type type))
 
 (define-converters (partial-channel)
-  name pos top nsfw bit lim ovw parent type)
+  name position topic nsfw bitrate user-limit permission-overwrites parent-id type)
 
 (defclass* channel ()
   ((id :type snowflake)))
@@ -82,8 +82,8 @@
 (define-converters (text-channel)
   (nsfw)
   (topic)
-  (last-message '%maybe-sf)
-  (last-pinned))
+  (last-message-id '%maybe-sf)
+  (last-pin-timestamp))
 
 (defclass* voice-channel (guild-channel)
   ((bitrate    :type fixnum)
@@ -94,14 +94,14 @@
   (user-limit))
 
 (defclass* dm-channel (channel)
-  ((last-message :type (or null snowflake))
+  ((last-message-id :type (or null snowflake))
    (recipients   :type (vector user))
-   (last-pinned  :type string)))
+   (last-pin-timestamp  :type string)))
 
 (define-converters (dm-channel)
   (recipients (caching-vector-reader 'user))
-  (last-message '%maybe-sf)
-  (last-pinned))
+  (last-message-id '%maybe-sf)
+  (last-pin-timestamp))
 
 (defclass* group-dm (dm-channel)
   ((name     :type string)
@@ -116,14 +116,14 @@
 (defclass* news-channel (guild-channel)
   ((nsfw         :type boolean :accessor nsfw-p)
    (topic        :type (or null string))
-   (last-message :type (or null snowflake))
-   (last-pinned  :type (or null string))))
+   (last-message-id :type (or null snowflake))
+   (last-pin-timestamp  :type (or null string))))
 
 (define-converters (news-channel)
   (nsfw)
   (topic)
-  (last-message '%maybe-sf)
-  (last-pinned))
+  (last-message-id '%maybe-sf)
+  (last-pin-timestamp))
 
 (defclass* store-channel (guild-channel)
   ((nsfw :type boolean :accessor nsfw-p)))

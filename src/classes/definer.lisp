@@ -20,6 +20,18 @@
                 (hash-table-values hash)))
             superclasses)))
 
+(defmacro define-alias (to from)
+  ;; `to` is already bound and not to the same function this call
+  ;; would have bound it previously
+  (when (and (fboundp to)
+             (not (eq (fdefinition to)
+                      (fdefinition from))))
+    (error "Defining the alias will overwrite existing function:~%~S" to))
+  `(progn
+     (export-pub ,to)
+     (setf (fdefinition ',to) (fdefinition ',from))
+     (setf (fdefinition '(setf ,to)) (fdefinition '(setf ,from)))))
+
 (defmacro defclass* (name direct-superclasses direct-slots &rest options)
   "Defclass defaulting initarg and accessor name to slot name"
   (let ((accessor-names nil))

@@ -67,7 +67,65 @@
         (name u))
     (name u)))
 
-(export-pub overwrites)
-(defmethod overwrites ((c channel))
-  (permission-overwrites c))
+(define-alias overwrites permission-overwrites)
+(define-alias version v)
 
+;;;; Deprecated accessors
+
+(defmethod available ((g guild))
+  (not (unavailable-p g)))
+
+(defmethod channels ((r ready))
+  (private-channels r))
+
+(defmethod (setf channels) (new-value (r ready))
+  (setf (private-channels r) new-value))
+
+(defmethod name ((u user))
+  (username u))
+
+(defmethod (setf name) (new-value (u user))
+  (setf (username u) new-value))
+
+(defmethod file ((a attachment))
+  (filename a))
+
+(defmethod (setf file) (new-value (a attachment))
+  (setf (filename a) new-value))
+
+(defmethod icon ((ef embed-footer))
+  (icon-url a))
+
+(defmethod (setf icon) (new-value (ef embed-footer))
+  (setf (icon-url a) new-value))
+
+(define-alias last-message last-message-id)
+(define-alias last-pinned last-pin-timestamp)
+(define-alias icon-proxy-url proxy-icon-url)
+(define-alias proxy-icon proxy-icon-url)
+(define-alias colonsp require-colons-p)
+(define-alias managedp managed-p)
+(define-alias animatedp animated-p)
+(define-alias hoistp hoist-p)
+(define-alias mentionablep mentionable-p)
+(define-alias deafp deaf-p)
+(define-alias mutep mute-p)
+(define-alias afk-to afk-timeout)
+(define-alias embedp embed-p)
+(define-alias verify-level verification-level)
+(define-alias notify-level notification-level)
+(define-alias app-id application-id)
+(define-alias widgetp widget-enabled-p)
+(define-alias widget-id widget-channel-id)
+(define-alias largep large-p)
+(define-alias enabledp enabled-p)
+(define-alias syncingp syncing-p)
+(define-alias expire-grace expire-grace-period)
+(define-alias editedp edited-timestamp)
+(define-alias mention-all-p mention-everyone-p)
+(define-alias pinnedp pinned-p)
+(define-alias discrim discriminator)
+(define-alias botp bot-p)
+(define-alias mfap mfa-p)
+(define-alias verifiedp verified-p)
+(define-alias emailp email-p)

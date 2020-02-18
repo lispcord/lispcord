@@ -27,7 +27,7 @@
 (defclass* partial-message ()
   ((content)
    (nonce :initform (make-nonce))
-   (tts)
+   (tts :accessor tts-p)
    (file)
    (embed)))
 
