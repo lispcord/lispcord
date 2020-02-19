@@ -52,8 +52,8 @@
                                (event-emitter:emit :no-heartbeat (bot-conn bot))
                                (return))
                          :do (v:debug :lispcord.gateway "Dispatching heartbeat!")
-                         :do (send-heartbeat bot)
                          :do (setf (bot-heartbeat-ack bot) nil)
+                         :do (send-heartbeat bot)
                          :do (sleep seconds)))
                     (v:debug :lispcord.gateway "Terminating a stale heartbeat thread"))
                   :name "Heartbeat"))
@@ -256,6 +256,32 @@
                         'lc:user))
         (ts (gethash "timestamp" data)))
     (dispatch-event :on-typing-start (list u c ts) bot)))
+
+;; Make all arguments keyed in the close future, because optional
+;; don't work well in case the user e.g. only needs the sixth one.
+;; And they work even worse in case Discord changes these events.
+#+(or)
+(defun on-typing-start (data bot)
+  (let ((c (getcache-id (parse-snowflake (gethash "channel_id" data))
+                        'lc:channel))
+        (g (when-let ((gid (gethash "guild_id" data)))
+             (getcache-id (parse-snowflake gid)
+                          'lc:guild)))
+        (u (getcache-id (parse-snowflake (gethash "user_id" data))
+                        'lc:user))
+        (ts (gethash "timestamp" data))
+        (m (when-let ((member (gethash "member" data)))
+             (from-json 'lc:member member))))
+    (let ((args (list :channel-id (gethash "channel_id" data)
+                      :channel c
+                      :guild-id (gethash "guild_id" data)
+                      :guild g
+                      :user_id (gethash "user_id" data)
+                      :user u
+                      :timestamp ts
+                      :member m
+                      :allow-other-keys t)))
+      (dispatch-event :on-typing-start args bot))))
 
 ;; opcode 0
 (defun on-dispatch (bot msg)

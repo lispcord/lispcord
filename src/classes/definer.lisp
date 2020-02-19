@@ -20,6 +20,9 @@
                 (hash-table-values hash)))
             superclasses)))
 
+(defun converter (obj slot-name)
+  (find slot-name (converters-for obj) :key #'converter-slot))
+
 (defmacro define-alias (to from)
   ;; `to` is already bound and not to the same function this call
   ;; would have bound it previously
@@ -27,6 +30,8 @@
              (not (eq (fdefinition to)
                       (fdefinition from))))
     (error "Defining the alias will overwrite existing function:~%~S" to))
+  (when (not (fboundp from))
+    (error "Defining an alias to a nonexisting function:~%~S" from))
   `(progn
      (export-pub ,to)
      (setf (fdefinition ',to) (fdefinition ',from))
@@ -78,40 +83,83 @@ writer is the function to convert the data from lisp slot value to json.
                    (t (char-downcase c))))
        (symbol-name slot-name)))
 
+(defun key->slot (key)
+  (let ((slot
+         (find-symbol
+          (map 'string (lambda (c)
+                         (case c
+                           (#\_ #\-)
+                           (t (char-upcase c))))
+               key)
+          (find-package "LISPCORD.CLASSES"))))
+    (or slot (cerror "IGNORE" "Unknown key from Discord API: ~S" key))))
+
+;;; Fields not mentioned anywhere in Discord docs
+(defvar *undocumented-field*
+  '(discovery-splash rules-channel-id lazy public-updates-channel-id
+    system-channel-flags hoisted-role sync-id))
+
 (defun converter-key (converter)
   "Converter to json key"
   (slot->key (converter-slot converter)))
 
+(defun read-slot (obj key value)
+  (let ((slot (key->slot key)))
+    (if-let ((converter (converter obj slot)))
+      (let ((reader (converter-reader converter)))
+        (unless (eq reader :ignore)
+          (setf (slot-value obj slot)
+                (funcall (converter-reader converter) value))))
+      ;; Either Lispcord is missing the field, or (more probably) it's undocumented in Discord API Docs
+      (v:trace :lispcord.classes "Field ~A in object of type ~A not recognised."
+               key (type-of obj)))))
+
+;;; Jonathan defines `write-key-value` as a macrolet in `with-object`
+;;; Because of that we can't make `write-slot` a function...
+(defmacro write-slot (obj slot)
+  (once-only (obj slot)
+    (with-gensyms (converter writer)
+      `(if-let ((,converter (converter ,obj ,slot)))
+         (let ((,writer (converter-writer ,converter)))
+           (unless (eq ,writer :ignore)
+             (write-key-value (slot->key ,slot)
+                              (funcall ,writer (slot-value ,obj ,slot)))))
+         ;; Either user adds new slots at runtime or we actually forgot to make a writer for it
+         ;; Either way, report it asap
+         (error "Object ~S~%Has field ~S~%But no writer defined for it" ,obj ,slot)))))
+
 (defmethod %to-json (obj)
-  (let ((converters (converters-for obj)))
+  (let ((slots (mapcar #'c2mop:slot-definition-name
+                       (c2mop:class-slots (class-of obj)))))
     (with-object
-      (loop :for (slot reader writer) :in converters
-            :do (when (slot-boundp obj slot)
-                  (write-key-value (slot->key slot)
-                                   (funcall writer (slot-value obj slot))))))))
+      (dolist (slot slots)
+        (when (slot-boundp obj slot)
+          (write-slot obj slot))))))
 
 (defmethod from-json ((class-name symbol) (table hash-table))
-  (let* ((obj (make-instance class-name))
-         (slots (mapcar #'c2mop:slot-definition-name
-                        (c2mop:class-slots (class-of obj)))))
+  (let ((obj (make-instance class-name)))
     (update table obj)
     ;; We don't make a difference between optional and nullable values
     ;; I.e. if it's not there we pretend that it was null in json
-    (let ((converters (converters-for obj)))
+    (let ((converters (converters-for obj))
+          (slots (mapcar #'c2mop:slot-definition-name
+                         (c2mop:class-slots (class-of obj)))))
       (dolist (slot slots)
         (unless (slot-boundp obj slot)
-          (let ((reader (converter-reader (find slot converters :key #'converter-slot))))
-            (setf (slot-value obj slot)
-                  (funcall reader nil))))))
+          (when-let ((reader (converter-reader (or (find slot converters :key #'converter-slot)
+                                                   (error "No converter for field ~A of class ~A" slot class-name)))))
+            (unless (eq reader :ignore)
+              (setf (slot-value obj slot)
+                    (funcall reader nil)))))))
     obj))
 
 (defmethod update ((table hash-table) obj)
-  (let ((converters (converters-for obj)))
-    (loop :for (slot reader writer) :in converters
-          :do (let ((key (slot->key slot)))
-                (when (gethash key table nil)
-                  (setf (slot-value obj slot)
-                        (funcall reader (gethash key table)))))))
+  (maphash (lambda (key value)
+             ;; Fields starting with underscore are internal
+             (unless (char= (elt key 0)
+                            #\_)
+               (read-slot obj key value)))
+           table)
   obj)
 
 ;;;; Reader/writer function generators

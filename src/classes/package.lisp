@@ -1,3 +1,6 @@
+
+;;; Both packages also export all class definitions and all accessors
+
 (defpackage :lispcord.classes
   (:use :cl
         :alexandria

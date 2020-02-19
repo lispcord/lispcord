@@ -57,7 +57,7 @@
    (value  :type string)
    (inline :type boolean :accessor inline-p)))
 
-(define-converters (embed-author)
+(define-converters (embed-field)
   name value inline)
 
 (defclass* embed ()

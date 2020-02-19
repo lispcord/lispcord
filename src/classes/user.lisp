@@ -14,22 +14,31 @@
 
 (defclass* user ()
   ((id :type snowflake)
-   (username :type string :accessor name)
+   (username :type string)
    (discriminator :type string)
    (avatar :type (or null string))
    (bot :type boolean :accessor bot-p)
-   (mfa :type boolean :accessor mfa-p)
+   (system :type boolean :accessor system-p)
+   (mfa-enabled :type boolean :accessor mfa-enabled-p)
+   (locale :type (or null string))
    (verified :type boolean :accessor verified-p)
-   (email :type boolean :accessor email-p)
-   (status        :type (or null string))
-   (game          :type (or null game))))
+   (email :type (or null string))
+   (flags :type (or null fixnum))
+   (premium-type :type (or null fixnum))
+   (status :type (or null string))
+   (game :type (or null activity))))
 
 (define-converters (user)
   (id 'parse-snowflake)
-  username discriminator avatar bot mfa verified email status game)
+  username discriminator avatar bot system mfa-enabled
+  locale verified email flags premium-type
+  ;; Internal Lispcord fields (pieces of last Presence event for this user)
+  (status :ignore :ignore)
+  (game :ignore :ignore))
 
 (defclass* webhook ()
   ((id :type snowflake)
+   (type :type fixnum)
    (guild-id :type (or null snowflake))
    (channel-id :type snowflake)
    (user :type (or null user))
@@ -39,7 +48,8 @@
 
 (define-converters (webhook)
   (id 'parse-snowflake)
-  (guild-id 'parse-snowflake)
+  (type)
+  (guild-id '%maybe-sf)
   (channel-id 'parse-snowflake)
   (user (caching-reader 'user))
   avatar token)
@@ -47,14 +57,94 @@
 (defclass* ready ()
   ((v :type fixnum)
    (user :type user)
-   (private-channels :type array)
-   (guilds :type array)
-   (session-id :type string)))
+   (private-channels :type (vector dm-channel))
+   (guilds :type (vector unavailable-guild))
+   (session-id :type string)
+   ;(shard :type (array fixnum 2))
+   ))
 
 (define-converters (ready)
   v
   (user (caching-reader 'user))
   (private-channels (caching-vector-reader 'channel))
   (guilds (caching-vector-reader 'guild))
-  session-id)
+  session-id
+  ;; Not handled by Lispcord
+  (shard :ignore)
+  ;; Undocumented
+  (user-settings :ignore)
+  (relationships :ignore)
+  )
+
+(defclass* activity ()
+  ((name :type string)
+   (type :type fixnum)
+   (url :type (or null string))
+   (created-at :type fixnum)
+   (timestamps :type (or null timestamps))
+   (application-id :type (or null snowflake))
+   (details :type (or null string))
+   (state :type (or null string))
+   (emoji :type (or null emoji))
+   (party :type (or null party))
+   (assets :type (or null assets))
+   (secrets :type (or null secrets))
+   (instance :type boolean)
+   (flags :type (or null fixnum))))
+
+(define-converters (activity)
+  name type url created-at
+  (timestamps (subtable-reader 'activity-timestamps))
+  (application-id '%maybe-sf)
+  (details)
+  (state)
+  (emoji (subtable-reader 'activity-emoji))
+  (party (subtable-reader 'activity-party))
+  (assets (subtable-reader 'activity-assets))
+  (secrets (subtable-reader 'activity-secrets))
+  (instance)
+  (flags))
+
+(defclass* activity-timestamps ()
+  ((start :type (or null fixnum))
+   (end :type (or null fixnum))))
+
+(define-converters (activity-timestamps)
+  start end)
+
+(defclass* activity-emoji ()
+  ((name :type string)
+   (id :type (or null snowflake))
+   (animated :type boolean)))
+
+(define-converters (activity-emoji)
+  name
+  (id '%maybe-sf)
+  animated)
+
+(defclass* activity-party ()
+  ((id :type (or null string))
+   (size :type (or null (array fixnum)))))
+
+(define-converters (activity-party)
+  id
+  (size (vector-reader 'identity))) ;; TODO
+
+(defclass* activity-assets ()
+  ((large-image :type (or null string))
+   (large-text :type (or null string))
+   (small-image :type (or null string))
+   (small-text :type (or null string))))
+
+(define-converters (activity-assets)
+    large-image large-text small-image small-text)
+
+(defclass* activity-secrets ()
+  ((join :type (or null string))
+   (spectate :type (or null string))
+   (match :type (or null string))))
+
+(define-converters (activity-secrets)
+    join spectate match)
+
 

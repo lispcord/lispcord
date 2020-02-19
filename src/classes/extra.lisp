@@ -41,13 +41,9 @@
   ;; It always has the same id as the guild
   (getcache-id (id g) :role))
 
-(defmethod member ((u user) (g guild))
-  (find-if (lambda (e) (eq u (lc:user e))) (members g)))
-
-(defun user-or-webhook (obj)
-  (if (gethash "webhook_id" obj)
-      (from-json 'webhook obj)
-      (cache 'user obj)))
+(defmethod member ((u user) &optional g)
+  (when (typep g 'available-guild)
+    (find-if (lambda (e) (eq u (lc:user e))) (members g))))
 
 (export-pub nick-or-name)
 (defgeneric nick-or-name (user message-or-guild)
@@ -99,6 +95,9 @@
 (defmethod (setf icon) (new-value (ef embed-footer))
   (setf (icon-url a) new-value))
 
+(defmethod emailp ((u user))
+  (not (null (email u))))
+
 (define-alias last-message last-message-id)
 (define-alias last-pinned last-pin-timestamp)
 (define-alias icon-proxy-url proxy-icon-url)
@@ -111,9 +110,9 @@
 (define-alias deafp deaf-p)
 (define-alias mutep mute-p)
 (define-alias afk-to afk-timeout)
-(define-alias embedp embed-p)
+(define-alias embedp embed-enabled-p)
 (define-alias verify-level verification-level)
-(define-alias notify-level notification-level)
+(define-alias notify-level default-message-notifications)
 (define-alias app-id application-id)
 (define-alias widgetp widget-enabled-p)
 (define-alias widget-id widget-channel-id)
@@ -126,6 +125,5 @@
 (define-alias pinnedp pinned-p)
 (define-alias discrim discriminator)
 (define-alias botp bot-p)
-(define-alias mfap mfa-p)
+(define-alias mfap mfa-enabled-p)
 (define-alias verifiedp verified-p)
-(define-alias emailp email-p)

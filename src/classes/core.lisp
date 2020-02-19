@@ -10,6 +10,8 @@
 (defgeneric update (data object)
   (:documentation "Updates the internal fields of the object"))
 
+(defgeneric member (obj &optional g))
+
 (declaim (cl:inline %maybe-sf))
 (defun %maybe-sf (string)
   "Only parses the string if it's there :D"

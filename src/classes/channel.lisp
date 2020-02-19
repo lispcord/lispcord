@@ -48,36 +48,36 @@
   name position topic nsfw bitrate user-limit permission-overwrites parent-id type)
 
 (defclass* channel ()
-  ((id :type snowflake)))
+  ((id :type snowflake)
+   (type :type fixnum)))
 
 (define-converters (channel)
-  (id 'parse-snowflake))
+  (id 'parse-snowflake)
+  type)
 
 (defclass* guild-channel (channel)
   ((guild-id      :type snowflake)
    (name          :type string)
    (position      :type fixnum)
    (permission-overwrites :type (vector overwrite))
-   (parent-id     :type (or null snowflake))))
+   (parent-id     :type (or null snowflake))
+   (nsfw          :type boolean :accessor nsfw-p)))
 
 (define-converters (guild-channel)
   (guild-id 'parse-snowflake)
   (name)
   (position)
   (permission-overwrites (caching-vector-reader 'overwrite))
-  (parent-id '%maybe-sf))
+  (parent-id '%maybe-sf)
+  (nsfw))
 
-(defclass* category (guild-channel)
-  ((nsfw :type boolean :accessor nsfw-p)))
-
-(define-converters (category)
-  nsfw)
+(defclass* category (guild-channel) ())
 
 (defclass* text-channel (guild-channel)
-  ((nsfw               :type boolean :accessor nsfw-p)
-   (topic              :type (or null string))
-   (last-message-id    :type (or null snowflake))
-   (last-pin-timestamp :type string)))
+  ((rate-limit-per-user :type fixnum)
+   (topic               :type (or null string))
+   (last-message-id     :type (or null snowflake))
+   (last-pin-timestamp  :type (or null string))))
 
 (define-converters (text-channel)
   (nsfw)
@@ -86,22 +86,31 @@
   (last-pin-timestamp))
 
 (defclass* voice-channel (guild-channel)
-  ((bitrate    :type fixnum)
+  ((topic      :type (or null string))
+   (bitrate    :type fixnum)
    (user-limit :type fixnum)))
 
 (define-converters (voice-channel)
   (bitrate)
   (user-limit))
 
+(defclass* news-channel (guild-channel)
+  ((topic        :type (or null string))
+   (last-message-id :type (or null snowflake))))
+
+(define-converters (news-channel)
+  (topic)
+  (last-message-id '%maybe-sf))
+
+(defclass* store-channel (guild-channel) ())
+
 (defclass* dm-channel (channel)
   ((last-message-id :type (or null snowflake))
-   (recipients   :type (vector user))
-   (last-pin-timestamp  :type string)))
+   (recipients   :type (vector user))))
 
 (define-converters (dm-channel)
   (recipients (caching-vector-reader 'user))
-  (last-message-id '%maybe-sf)
-  (last-pin-timestamp))
+  (last-message-id '%maybe-sf))
 
 (defclass* group-dm (dm-channel)
   ((name     :type string)
@@ -112,24 +121,6 @@
   (name)
   (icon)
   (owner-id 'parse-snowflake))
-
-(defclass* news-channel (guild-channel)
-  ((nsfw         :type boolean :accessor nsfw-p)
-   (topic        :type (or null string))
-   (last-message-id :type (or null snowflake))
-   (last-pin-timestamp  :type (or null string))))
-
-(define-converters (news-channel)
-  (nsfw)
-  (topic)
-  (last-message-id '%maybe-sf)
-  (last-pin-timestamp))
-
-(defclass* store-channel (guild-channel)
-  ((nsfw :type boolean :accessor nsfw-p)))
-
-(define-converters (news-channel)
-  (nsfw))
 
 (defmethod from-json ((c (eql 'channel)) (table hash-table))
   (from-json

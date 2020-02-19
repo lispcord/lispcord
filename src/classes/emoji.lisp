@@ -33,4 +33,5 @@
   (user  (caching-reader 'user))
   (require-colons)
   (managed)
-  (animated))
+  (animated)
+  (guild-id :ignore :ignore))
