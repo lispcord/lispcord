@@ -67,7 +67,7 @@
   ((user          :type user)
    (roles         :type (vector snowflake))
    (game          :type (or null activity))
-   (guild-id      :type snowflake)
+   (guild-id      :type (or null snowflake))
    (status        :type string)
    (activities    :type (vector activity))
    (client-status :type (or null client-status))
@@ -81,7 +81,7 @@
   (user (lambda (d) (getcache-id (parse-snowflake (gethash "id" d)) 'user)))
   (roles (vector-reader 'parse-snowflake))
   (game (subtable-reader 'activity))
-  (guild-id 'parse-snowflake)
+  (guild-id '%maybe-sf)
   status
   (activities (subtable-vector-reader 'activity))
   (client-status (subtable-reader 'client-status))
@@ -165,7 +165,7 @@
   (mfa-level)
   (application-id '%maybe-sf)
   (widget-enabled)
-  (widget-channel-id 'parse-snowflake)
+  (widget-channel-id '%maybe-sf)
   (system-channel-id '%maybe-sf)
   (joined-at)
   (large)
@@ -194,8 +194,9 @@
         (gid (parse-snowflake (gethash "id" table))))
     (with-slots (roles emojis members channels)
         obj
-      (dolist* (obj (roles emojis members channels))
-        (unless (guild-id obj)
+      (dovec* (obj (roles emojis members channels))
+        (unless (and (slot-boundp obj 'guild-id)
+                     (guild-id obj))
           (setf (guild-id obj) gid))))
     obj))
 

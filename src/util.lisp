@@ -15,7 +15,7 @@
      #:vec-extend
      #:vecrem
      #:recur
-     #:dolist*
+     #:dovec*
 
      #:split-sequence
 
@@ -148,12 +148,12 @@
 (defmacro recur (name &rest args)
   `(return-from ,name (,name ,@args)))
 
-(defmacro dolist* ((var lists) &body body)
-  (let ((lists (alexandria:ensure-list lists)))
-    (alexandria:with-gensyms (list)
-      `(dolist (,list (list ,@lists))
-         (dolist (,var ,list)
-           ,@body)))))
+(defmacro dovec* ((var vecs) &body body)
+  (let ((vecs (alexandria:ensure-list vecs)))
+    (alexandria:with-gensyms (vec)
+      `(loop :for ,vec :in (list ,@vecs)
+          :do (loop :for ,var :across ,vec
+                 :do (progn ,@body))))))
 
 (defmacro export-pub (symbol)
   "Exports the symbol from the current package and current.pub package

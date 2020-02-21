@@ -56,7 +56,7 @@
   type)
 
 (defclass* guild-channel (channel)
-  ((guild-id      :type snowflake)
+  ((guild-id      :type (or null snowflake)) ;; It's not present in GUILD_CREATE events
    (name          :type string)
    (position      :type fixnum)
    (permission-overwrites :type (vector overwrite))
@@ -64,10 +64,10 @@
    (nsfw          :type boolean :accessor nsfw-p)))
 
 (define-converters (guild-channel)
-  (guild-id 'parse-snowflake)
+  (guild-id '%maybe-sf)
   (name)
   (position)
-  (permission-overwrites (caching-vector-reader 'overwrite))
+  (permission-overwrites (subtable-vector-reader 'overwrite))
   (parent-id '%maybe-sf)
   (nsfw))
 
@@ -80,7 +80,7 @@
    (last-pin-timestamp  :type (or null string))))
 
 (define-converters (text-channel)
-  (nsfw)
+  (rate-limit-per-user)
   (topic)
   (last-message-id '%maybe-sf)
   (last-pin-timestamp))
@@ -91,6 +91,7 @@
    (user-limit :type fixnum)))
 
 (define-converters (voice-channel)
+  (topic)
   (bitrate)
   (user-limit))
 

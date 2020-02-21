@@ -65,6 +65,7 @@
    (reactions :type (vector reaction))
    (nonce :type (or null fixnum string))
    (pinned :type boolean :accessor pinned-p)
+   (webhook-id :type (or null snowflake))
    (type :type message-type)
    (activity :type (or null message-activity))
    (application :type (or null message-application))

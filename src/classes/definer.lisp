@@ -38,7 +38,8 @@
      (setf (fdefinition '(setf ,to)) (fdefinition '(setf ,from)))))
 
 (defmacro defclass* (name direct-superclasses direct-slots &rest options)
-  "Defclass defaulting initarg and accessor name to slot name"
+  "Defclass defaulting initarg and accessor name to slot name.
+Also, exporting class name and all accessor from both lispcord.classes and lispcord.classes.pub"
   (let ((accessor-names nil))
     (flet ((default-slot-options (direct-slot)
              (destructuring-bind (name &rest keys &key
@@ -149,8 +150,12 @@ writer is the function to convert the data from lisp slot value to json.
           (when-let ((reader (converter-reader (or (find slot converters :key #'converter-slot)
                                                    (error "No converter for field ~A of class ~A" slot class-name)))))
             (unless (eq reader :ignore)
-              (setf (slot-value obj slot)
-                    (funcall reader nil)))))))
+              (handler-case
+                  (setf (slot-value obj slot)
+                        (funcall reader nil))
+                (type-error (e)
+                  (error "Type error ~S~% on slot ~S~% of class ~S"
+                         e slot class-name))))))))
     obj))
 
 (defmethod update ((table hash-table) obj)
