@@ -4,7 +4,7 @@
   ((id   :type string)
    (name :type string)))
 
-(define-converters (account)
+(define-converters (%to-json from-json) account
   id name)
 
 (defclass* integration (integration-object)
@@ -20,9 +20,11 @@
    (account   :type account)
    (synced-at :type string)))
 
-(define-converters (integration)
+(define-converters (%to-json from-json) integration
   (id 'parse-snowflake)
-  name type enabled syncing
+  name type
+  (enabled nil (defaulting-writer :false))
+  (syncing nil (defaulting-writer :false))
   (role-id '%maybe-sf)
   (expire-behaviour)
   (expire-grace-period)

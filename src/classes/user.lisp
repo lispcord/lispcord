@@ -9,7 +9,7 @@
 (defun make-game (game-name &optional (type 0) (url nil))
   (make-instance 'game :name game-name :type type :url url))
 
-(define-converters (game)
+(define-converters (%to-json from-json) game
   name type url)
 
 (defclass* user ()
@@ -28,10 +28,15 @@
    (status :type (or null string))
    (game :type (or null activity))))
 
-(define-converters (user)
+(define-converters (%to-json from-json) user
   (id 'parse-snowflake)
-  username discriminator avatar bot system mfa-enabled
-  locale verified email flags premium-type
+  username discriminator avatar
+  (bot nil (defaulting-writer :false))
+  (system nil (defaulting-writer :false))
+  (mfa-enabled nil (defaulting-writer :false))
+  (locale)
+  (verified nil (defaulting-writer :false))
+  email flags premium-type
   ;; Internal Lispcord fields (pieces of last Presence event for this user)
   (status :ignore :ignore)
   (game :ignore :ignore))
@@ -46,7 +51,7 @@
    (avatar :type string)
    (token :type string)))
 
-(define-converters (webhook)
+(define-converters (%to-json from-json) webhook
   (id 'parse-snowflake)
   (type)
   (guild-id '%maybe-sf)
@@ -60,20 +65,24 @@
    (private-channels :type (vector dm-channel))
    (guilds :type (vector unavailable-guild))
    (session-id :type string)
-   ;(shard :type (array fixnum 2))
+   ;; Not handled by Lispcord
+   ;;(shard :type (array fixnum 2))
+   ;; Undocumented
+   ;;(user-settings)
+   ;;(relationships)
    ))
 
-(define-converters (ready)
+(define-converters (%to-json from-json) ready
   v
   (user (caching-reader 'user))
   (private-channels (caching-vector-reader 'channel))
   (guilds (caching-vector-reader 'guild))
   session-id
   ;; Not handled by Lispcord
-  (shard :ignore)
+  ;;(shard)
   ;; Undocumented
-  (user-settings :ignore)
-  (relationships :ignore)
+  ;;(user-settings)
+  ;;(relationships)
   )
 
 (defclass* activity ()
@@ -92,7 +101,7 @@
    (instance :type boolean)
    (flags :type (or null fixnum))))
 
-(define-converters (activity)
+(define-converters (%to-json from-json) activity
   name type url created-at
   (timestamps (subtable-reader 'activity-timestamps))
   (application-id '%maybe-sf)
@@ -109,7 +118,7 @@
   ((start :type (or null fixnum))
    (end :type (or null fixnum))))
 
-(define-converters (activity-timestamps)
+(define-converters (%to-json from-json) activity-timestamps
   start end)
 
 (defclass* activity-emoji ()
@@ -117,7 +126,7 @@
    (id :type (or null snowflake))
    (animated :type boolean)))
 
-(define-converters (activity-emoji)
+(define-converters (%to-json from-json) activity-emoji
   name
   (id '%maybe-sf)
   animated)
@@ -126,9 +135,9 @@
   ((id :type (or null string))
    (size :type (or null (array fixnum)))))
 
-(define-converters (activity-party)
+(define-converters (%to-json from-json) activity-party
   id
-  (size (vector-reader 'identity))) ;; TODO
+  (size (vector-reader 'identity)))
 
 (defclass* activity-assets ()
   ((large-image :type (or null string))
@@ -136,7 +145,7 @@
    (small-image :type (or null string))
    (small-text :type (or null string))))
 
-(define-converters (activity-assets)
+(define-converters (%to-json from-json) activity-assets
     large-image large-text small-image small-text)
 
 (defclass* activity-secrets ()
@@ -144,7 +153,7 @@
    (spectate :type (or null string))
    (match :type (or null string))))
 
-(define-converters (activity-secrets)
+(define-converters (%to-json from-json) activity-secrets
     join spectate match)
 
 

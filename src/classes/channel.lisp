@@ -12,7 +12,7 @@
                  :allow (make-permissions allow)
                  :deny (make-permissions deny)))
 
-(define-converters (overwrite)
+(define-converters (%to-json from-json) overwrite
   (id    'parse-snowflake)
   (type)
   (allow 'make-permissions)
@@ -35,27 +35,28 @@
                        parent-id type)
   (make-instance 'partial-channel
                  :name name
-                 :pos position
+                 :position position
                  :topic topic
                  :nsfw nsfw
                  :bitrate bitrate
-                 :user-lim user-limit
-                 :overwrites overwrites
-                 :parent parent-id
+                 :user-limit user-limit
+                 :permission-overwrites overwrites
+                 :parent-id parent-id
                  :type type))
 
-(define-converters (partial-channel)
-  name position topic nsfw bitrate user-limit permission-overwrites parent-id type)
+(define-converters (%to-json) partial-channel
+  name position topic bitrate user-limit permission-overwrites parent-id type
+  (nsfw nil (defaulting-writer :false)))
 
-(defclass* channel ()
+(defclass* base-channel ()
   ((id :type snowflake)
    (type :type fixnum)))
 
-(define-converters (channel)
+(define-converters (%to-json from-json) base-channel
   (id 'parse-snowflake)
   type)
 
-(defclass* guild-channel (channel)
+(defclass* guild-channel (base-channel)
   ((guild-id      :type (or null snowflake)) ;; It's not present in GUILD_CREATE events
    (name          :type string)
    (position      :type fixnum)
@@ -63,15 +64,17 @@
    (parent-id     :type (or null snowflake))
    (nsfw          :type boolean :accessor nsfw-p)))
 
-(define-converters (guild-channel)
+(define-converters (%to-json from-json) guild-channel
   (guild-id '%maybe-sf)
   (name)
   (position)
   (permission-overwrites (subtable-vector-reader 'overwrite))
   (parent-id '%maybe-sf)
-  (nsfw))
+  (nsfw nil (defaulting-writer :false)))
 
 (defclass* category (guild-channel) ())
+
+(define-converters (%to-json from-json) category)
 
 (defclass* text-channel (guild-channel)
   ((rate-limit-per-user :type fixnum)
@@ -79,7 +82,7 @@
    (last-message-id     :type (or null snowflake))
    (last-pin-timestamp  :type (or null string))))
 
-(define-converters (text-channel)
+(define-converters (%to-json from-json) text-channel
   (rate-limit-per-user)
   (topic)
   (last-message-id '%maybe-sf)
@@ -90,7 +93,7 @@
    (bitrate    :type fixnum)
    (user-limit :type fixnum)))
 
-(define-converters (voice-channel)
+(define-converters (%to-json from-json) voice-channel
   (topic)
   (bitrate)
   (user-limit))
@@ -99,17 +102,17 @@
   ((topic        :type (or null string))
    (last-message-id :type (or null snowflake))))
 
-(define-converters (news-channel)
+(define-converters (%to-json from-json) news-channel
   (topic)
   (last-message-id '%maybe-sf))
 
 (defclass* store-channel (guild-channel) ())
 
-(defclass* dm-channel (channel)
+(defclass* dm-channel (base-channel)
   ((last-message-id :type (or null snowflake))
    (recipients   :type (vector user))))
 
-(define-converters (dm-channel)
+(define-converters (%to-json from-json) dm-channel
   (recipients (caching-vector-reader 'user))
   (last-message-id '%maybe-sf))
 
@@ -118,11 +121,12 @@
    (icon     :type (or null string))
    (owner-id :type snowflake)))
 
-(define-converters (group-dm)
+(define-converters (%to-json from-json) group-dm
   (name)
   (icon)
   (owner-id 'parse-snowflake))
 
+(export-pub channel)
 (defmethod from-json ((c (eql 'channel)) (table hash-table))
   (from-json
    (case (gethash "type" table)

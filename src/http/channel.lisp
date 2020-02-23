@@ -12,7 +12,7 @@
             (cache channel req)))))
 
 
-(defmethod edit ((c lc:partial-channel) (chan lc:channel)
+(defmethod edit ((c lc:partial-channel) (chan lc:base-channel)
                  &optional (bot *client*))
   (cache channel (discord-req
                    (str-concat "channels/" (lc:id chan))
@@ -20,7 +20,7 @@
                    :type :patch
                    :content (to-json c))))
 
-(defmethod edit ((c lc:channel) (chan lc:channel)
+(defmethod edit ((c lc:base-channel) (chan lc:base-channel)
                  &optional (bot *client*))
   (cache channel (discord-req
                    (str-concat "channels/" (lc:id chan))
@@ -30,7 +30,7 @@
 
 
 
-(defmethod create ((m lc:partial-message) (c lc:channel)
+(defmethod create ((m lc:partial-message) (c lc:base-channel)
                    &optional (bot *client*))
   (when (< 2000 (length (lc:content m)))
     (error "Message size exceeds maximum discord message size!~%"))
@@ -46,16 +46,16 @@
                                       "application/json")))
          (reply-nonce (gethash "nonce" response)))
     (if (equal reply-nonce nonce)
-        (from-json 'message response)
+        (from-json 'lc:message response)
         (error "Could not send message, nonce failure of ~a ~a"
                nonce reply-nonce))))
 
-(defmethod create ((s string) (c lc:channel)
+(defmethod create ((s string) (c lc:base-channel)
                    &optional (bot *client*))
   (create (lc:make-message s) c bot))
 
 
-(defmethod erase ((c lc:channel) &optional (bot *client*))
+(defmethod erase ((c lc:base-channel) &optional (bot *client*))
   (let ((response (discord-req
                    (str-concat "channels/" (lc:id c))
                    :bot bot
@@ -79,15 +79,15 @@
                      ((or around before after)
                       (error ":BEFORE, :AROUND and :AFTER are exclusive to one another!~%"))
                      (t nil))))
-    (mapvec (curry #'from-json 'message)
+    (mapvec (curry #'from-json 'lc:message)
             (discord-req
              (format nil "channels/~a/messages?limit=~a~@[&~a~]"
                      (to-string (lc:id channel)) limit final)
              :bot bot))))
 
-(defmethod from-id (message-id (c lc:channel)
+(defmethod from-id (message-id (c lc:base-channel)
                     &optional (bot *client*))
-  (from-json 'message (discord-req
+  (from-json 'lc:message (discord-req
                        (str-concat "channels/" (lc:id c)
                                    "/messages/" message-id)
                        :bot bot)))
@@ -166,7 +166,7 @@
                                       (to-json array-of-ids) "}"))))
 
 
-(defmethod edit ((o lc:overwrite) (c lc:channel)
+(defmethod edit ((o lc:overwrite) (c lc:base-channel)
                  &optional (bot *client*))
   (discord-req (str-concat "channels/" (lc:id c)
                            "/permissions/" (lc:id o))
@@ -177,9 +177,9 @@
                           ("type" . ,(lc:type o)))))
 
 (defun erase-overwrite (overwrite channel &optional (bot *client*))
-  (declare (type (or snowflake lc:channel) channel)
+  (declare (type (or snowflake lc:base-channel) channel)
            (type (or snowflake lc:overwrite) overwrite))
-  (let ((c (if (typep channel 'lc:channel) (lc:id channel) channel))
+  (let ((c (if (typep channel 'lc:base-channel) (lc:id channel) channel))
         (o (if (typep overwrite 'lc:overwrite)
                (lc:id overwrite)
                overwrite)))
@@ -189,7 +189,7 @@
                  :type :delete)))
 
 (defun start-typing (channel &optional (bot *client*))
-  (declare (type lc:channel channel))
+  (declare (type lc:base-channel channel))
   (discord-req (str-concat "channels/" (lc:id channel)
                            "/typing")
                :bot bot
@@ -197,8 +197,8 @@
                :content "{}"))
 
 (defun get-pinned (channel &optional (bot *client*))
-  (declare (type lc:channel channel))
-  (mapvec (curry #'from-json 'message)
+  (declare (type lc:base-channel channel))
+  (mapvec (curry #'from-json 'lc:message)
           (discord-req (str-concat "channels/" (lc:id channel)
                                    "/pins")
                        :bot bot)))

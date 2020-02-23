@@ -7,15 +7,15 @@
                           (parent-id chan)))
                    (channels g))))
 
-(defmethod overwrite ((c channel) (_ (eql :everyone)))
+(defmethod overwrite ((c guild-channel) (_ (eql :everyone)))
   "Permission overwrite for @everyone"
   (find (guild-id c) (overwrites c) :key 'id))
 
-(defmethod overwrite ((c channel) (m role))
+(defmethod overwrite ((c guild-channel) (m role))
   "Permission overwrite for role in channel"
   (find (id m) (overwrites c) :key 'id))
 
-(defmethod overwrite ((c channel) (m member))
+(defmethod overwrite ((c guild-channel) (m member))
   "Permission overwrite for member in channel"
   (find (id (user m)) (overwrites c) :key 'id))
 
@@ -36,7 +36,7 @@
   (getcache-id (role-id i) :role))
 
 (export-pub role-everyone)
-(defmethod role-everyone ((g guild))
+(defmethod role-everyone ((g available-guild))
   "Returns the @everyone role of the guild"
   ;; It always has the same id as the guild
   (getcache-id (id g) :role))
@@ -56,7 +56,11 @@
         (nick-or-name u (guild c))
         (name u))))
 
-(defmethod nick-or-name ((u user) (g  guild))
+(defmethod nick-or-name ((u user) (g unavailable-guild))
+    "Unavailable guild, so can't get member objects"
+  (name u))
+
+(defmethod nick-or-name ((u user) (g available-guild))
   "Member u of the guild g"
   (if-let ((member (member u g)))
     (or (nick member)
@@ -68,7 +72,7 @@
 
 ;;;; Deprecated accessors
 
-(defmethod available ((g guild))
+(defmethod available ((g base-guild))
   (not (unavailable-p g)))
 
 (defmethod channels ((r ready))
@@ -89,11 +93,11 @@
 (defmethod (setf file) (new-value (a attachment))
   (setf (filename a) new-value))
 
-(defmethod icon ((ef embed-footer))
-  (icon-url a))
+(defmethod icon ((i embed-footer))
+  (icon-url i))
 
-(defmethod (setf icon) (new-value (ef embed-footer))
-  (setf (icon-url a) new-value))
+(defmethod (setf icon) (new-value (i embed-footer))
+  (setf (icon-url i) new-value))
 
 (defmethod emailp ((u user))
   (not (null (email u))))

@@ -1,5 +1,6 @@
 (in-package :lispcord.classes)
 
+(export-pub from-json)
 (defgeneric from-json (class-symbol table)
   (:documentation "Converts a json object to the specified class"))
 
@@ -7,9 +8,11 @@
   (declare (ignore eh n))
   nil)
 
+(export-pub update)
 (defgeneric update (data object)
   (:documentation "Updates the internal fields of the object"))
 
+(export-pub member)
 (defgeneric member (obj &optional g))
 
 (declaim (cl:inline %maybe-sf))
@@ -17,6 +20,8 @@
   "Only parses the string if it's there :D"
   (when string (parse-snowflake string)))
 
+(export-pub guild)
+(defgeneric guild (c))
 (defmethod guild (c)
   "Returns the cached guild object corresponding to the guild-id of object"
   (getcache-id (guild-id c) :guild))

@@ -21,7 +21,7 @@
                  :perms permissions
                  :mention (or mentionable :false)))
 
-(define-converters (partial-role)
+(define-converters (%to-json) partial-role
   name color
   (hoist (defaulting-writer :false))
   permissions
@@ -38,9 +38,11 @@
    (mentionable :type boolean :accessor mentionable-p)
    (guild-id    :type (or null snowflake))))
 
-(define-converters (role)
+(define-converters (%to-json from-json) role
   (id 'parse-snowflake)
-  name color hoist position
+  name color
+  (hoist nil (defaulting-writer :false))
+  position
   (permissions 'make-permissions)
   managed
   mentionable
@@ -56,11 +58,13 @@
    (mute          :type boolean :accessor mute-p)
    (guild-id      :type (or null snowflake))))
 
-(define-converters (member)
+(define-converters (%to-json from-json) member
   (user (caching-reader 'user))
   (nick)
   (roles (cache-vector-id-reader 'role))
-  premium-since joined-at mute deaf
+  premium-since joined-at
+  (mute nil (defaulting-writer :false))
+  (deaf nil (defaulting-writer :false))
   (guild-id :ignore :ignore))
 
 (defclass* presence ()
@@ -77,7 +81,7 @@
 (defmethod user ((p presence))
   (getcache-id (user-id p) :user))
 
-(define-converters (presence)
+(define-converters (%to-json from-json) presence
   (user (lambda (d) (getcache-id (parse-snowflake (gethash "id" d)) 'user)))
   (roles (vector-reader 'parse-snowflake))
   (game (subtable-reader 'activity))
@@ -92,20 +96,22 @@
    (mobile  :type string)
    (web     :type string)))
 
-(define-converters (client-status)
+(define-converters (%to-json from-json) client-status
   desktop mobile web)
 
-(defclass* guild ()
+(defclass* base-guild ()
   ((id          :type snowflake)
    (unavailable :type boolean :accessor unavailable-p)))
 
-(define-converters (guild)
+(define-converters (%to-json from-json) base-guild
   (id 'parse-snowflake)
-  (unavailable))
+  (unavailable nil (defaulting-writer :false)))
 
-(defclass* unavailable-guild (guild) ())
+(defclass* unavailable-guild (base-guild) ())
 
-(defclass* available-guild (guild)
+(define-converters (%to-json from-json) unavailable-guild)
+
+(defclass* available-guild (base-guild)
   ((name :type string)
    (icon :type (or null string))
    (splash :type (or null string))
@@ -144,17 +150,17 @@
    (premium-subscription-count :type (or null fixnum))
    (preferred-locale :type string)))
 
-(define-converters (available-guild)
+(define-converters (%to-json from-json) available-guild
   (name)
   (icon)
   (splash)
-  (owner)
+  (owner nil (defaulting-writer :false))
   (owner-id 'parse-snowflake)
   (permissions 'make-permissions)
   (region)
   (afk-channel-id '%maybe-sf)
   (afk-timeout)
-  (embed-enabled)
+  (embed-enabled nil (defaulting-writer :false))
   (embed-channel-id '%maybe-sf)
   (verification-level)
   (default-message-notifications)
@@ -164,11 +170,11 @@
   (features (subtable-reader 'guild-feature))
   (mfa-level)
   (application-id '%maybe-sf)
-  (widget-enabled)
+  (widget-enabled nil (defaulting-writer :false))
   (widget-channel-id '%maybe-sf)
   (system-channel-id '%maybe-sf)
   (joined-at)
-  (large)
+  (large nil (defaulting-writer :false))
   (member-count)
   (voice-states (subtable-vector-reader 'voice-state))
   (members (subtable-vector-reader 'member))
@@ -183,6 +189,7 @@
   (premium-subscription-count)
   (preferred-locale))
 
+(export-pub guild)
 (defmethod from-json ((c (eql 'guild)) (table hash-table))
   (if (gethash "unavailable" table)
       (from-json 'unavailable-guild table)
@@ -204,6 +211,6 @@
   ((reason :type (or null string))
    (user :type user)))
 
-(define-converters (ban)
+(define-converters (%to-json from-json) ban
   (reason)
   (user (caching-reader 'user)))

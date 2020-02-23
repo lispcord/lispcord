@@ -11,7 +11,7 @@
    (height    :type (or null fixnum))
    (width     :type (or null fixnum))))
 
-(define-converters (attachment)
+(define-converters (%to-json from-json) attachment
   (id 'parse-snowflake)
   filename size url proxy-url height width)
 
@@ -20,8 +20,9 @@
    (me    :type boolean :accessor me-p)
    (emoji :type emoji)))
 
-(define-converters (reaction)
-  count me
+(define-converters (%to-json from-json) reaction
+  count
+  (me nil (defaulting-writer :false))
   (emoji (caching-reader 'emoji)))
 
 (defclass* partial-message ()
@@ -39,12 +40,12 @@
                  :file file
                  :embed embed))
 
-(define-converters (partial-message)
+(define-converters (%to-json) partial-message
   (content)
   (nonce)
-  (tts 'identity (defaulting-writer :false))
-  (file 'identity (defaulting-writer :null))
-  (embed 'identity (defaulting-writer :null)))
+  (tts nil (defaulting-writer :false))
+  (file nil (defaulting-writer :null))
+  (embed nil (defaulting-writer :null)))
 
 (defclass* message ()
   ((id :type snowflake)
@@ -78,7 +79,7 @@
 (defmethod (setf member) (new-value (m message) &optional _)
   (setf (member% m) new-value))
 
-(define-converters (message)
+(define-converters (%to-json from-json) message
   (id 'parse-snowflake)
   (channel-id 'parse-snowflake)
   (guild-id '%maybe-sf)
@@ -88,8 +89,8 @@
   (content)
   (timestamp)
   (edited-timestamp)
-  (tts)
-  (mention-everyone)
+  (tts nil (defaulting-writer :false))
+  (mention-everyone nil (defaulting-writer :false))
   (mentions (caching-vector-reader 'user))
   (mention-roles (vector-reader 'parse-snowflake))
   (mention-channels (subtable-vector-reader 'channel-mention))
@@ -97,7 +98,7 @@
   (embeds (subtable-vector-reader 'embed))
   (reactions (subtable-vector-reader 'reaction))
   (nonce)
-  (pinned)
+  (pinned nil (defaulting-writer :false))
   (webhook-id '%maybe-sf)
   (type)
   (activity (subtable-reader 'message-activity))
@@ -109,7 +110,7 @@
   ((type :type fixnum)
    (party-id :type (or null string))))
 
-(define-converters (message-activity)
+(define-converters (%to-json from-json) message-activity
   type party-id)
 
 (defclass* message-application ()
@@ -119,7 +120,7 @@
    (icon :type (or null string))
    (name :type string)))
 
-(define-converters (message-application)
+(define-converters (%to-json from-json) message-application
   (id 'parse-snowflake)
   cover-image description icon name)
 
@@ -128,7 +129,7 @@
    (channel-id :type snowflake)
    (guild-id :type (or null snowflake))))
 
-(define-converters (message-reference)
+(define-converters (%to-json from-json) message-reference
   message-id channel-id guild-id)
 
 (defclass* channel-mention ()
@@ -137,7 +138,7 @@
    (type :type fixnum)
    (name :type string)))
 
-(define-converters (channel-mention)
+(define-converters (%to-json from-json) channel-mention
   (id 'parse-snowflake)
   (guild-id 'parse-snowflake)
   type name)

@@ -114,7 +114,7 @@
 
 ;;;; Handlers
 
-(defun on-ready (bot payload)
+(defun on-ready (payload bot)
   (v:info :lispcord.gateway "Ready payload received; Session-id: ~a"
           (gethash "session_id" payload))
   (setf (bot-session-id bot) (gethash "session_id" payload))
@@ -126,8 +126,8 @@
 (defun on-emoji-update (data bot)
   (with-table (data emojis "emojis"
                     id "guild_id")
-    (let ((g (cache 'lc:guild (plist-hash-table `("id" ,id "emojis" ,emojis)
-                                             :test #'equal))))
+    (let ((g (cache 'lc:base-guild (plist-hash-table `("id" ,id "emojis" ,emojis)
+                                                     :test #'equal))))
       (dispatch-event :on-emoji-update
                       (list (lc:emojis g) g)
                       bot))))
@@ -294,7 +294,7 @@
     (switch (event :test #'string=)
       ;; on handshake
       ("READY"
-       (on-ready bot data))                           
+       (on-ready data bot))                           
 
       ;; on resume
       ("RESUMED"

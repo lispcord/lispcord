@@ -12,9 +12,9 @@
                  :image image
                  :roles roles))
 
-(define-converters (partial-emoji)
+(define-converters (%to-json) partial-emoji
   name image
-  (roles 'identity (defaulting-writer :null)))
+  (roles nil (defaulting-writer :null)))
 
 (defclass* emoji ()
   ((id       :type (or null snowflake))
@@ -26,12 +26,12 @@
    (animated :type boolean :accessor animated-p)
    (guild-id :type (or null snowflake))))
 
-(define-converters (emoji)
+(define-converters (%to-json from-json) emoji
   (id    'parse-snowflake)
   (name)
   (roles (vector-reader 'parse-snowflake))
   (user  (caching-reader 'user))
-  (require-colons)
-  (managed)
-  (animated)
+  (require-colons nil (defaulting-writer :false))
+  (managed nil (defaulting-writer :false))
+  (animated nil (defaulting-writer :false))
   (guild-id :ignore :ignore))

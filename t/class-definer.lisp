@@ -4,49 +4,41 @@
 (define-test class-definer-suite)
 
 (defclass test-class ()
-  ((slot :initarg :slot :accessor slotp)))
+  ((lispcord.classes::slot :initarg :slot :accessor slotp)))
 
 (defclass test-subclass (test-class)
-  ((subslot :initarg :subslot :accessor subslot)))
+  ((lispcord.classes::subslot :initarg :subslot :accessor subslot)))
 
 (defmethod print-object ((o test-class) s)
   (print-unreadable-object (o s :type t :identity t)
-    (format s "~S" (slotp o))))
+    (when (slot-boundp o 'lispcord.classes::slot)
+      (format s "~S" (slotp o)))))
 
 (defmethod print-object ((o test-subclass) s)
   (print-unreadable-object (o s :type t :identity t)
+    (when (and (slot-boundp o 'lispcord.classes::slot)
+               (slot-boundp o 'lispcord.classes::subslot)))
     (format s "~S ~S" (slotp o) (subslot o))))
 
 (defun test-equal (a b)
   (and (typep a 'test-class)
        (typep b 'test-class)
-       (equal (slot-value a 'slot)
-              (slot-value b 'slot))))
+       (equal (slotp a)
+              (slotp a))))
 
 (defun subtest-equal (a b)
   (and (typep a 'test-subclass)
        (typep b 'test-subclass)
        (test-equal a b)
-       (equal (slot-value a 'subslot)
-              (slot-value b 'subslot))))
+       (equal (subslot a)
+              (subslot b))))
 
 (define-test define-converters
   :parent class-definer-suite
-
-  (is equalp
-      '(slot identity identity)
-      (lispcord.classes::make-converter 'slot))
-  (is equalp
-      '(slot parse-integer identity)
-      (lispcord.classes::make-converter 'slot 'parse-integer))
-  (is equalp
-      '(slot parse-integer princ-to-string)
-      (lispcord.classes::make-converter 'slot 'parse-integer 'princ-to-string))
-
-  (true
-   (lispcord.classes::define-converters (test-class) slot))
-  (true
-   (lispcord.classes::define-converters (test-subclass) (subslot))))
+  (false
+   (lispcord.classes::define-converters (lispcord.classes::from-json lispcord.classes::%to-json) test-class lispcord.classes::slot))
+  (false
+   (lispcord.classes::define-converters (lispcord.classes::from-json lispcord.classes::%to-json) test-subclass (lispcord.classes::subslot))))
 
 (defvar definer-json "{\"slot\":\"value\"}")
 (defvar definer-table
@@ -85,3 +77,14 @@
   (let ((obj (make-instance 'test-subclass :slot "value" :subslot "subvalue")))
     (is subtest-equal obj
         (lispcord.classes:from-json 'test-subclass (lispcord.util:jparse (jonathan:to-json obj))))))
+
+(defclass empty-class () ())
+(lispcord.classes::define-converters (lispcord.classes::from-json lispcord.classes::%to-json) empty-class
+  (lispcord.classes::slot :ignore :ignore))
+
+(define-test ignore
+  :parent class-definer-suite
+  :depends-on (define-converters to-json from-json)
+  ;; Should read and write with no errors
+  (true
+   (lispcord.classes::from-json 'empty-class (lispcord.util:jparse (jonathan:to-json (make-instance 'empty-class))))))

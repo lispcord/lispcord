@@ -5,7 +5,7 @@
    (icon-url       :type (or null string))
    (proxy-icon-url :type (or null string))))
 
-(define-converters (embed-footer)
+(define-converters (%to-json from-json) embed-footer
   text icon-url proxy-icon-url)
 
 (defclass* embed-generic ()
@@ -14,7 +14,7 @@
    (height    :type (or null fixnum))
    (width     :type (or null fixnum))))
 
-(define-converters (embed-generic)
+(define-converters (%to-json from-json) embed-generic
   url proxy-url height width)
 
 (export-pub make-embed-generic)
@@ -33,14 +33,14 @@
    (height :type (or null fixnum))
    (width  :type (or null fixnum))))
 
-(define-converters (embed-video)
+(define-converters (%to-json from-json) embed-video
   url height width)
 
 (defclass* embed-provider ()
   ((name :type (or null string))
    (url  :type (or null string))))
 
-(define-converters (embed-video)
+(define-converters (%to-json from-json) embed-video
   name url)
 
 (defclass* embed-author ()
@@ -49,7 +49,7 @@
    (icon-url       :type (or null string))
    (proxy-icon-url :type (or null string))))
 
-(define-converters (embed-author)
+(define-converters (%to-json from-json) embed-author
   name url icon-url proxy-icon-url)
 
 (defclass* embed-field ()
@@ -57,8 +57,9 @@
    (value  :type string)
    (inline :type boolean :accessor inline-p)))
 
-(define-converters (embed-field)
-  name value inline)
+(define-converters (%to-json from-json) embed-field
+  name value
+  (inline nil (defaulting-writer :false)))
 
 (defclass* embed ()
   ((title       :type (or null string))
@@ -92,7 +93,7 @@
                  :author author
                  :fields fields))
 
-(define-converters (embed)
+(define-converters (%to-json from-json) embed
   title type description url timestamp color
   (footer    (subtable-reader 'embed-footer))
   (image     (subtable-reader 'embed-generic))
