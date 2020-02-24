@@ -101,6 +101,7 @@
      #:ban
      #:unban
      #:get-roles
+     #:current-user
      #:leave
      #:create-dms))
 
@@ -156,4 +157,5 @@
      #:ban
      #:unban
      #:get-roles
+     #:current-user
      #:leave))

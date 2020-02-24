@@ -38,7 +38,6 @@ It may be set by make-bot!")
 
 
 
-
 (defmethod discord-req (endpoint
                     &key bot content
                       (content-type "application/json")
@@ -63,18 +62,19 @@ It may be set by make-bot!")
        :external-format-out :utf8)
     (declare (ignore uri stream closedp reason))
     (rl-parse final headers)
-    (case status
-      (400 (cerror "ignore" "HTTP: BAD REQUEST"))
-      (401 (cerror "ignore" "HTTP: UNAUTHORIZED"))
-      (403 (cerror "ignore" "HTTP: FORBIDDEN"))
-      (405 (cerror "ignore" "HTTP: BAD METHOD"))
-      (408 (cerror "ignore" "HTTP: TIMEOUT"))
-      (429 (cerror "ignore" "HTTP: RATELIMIT"))
-      (520 (cerror "ignore" "HTTP: UNKNOWN")))
-    (values (cond ((= status 204) t)
-                  ((= status 404) nil)
-                  (t (jparse (babel:octets-to-string body))))
-            status)))
+    (let ((response (babel:octets-to-string body)))
+      (case status
+        (400 (cerror "ignore" "HTTP: BAD REQUEST~%~A" (jonathan:parse response :as :plist)))
+        (401 (cerror "ignore" "HTTP: UNAUTHORIZED~%~A" (jonathan:parse response :as :plist)))
+        (403 (cerror "ignore" "HTTP: FORBIDDEN~%~A" (jonathan:parse response :as :plist)))
+        (405 (cerror "ignore" "HTTP: BAD METHOD~%~A" (jonathan:parse response :as :plist)))
+        (408 (cerror "ignore" "HTTP: TIMEOUT~%~A" (jonathan:parse response :as :plist)))
+        (429 (cerror "ignore" "HTTP: RATELIMIT~%~A" (jonathan:parse response :as :plist)))
+        (520 (cerror "ignore" "HTTP: UNKNOWN~%~A" (jonathan:parse response :as :plist))))
+      (values (cond ((= status 204) t)
+                    ((= status 404) nil)
+                    (t (jparse response)))
+              status))))
 
 (defun get-rq (endpoint &optional bot)
   (discord-req endpoint :bot bot :type :get))

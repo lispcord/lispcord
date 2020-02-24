@@ -71,17 +71,13 @@ writer is the function to convert the data from lisp slot value to json.
        (let ((plist nil))
          ,@(loop :for (slot reader writer) :in converters
               :if (not (eq writer :ignore))
-              :collect `(push (if (slot-boundp obj ',slot)
-                                  ,(if writer
-                                       `(funcall ,writer
-                                                 (slot-value obj ',slot))
-                                       `(slot-value obj ',slot))
-                                  ,(if writer
-                                       `(funcall ,writer nil)
-                                       nil))
-                              plist)
-              :if (not (eq writer :ignore))
-              :collect `(push (slot->key ',slot) plist))
+              :collect `(when (slot-boundp obj ',slot)
+                          (push ,(if writer
+                                     `(funcall ,writer
+                                               (slot-value obj ',slot))
+                                     `(slot-value obj ',slot))
+                                plist)
+                          (push (slot->key ',slot) plist)))
          (if (next-method-p)
              (append (call-next-method) plist)
              plist)))))

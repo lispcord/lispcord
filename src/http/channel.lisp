@@ -2,31 +2,37 @@
 
 (defmethod from-id (id (c (eql :channel))
                     &optional (bot *client*)
-                    &aux (this (getcache-id id channel)))
+                    &aux (this (getcache-id id 'lc:channel)))
   (if this
       this
       (let* ((req  (discord-req
                     (str-concat "channels/" id)
                     :bot bot)))
         (if req
-            (cache channel req)))))
+            (cache 'lc:channel req)))))
 
+(defmethod create ((c lc:partial-channel) (g lc:base-guild) &optional (bot *client*))
+  (cache 'lc:channel (discord-req
+                      (str-concat "guilds/" (lc:id g) "/channels")
+                      :bot bot
+                      :type :post
+                      :content (to-json c))))
 
 (defmethod edit ((c lc:partial-channel) (chan lc:base-channel)
                  &optional (bot *client*))
-  (cache channel (discord-req
-                   (str-concat "channels/" (lc:id chan))
-                   :bot bot
-                   :type :patch
-                   :content (to-json c))))
+  (cache 'lc:channel (discord-req
+                      (str-concat "channels/" (lc:id chan))
+                      :bot bot
+                      :type :patch
+                      :content (to-json c))))
 
 (defmethod edit ((c lc:base-channel) (chan lc:base-channel)
                  &optional (bot *client*))
-  (cache channel (discord-req
-                   (str-concat "channels/" (lc:id chan))
-                   :bot bot
-                   :type :patch
-                   :content (to-json c))))
+  (cache 'lc:channel (discord-req
+                      (str-concat "channels/" (lc:id chan))
+                      :bot bot
+                      :type :patch
+                      :content (to-json c))))
 
 
 
@@ -63,7 +69,7 @@
     (if response 
         (decache-id
          (parse-snowflake (gethash "id" response))
-         channel))))
+         'lc:channel))))
 
 (defun get-messages (channel &key around
                                before

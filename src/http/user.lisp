@@ -6,6 +6,9 @@
                                    :bot bot))))
 
 
+(defun current-user (&optional (bot *client*))
+  (cache 'lc:user (discord-req "users/@me" :bot bot)))
+
 (defmethod edit ((u lc:user) (user lc:user) &optional (bot *client*))
   (cache 'lc:user
          (discord-req

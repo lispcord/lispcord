@@ -54,6 +54,7 @@
   :pathname "t"
   :serial t
   :components ((:file "package")
-               (:file "class-definer"))
+               (:file "class-definer")
+               (:file "http"))
   :perform (test-op (o s)
                     (uiop:symbol-call :parachute :test :lispcord-test)))

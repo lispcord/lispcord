@@ -2,8 +2,8 @@
 (in-package :lispcord.http)
 
 (defmethod from-id (id (g (eql :guild)) &optional (bot *client*))
-  (or (getcache-id id 'lc:base-guild)
-      (cache 'lc:base-guild
+  (or (getcache-id id 'lc:guild)
+      (cache 'lc:guild
              (discord-req (str-concat "guilds/" id)
                           :bot bot))))
 

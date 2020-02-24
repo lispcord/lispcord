@@ -30,19 +30,13 @@
    (type)))
 
 (export-pub make-channel)
-(defun make-channel (&key name position topic nsfw
+(defun make-channel (&rest args &key name position topic nsfw
                        bitrate user-limit overwrites
                        parent-id type)
-  (make-instance 'partial-channel
-                 :name name
-                 :position position
-                 :topic topic
-                 :nsfw nsfw
-                 :bitrate bitrate
-                 :user-limit user-limit
-                 :permission-overwrites overwrites
-                 :parent-id parent-id
-                 :type type))
+  (declare (ignore name position topic nsfw
+                   bitrate user-limit overwrites
+                   parent-id type))
+  (apply 'make-instance 'partial-channel args))
 
 (define-converters (%to-json) partial-channel
   name position topic bitrate user-limit permission-overwrites parent-id type
