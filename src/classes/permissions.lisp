@@ -99,13 +99,12 @@
               permissions)))))
 
 (defun compute-overwrites (permissions member channel)
-  (let ((guild (guild member)))
-    (if (has-permission permissions :administrator)
-        (make-permissions *all-permissions*)
-        (progn
-          (when-let ((overwrite-everyone (overwrite channel :everyone)))
-            (setf permissions (permissions-overwrite permissions overwrite-everyone)))
-          (loop for role across (roles member)
-             do (permissions-overwrite permissions (overwrite channel role)))
-          (permissions-overwrite permissions (overwrite channel member))))))
+  (if (has-permission permissions :administrator)
+      (make-permissions *all-permissions*)
+      (progn
+        (when-let ((overwrite-everyone (overwrite channel :everyone)))
+          (setf permissions (permissions-overwrite permissions overwrite-everyone)))
+        (loop for role across (roles member)
+           do (permissions-overwrite permissions (overwrite channel role)))
+        (permissions-overwrite permissions (overwrite channel member)))))
 

@@ -72,7 +72,7 @@
 
 ;;;; Deprecated accessors
 
-(defmethod available ((g base-guild))
+(defmethod available ((g guild))
   (not (unavailable-p g)))
 
 (defmethod channels ((r ready))

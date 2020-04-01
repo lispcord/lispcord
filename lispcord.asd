@@ -50,7 +50,7 @@
   :in-order-to ((asdf:test-op (asdf:test-op :lispcord-test))))
 
 (asdf:defsystem #:lispcord-test
-  :depends-on (:lispcord :parachute)
+  :depends-on (:lispcord :parachute :cl-coveralls)
   :pathname "t"
   :serial t
   :components ((:file "package")

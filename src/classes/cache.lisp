@@ -29,11 +29,11 @@
 
 (defun key-cache (key)
   (case key
-    (user    *users*)
-    (guild   *guilds*)
-    (channel *channels*)
-    (role    *roles*)
-    (emoji   *emojis*)))
+    (:user    *users*)
+    (:guild   *guilds*)
+    (:channel *channels*)
+    (:role    *roles*)
+    (:emoji   *emojis*)))
 
 (defun cache (key table)
   (when table

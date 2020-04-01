@@ -29,6 +29,8 @@
 
 (in-package :lispcord.util)
 
+(declaim (optimize debug))
+
 (declaim (inline parse-snowflake
      to-string
      str-concat

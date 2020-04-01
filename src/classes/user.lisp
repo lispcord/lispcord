@@ -28,6 +28,9 @@
    (status :type (or null string))
    (game :type (or null activity))))
 
+(defmethod from-json ((c (eql :user)) table)
+  (from-json 'user table))
+
 (define-converters (%to-json from-json) user
   (id 'parse-snowflake)
   username discriminator avatar
@@ -75,8 +78,8 @@
 (define-converters (%to-json from-json) ready
   v
   (user (caching-reader 'user))
-  (private-channels (caching-vector-reader 'channel))
-  (guilds (caching-vector-reader 'guild))
+  (private-channels (caching-vector-reader :channel))
+  (guilds (caching-vector-reader :guild))
   session-id
   ;; Not handled by Lispcord
   ;;(shard)

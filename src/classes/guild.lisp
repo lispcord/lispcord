@@ -1,5 +1,7 @@
 (in-package :lispcord.classes)
 
+(declaim (optimize debug))
+
 (defclass* partial-role ()
   ((name)
    (color)
@@ -37,6 +39,9 @@
    (managed     :type boolean :accessor managed-p)
    (mentionable :type boolean :accessor mentionable-p)
    (guild-id    :type (or null snowflake))))
+
+(defmethod from-json ((c (eql :role)) table)
+  (from-json 'role table))
 
 (define-converters (%to-json from-json) role
   (id 'parse-snowflake)
@@ -99,19 +104,22 @@
 (define-converters (%to-json from-json) client-status
   desktop mobile web)
 
-(defclass* base-guild ()
+(defclass* guild ()
   ((id          :type snowflake)
    (unavailable :type boolean :accessor unavailable-p)))
 
-(define-converters (%to-json from-json) base-guild
+(defmethod from-json ((c (eql :guild)) table)
+  (from-json 'guild table))
+
+(define-converters (%to-json from-json) guild
   (id 'parse-snowflake)
   (unavailable nil (defaulting-writer :false)))
 
-(defclass* unavailable-guild (base-guild) ())
+(defclass* unavailable-guild (guild) ())
 
 (define-converters (%to-json from-json) unavailable-guild)
 
-(defclass* available-guild (base-guild)
+(defclass* available-guild (guild)
   ((name :type string)
    (icon :type (or null string))
    (splash :type (or null string))
@@ -165,8 +173,8 @@
   (verification-level)
   (default-message-notifications)
   (explicit-content-filter)
-  (roles (caching-vector-reader 'role))
-  (emojis (caching-vector-reader 'emoji))
+  (roles (caching-vector-reader :role))
+  (emojis (caching-vector-reader :emoji))
   (features (subtable-reader 'guild-feature))
   (mfa-level)
   (application-id '%maybe-sf)
@@ -178,7 +186,7 @@
   (member-count)
   (voice-states (subtable-vector-reader 'voice-state))
   (members (subtable-vector-reader 'member))
-  (channels (caching-vector-reader 'channel))
+  (channels (caching-vector-reader :channel))
   (presences (subtable-vector-reader 'presence))
   (max-presences)
   (max-members)
@@ -190,7 +198,7 @@
   (preferred-locale))
 
 (export-pub guild)
-(defmethod from-json ((c (eql 'guild)) (table hash-table))
+(defmethod from-json ((c (eql :guild)) (table hash-table))
   (if (gethash "unavailable" table)
       (from-json 'unavailable-guild table)
       (from-json 'available-guild table)))

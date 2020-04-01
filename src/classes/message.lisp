@@ -91,7 +91,7 @@
   (edited-timestamp)
   (tts nil (defaulting-writer :false))
   (mention-everyone nil (defaulting-writer :false))
-  (mentions (caching-vector-reader 'user))
+  (mentions (caching-vector-reader :user))
   (mention-roles (vector-reader 'parse-snowflake))
   (mention-channels (subtable-vector-reader 'channel-mention))
   (attachments (subtable-vector-reader 'attachment))

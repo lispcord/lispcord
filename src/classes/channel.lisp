@@ -42,15 +42,15 @@
   name position topic bitrate user-limit permission-overwrites parent-id type
   (nsfw nil (defaulting-writer :false)))
 
-(defclass* base-channel ()
+(defclass* channel ()
   ((id :type snowflake)
    (type :type fixnum)))
 
-(define-converters (%to-json from-json) base-channel
+(define-converters (%to-json from-json) channel
   (id 'parse-snowflake)
   type)
 
-(defclass* guild-channel (base-channel)
+(defclass* guild-channel (channel)
   ((guild-id      :type (or null snowflake)) ;; It's not present in GUILD_CREATE events
    (name          :type string)
    (position      :type fixnum)
@@ -102,12 +102,12 @@
 
 (defclass* store-channel (guild-channel) ())
 
-(defclass* dm-channel (base-channel)
+(defclass* dm-channel (channel)
   ((last-message-id :type (or null snowflake))
    (recipients   :type (vector user))))
 
 (define-converters (%to-json from-json) dm-channel
-  (recipients (caching-vector-reader 'user))
+  (recipients (caching-vector-reader :user))
   (last-message-id '%maybe-sf))
 
 (defclass* group-dm (dm-channel)
@@ -120,8 +120,7 @@
   (icon)
   (owner-id 'parse-snowflake))
 
-(export-pub channel)
-(defmethod from-json ((c (eql 'channel)) (table hash-table))
+(defmethod from-json ((c (eql :channel)) (table hash-table))
   (from-json
    (case (gethash "type" table)
      (0 'text-channel)

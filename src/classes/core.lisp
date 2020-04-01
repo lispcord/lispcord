@@ -1,7 +1,7 @@
 (in-package :lispcord.classes)
 
 (export-pub from-json)
-(defgeneric from-json (class-symbol table)
+(defgeneric from-json (key table)
   (:documentation "Converts a json object to the specified class"))
 
 (defmethod from-json (eh (n null))

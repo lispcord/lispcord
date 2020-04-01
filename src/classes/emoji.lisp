@@ -26,8 +26,11 @@
    (animated :type boolean :accessor animated-p)
    (guild-id :type (or null snowflake))))
 
+(defmethod from-json ((c (eql :emoji)) table)
+  (from-json 'emoji table))
+
 (define-converters (%to-json from-json) emoji
-  (id    'parse-snowflake)
+  (id    '%maybe-sf)
   (name)
   (roles (vector-reader 'parse-snowflake))
   (user  (caching-reader 'user))

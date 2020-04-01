@@ -126,7 +126,7 @@
 (defun on-emoji-update (data bot)
   (with-table (data emojis "emojis"
                     id "guild_id")
-    (let ((g (cache 'lc:base-guild (plist-hash-table `("id" ,id "emojis" ,emojis)
+    (let ((g (cache 'lc:guild (plist-hash-table `("id" ,id "emojis" ,emojis)
                                                      :test #'equal))))
       (dispatch-event :on-emoji-update
                       (list (lc:emojis g) g)
