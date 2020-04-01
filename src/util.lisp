@@ -15,15 +15,21 @@
      #:vec-extend
      #:vecrem
      #:recur
+     #:dovec*
 
      #:split-sequence
 
+     #:function-designator
      #:snowflake
      #:parse-snowflake
      #:to-string
-     #:optimal-id-compare))
+     #:optimal-id-compare
+
+     #:export-pub))
 
 (in-package :lispcord.util)
+
+(declaim (optimize debug))
 
 (declaim (inline parse-snowflake
      to-string
@@ -37,6 +43,10 @@
 ;; this type allows us to later potentially convert the IDs to numbers
 ;; without needing to rewrite all the type declerations!
 (deftype snowflake () '(unsigned-byte 64))
+
+(deftype function-designator ()
+  "First argument type for apply and funcall, as per CLHS"
+  `(or function symbol))
 
 (declaim (ftype (function (string) (or fixnum null)) parse-snowflake))
 (defun parse-snowflake (snowflake-string)
@@ -129,7 +139,7 @@
     buf))
 
 (defun mapvec (conversion-fun seq)
-  (declare (type function conversion-fun))
+  (declare (type function-designator conversion-fun))
   (if seq
       (map '(simple-array * (*)) conversion-fun seq)
       (make-array '(0) :element-type '(simple-array * (*)))))
@@ -139,3 +149,18 @@
 
 (defmacro recur (name &rest args)
   `(return-from ,name (,name ,@args)))
+
+(defmacro dovec* ((var vecs) &body body)
+  (let ((vecs (alexandria:ensure-list vecs)))
+    (alexandria:with-gensyms (vec)
+      `(loop :for ,vec :in (list ,@vecs)
+          :do (loop :for ,var :across ,vec
+                 :do (progn ,@body))))))
+
+(defmacro export-pub (symbol)
+  "Exports the symbol from the current package and current.pub package
+The .pub package should :use the current package"
+  (let ((package *package*))
+    `(progn (uiop:export* ',symbol ,(package-name package))
+            (uiop:export* ',symbol ,(format nil "~A.PUB" (package-name package))))))
+

@@ -1,162 +1,162 @@
 (in-package :lispcord.classes)
 
+(defclass* game ()
+  ((name :type string)
+   (type :type (cl:member 0 1 2 4))
+   (url :type (or null string))))
 
-(defclass game ()
-  ((name :initarg :name
-         :type string
-         :accessor name)
-   (type :initarg :type
-         :type (cl:member 0 1 2 4)
-         :accessor type)
-   (url  :initarg :url
-         :type (or null string)
-         :accessor url)))
-
-
-(defmethod from-json ((c (eql :game)) (table hash-table))
-  (instance-from-table (table 'game)
-                       :name "name"
-                       :type "type"
-                       :url "url"))
-
-
-(defmethod %to-json ((g game))
-  (with-object
-    (write-key-value "name" (name g))
-    (write-key-value "type" (type g))
-    (write-key-value "url" (url g))))
-
+(export-pub make-game)
 (defun make-game (game-name &optional (type 0) (url nil))
   (make-instance 'game :name game-name :type type :url url))
 
+(define-converters (%to-json from-json) game
+  name type url)
+
+(defclass* user ()
+  ((id :type snowflake)
+   (username :type string)
+   (discriminator :type string)
+   (avatar :type (or null string))
+   (bot :type boolean :accessor bot-p)
+   (system :type boolean :accessor system-p)
+   (mfa-enabled :type boolean :accessor mfa-enabled-p)
+   (locale :type (or null string))
+   (verified :type boolean :accessor verified-p)
+   (email :type (or null string))
+   (flags :type (or null fixnum))
+   (premium-type :type (or null fixnum))
+   (status :type (or null string))
+   (game :type (or null activity))))
+
+(defmethod from-json ((c (eql :user)) table)
+  (from-json 'user table))
+
+(define-converters (%to-json from-json) user
+  (id 'parse-snowflake)
+  username discriminator avatar
+  (bot nil (defaulting-writer :false))
+  (system nil (defaulting-writer :false))
+  (mfa-enabled nil (defaulting-writer :false))
+  (locale)
+  (verified nil (defaulting-writer :false))
+  email flags premium-type
+  ;; Internal Lispcord fields (pieces of last Presence event for this user)
+  (status :ignore :ignore)
+  (game :ignore :ignore))
+
+(defclass* webhook ()
+  ((id :type snowflake)
+   (type :type fixnum)
+   (guild-id :type (or null snowflake))
+   (channel-id :type snowflake)
+   (user :type (or null user))
+   (name :type string)
+   (avatar :type string)
+   (token :type string)))
+
+(define-converters (%to-json from-json) webhook
+  (id 'parse-snowflake)
+  (type)
+  (guild-id '%maybe-sf)
+  (channel-id 'parse-snowflake)
+  (user (caching-reader 'user))
+  avatar token)
+
+(defclass* ready ()
+  ((v :type fixnum)
+   (user :type user)
+   (private-channels :type (vector dm-channel))
+   (guilds :type (vector unavailable-guild))
+   (session-id :type string)
+   ;; Not handled by Lispcord
+   ;;(shard :type (array fixnum 2))
+   ;; Undocumented
+   ;;(user-settings)
+   ;;(relationships)
+   ))
+
+(define-converters (%to-json from-json) ready
+  v
+  (user (caching-reader 'user))
+  (private-channels (caching-vector-reader :channel))
+  (guilds (caching-vector-reader :guild))
+  session-id
+  ;; Not handled by Lispcord
+  ;;(shard)
+  ;; Undocumented
+  ;;(user-settings)
+  ;;(relationships)
+  )
+
+(defclass* activity ()
+  ((name :type string)
+   (type :type fixnum)
+   (url :type (or null string))
+   (created-at :type fixnum)
+   (timestamps :type (or null timestamps))
+   (application-id :type (or null snowflake))
+   (details :type (or null string))
+   (state :type (or null string))
+   (emoji :type (or null emoji))
+   (party :type (or null party))
+   (assets :type (or null assets))
+   (secrets :type (or null secrets))
+   (instance :type boolean)
+   (flags :type (or null fixnum))))
+
+(define-converters (%to-json from-json) activity
+  name type url created-at
+  (timestamps (subtable-reader 'activity-timestamps))
+  (application-id '%maybe-sf)
+  (details)
+  (state)
+  (emoji (subtable-reader 'activity-emoji))
+  (party (subtable-reader 'activity-party))
+  (assets (subtable-reader 'activity-assets))
+  (secrets (subtable-reader 'activity-secrets))
+  (instance)
+  (flags))
+
+(defclass* activity-timestamps ()
+  ((start :type (or null fixnum))
+   (end :type (or null fixnum))))
+
+(define-converters (%to-json from-json) activity-timestamps
+  start end)
+
+(defclass* activity-emoji ()
+  ((name :type string)
+   (id :type (or null snowflake))
+   (animated :type boolean)))
+
+(define-converters (%to-json from-json) activity-emoji
+  name
+  (id '%maybe-sf)
+  animated)
+
+(defclass* activity-party ()
+  ((id :type (or null string))
+   (size :type (or null (array fixnum)))))
+
+(define-converters (%to-json from-json) activity-party
+  id
+  (size (vector-reader 'identity)))
+
+(defclass* activity-assets ()
+  ((large-image :type (or null string))
+   (large-text :type (or null string))
+   (small-image :type (or null string))
+   (small-text :type (or null string))))
+
+(define-converters (%to-json from-json) activity-assets
+    large-image large-text small-image small-text)
+
+(defclass* activity-secrets ()
+  ((join :type (or null string))
+   (spectate :type (or null string))
+   (match :type (or null string))))
+
+(define-converters (%to-json from-json) activity-secrets
+    join spectate match)
 
 
-
-
-(defclass user ()
-  ((id            :initarg :id
-                  :type snowflake
-                  :accessor id)
-   (username      :initarg :username
-                  :type string
-                  :accessor name)
-   (discriminator :initarg :discrim
-                  :type string
-                  :accessor discrim)
-   (avatar        :initarg :avatar
-                  :type (or null string)
-                  :accessor avatar)
-   (bot           :initarg :bot
-                  :type t
-                  :accessor botp)
-   (mfa           :initarg :mfa
-                  :type t
-                  :accessor mfa-p)
-   (verified      :initarg :verified
-                  :type t
-                  :accessor verifiedp)
-   (email         :initarg :email
-                  :type t
-                  :accessor emailp)
-   (status        :type (or null string)
-                  :accessor status)
-   (game          :type (or null game)
-                  :accessor game)))
-
-(defmethod update ((table hash-table) (u user))
-  (from-table-update (table data)
-                     ("id" (id u) (parse-snowflake data))
-                     ("username" (name u) data)
-                     ("discriminator" (discrim u) data)
-                     ("avatar" (avatar u) data)
-                     ("bot" (botp u) data)
-                     ("mfa" (mfa-p u) data)
-                     ("verified" (verifiedp u) data)
-                     ("email" (emailp u) data))
-  u)
-
-(defmethod %to-json ((u user))
-  (with-object
-    (write-key-value "id" (id u))
-    (write-key-value "username" (name u))
-    (write-key-value "discriminator" (discrim u))
-    (write-key-value "avatar" (avatar u))
-    (write-key-value "bot" (botp u))
-    (write-key-value "mfa" (mfa-p u))
-    (write-key-value "verified" (verifiedp u))
-    (write-key-value "email" (emailp u))))
-
-(defmethod from-json ((c (eql :user)) (table hash-table))
-  (instance-from-table (table 'user)
-                       :id (parse-snowflake (gethash "id" table))
-                       :username "username"
-                       :discrim "discriminator"
-                       :avatar "avatar"
-                       :bot "bot"
-                       :mfa "mfa"
-                       :verified "verified"
-                       :email "email"))
-
-
-
-
-
-(defclass webhook ()
-  ((id         :initarg :id
-         :type snowflake
-         :accessor id)
-   (guild-id   :initarg :g-id
-         :type (or null snowflake)
-         :accessor guild-id)
-   (channel-id :initarg :c-id
-         :type snowflake)
-   (user       :initarg :user
-         :type (or null user)
-         :accessor user)
-   (name       :initarg :name
-         :type string
-         :accessor name)
-   (avatar     :initarg :avatar
-         :type string
-         :accessor avatar)
-   (token      :initarg :token
-         :type string
-         :accessor token)))
-
-(defmethod from-json ((c (eql :webhook)) (table hash-table))
-  (instance-from-table (table 'webhook)
-    :id (parse-snowflake (gethash "id" table))
-    :g-id (parse-snowflake (gethash "guild_id" table))
-    :c-id (parse-snowflake (gethash "channel_id" table))
-    :user (cache :user (gethash "user" table))
-    :avatar "avatar"
-    :token "token"))
-
-
-
-(defclass ready ()
-  ((version     :initarg :v
-    :type fixnum
-    :accessor version)
-   (user        :initarg :me
-          :type user
-          :accessor user)
-   (dm-channels :initarg :channels
-    :type array
-    :accessor channels)
-   (guilds      :initarg :guilds
-    :type array
-    :accessor guilds)
-   (session-id  :initarg :session
-    :type string
-    :accessor session-id)))
-
-(defmethod from-json ((c (eql :ready)) (table hash-table))
-  (instance-from-table (table 'ready)
-    :v "v"
-    :me (cache :user (gethash "user" table))
-    :channels (mapvec (curry #'cache :channel)
-          (gethash "private_channels" table))
-    :guilds (mapvec (curry #'cache :guild)
-        (gethash "guilds" table))
-    :session "session_id"))

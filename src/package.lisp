@@ -74,10 +74,10 @@
   :lispcord.util
   :lispcord.core)
   (:import-from :lispcord.classes
-    :cache
-    :getcache-id
-    :decache-id
-    :from-json)
+    #:cache
+    #:getcache-id
+    #:decache-id
+    #:from-json)
   (:export #:create
      #:edit
      #:erase
@@ -101,6 +101,7 @@
      #:ban
      #:unban
      #:get-roles
+     #:current-user
      #:leave
      #:create-dms))
 
@@ -156,6 +157,5 @@
      #:ban
      #:unban
      #:get-roles
+     #:current-user
      #:leave))
-
-

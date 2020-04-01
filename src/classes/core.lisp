@@ -1,40 +1,42 @@
 (in-package :lispcord.classes)
 
-(defgeneric from-json (class-symbol obj)
+(export-pub from-json)
+(defgeneric from-json (key table)
   (:documentation "Converts a json object to the specified class"))
 
 (defmethod from-json (eh (n null))
   (declare (ignore eh n))
   nil)
 
-
+(export-pub update)
 (defgeneric update (data object)
   (:documentation "Updates the internal fields of the object"))
 
-(defmacro from-table-update ((table var) &body clauses)
-  (let ((key (gensym)))
-    `(maphash (lambda (,key ,var)
-                (case ,key
-                  ,@ (loop :for (k a op) :in clauses :collect
-                        `(,k (setf ,a ,op)))))
-              ,table)))
+(export-pub member)
+(defgeneric member (obj &optional g))
 
 (declaim (cl:inline %maybe-sf))
 (defun %maybe-sf (string)
-  "only parses the string if it's there :D"
+  "Only parses the string if it's there :D"
   (when string (parse-snowflake string)))
 
-(defgeneric guild (object)
-  (:documentation "Returns the cached guild object corresponding to the guild-id of object"))
+(export-pub guild)
+(defgeneric guild (c))
+(defmethod guild (c)
+  "Returns the cached guild object corresponding to the guild-id of object"
+  (getcache-id (guild-id c) :guild))
 
-(defgeneric owner (object)
-  (:documentation "Returns the cached user object corresponding to the owner-id of object"))
+(defmethod owner (c)
+  "Returns the cached user object corresponding to the owner-id of object"
+  (getcache-id (owner-id c) :user))
 
-(defgeneric channel (object)
-  (:documentation "Returns the cached channel object corresponding to the channel-id of object"))
+(defmethod channel (c)
+  "Returns the cached channel object corresponding to the channel-id of object"
+  (getcache-id (channel-id c) :user))
 
-(defgeneric parent (object)
-  (:documentation "Returns the cached parent object corresponding to th e parrent-id of object"))
+(defmethod parent (c)
+  "Returns the cached channel object corresponding to the parent-id of object"
+  (getcache-id (parent-id c) :channel))
 
 ;;; When working on a class, please comment on the relevant github issue
 ;;; at https://github.com/lispcord/lispcord/issues that you are working
@@ -56,13 +58,8 @@
 ;;;   ((field :initarg :field
 ;;;           :type typespec)))
 ;;;
-;;; (defmethod %to-json ((o obj))
-;;;   (with-object
-;;;      (write-key-value "field" (field  o))))
-;;;
-;;; (defmethod from-json ((c (eql :obj)) (table hash-table))
-;;;   (with-table (table field "field")
-;;;     (make-instance 'obj :field field)))
+;;; (define-converters (obj)
+;;;   (field identity :null))
 
 ;;; In the case where the api specifies fields that are not relevant
 ;;; to the user (like the _trace fields), or where defining a from- or

@@ -1,72 +1,33 @@
 (in-package :lispcord.classes)
 
+(defclass* account ()
+  ((id   :type string)
+   (name :type string)))
 
-(defclass account ()
-  ((id   :initarg :id
-         :type string
-         :accessor id)
-   (name :initarg :name
-         :type string
-         :accessor name)))
+(define-converters (%to-json from-json) account
+  id name)
 
-(defmethod from-json ((c (eql :account)) (table hash-table))
-  (instance-from-table (table 'account)
-                       :id "id"
-                       :name "name"))
+(defclass* integration (integration-object)
+  ((id        :type snowflake)
+   (name      :type string)
+   (type      :type string)
+   (enabled   :type boolean :accessor enabled-p)
+   (syncing   :type boolean :accessor syncing-p)
+   (role-id   :type snowflake)
+   (expire-behavior :type fixnum)
+   (expire-grace-period :type fixnum)
+   (user      :type user)
+   (account   :type account)
+   (synced-at :type string)))
 
-(defmethod %to-json ((a account))
-  (with-object
-    (write-key-value "id" (id a))
-    (write-key-value "name" (name a))))
-
-(defclass integration (integration-object)
-  ((id               :initarg :id
-                     :type snowflake
-                     :accessor id)
-   (name             :initarg :name
-                     :type string
-                     :accessor name)
-   (type             :initarg :type
-                     :type string
-                     :accessor type)
-   (enabled          :initarg :enabled
-                     :type t
-                     :accessor enabledp)
-   (syncing          :initarg :syncing
-                     :type t
-                     :accessor syncingp)
-   (role-id          :initarg :role-id
-                     :type snowflake
-                     :accessor role-id)
-   (expire-behavior  :initarg :e-behavior
-                     :type fixnum
-                     :accessor expire-behaviour)
-   (expire-grace     :initarg :e-grace
-                     :type fixnum
-                     :accessor expire-grace)
-   (user             :initarg :user
-                     :type user
-                     :accessor user)
-   (account          :initarg :account
-                     :type account
-                     :accessor account)
-   (synced-at        :initarg :synced-at
-                     :type string
-                     :accessor synced-at)))
-
-(defmethod role ((i integration))
-  (getcache-id (role-id i) :role))
-
-(defmethod from-json ((c (eql :integration)) (table hash-table))
-  (instance-from-table (table 'integration)
-                       :id (parse-snowflake (gethash "id" table))
-                       :name "name"
-                       :type "type"
-                       :enabled "enabled"
-                       :syning "syncing"
-                       :role-id (%maybe-sf (gethash "role_id" table))
-                       :e-behaviour "expire_behaviour"
-                       :e-grace "expire_grace_period"
-                       :user (cache :user (gethash "user" table))
-                       :account (from-json :account (gethash "account" table))
-                       :synced-at "synced-at"))
+(define-converters (%to-json from-json) integration
+  (id 'parse-snowflake)
+  name type
+  (enabled nil (defaulting-writer :false))
+  (syncing nil (defaulting-writer :false))
+  (role-id '%maybe-sf)
+  (expire-behaviour)
+  (expire-grace-period)
+  (user (caching-reader 'user))
+  (account (subtable-reader 'account))
+  (synced-at))

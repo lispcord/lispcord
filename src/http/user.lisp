@@ -1,12 +1,13 @@
 (in-package :lispcord.http)
 
 (defmethod from-id (id (c (eql :user)) &optional (bot *client*))
-  (let ((u (getcache-id id :user)))
-    (if u
-        u
-        (cache :user (discord-req (str-concat "users/" id)
-                                  :bot bot)))))
+  (or (getcache-id id :user)
+      (cache :user (discord-req (str-concat "users/" id)
+                                   :bot bot))))
 
+
+(defun current-user (&optional (bot *client*))
+  (cache :user (discord-req "users/@me" :bot bot)))
 
 (defmethod edit ((u lc:user) (user lc:user) &optional (bot *client*))
   (cache :user
@@ -34,10 +35,10 @@
   (declare (type (or snowflake lc:user) user))
   (let ((u (if (typep user 'lc:user) (lc:id user) user)))
     (cache :channel (discord-req
-                     (str-concat "users/@me/channels")
-                     :bot bot
-                     :type :post
-                     :content (jmake `(("recipient_id" . ,u)))))))
+                        (str-concat "users/@me/channels")
+                        :bot bot
+                        :type :post
+                        :content (jmake `(("recipient_id" . ,u)))))))
 
 (defmethod create ((s string) (u lc:user) &optional (bot *client*))
   (if (getcache-id (lc:id u) :channel)

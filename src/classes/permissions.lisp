@@ -15,6 +15,8 @@
                                     (:manage-guild          . #x00000020)
                                     (:add-reactions         . #x00000040)
                                     (:view-audit-log        . #x00000080)
+                                    (:priority-speaker      . #x00000100)
+                                    (:stream                . #x00000200)
                                     (:view-channel          . #x00000400)
                                     (:send-messages         . #x00000800)
                                     (:send-tts-messages     . #x00001000)
@@ -30,8 +32,6 @@
                                     (:deafen-members        . #x00800000)
                                     (:move-members          . #x01000000)
                                     (:use-vad               . #x02000000)
-                                    (:priority-speaker      . #x00000100)
-                                    (:stream                . #x00000200)
                                     (:change-nickname       . #x04000000)
                                     (:manage-nicknames      . #x08000000)
                                     (:manage-roles          . #x10000000)
@@ -70,7 +70,9 @@
                        (allow overwrites))
       permissions))
 
-(defgeneric has-permission (obj key &optional channel))
+(export-pub has-permission)
+(defgeneric has-permission (obj key &optional channel)
+  (:documentation "If `obj` (user, member, or permissions) has `key` permission on `channel`"))
 
 (defmethod has-permission ((p permissions) key &optional channel)
   "Returns if permissions object has `key` permission"
@@ -97,13 +99,12 @@
               permissions)))))
 
 (defun compute-overwrites (permissions member channel)
-  (let ((guild (guild member)))
-    (if (has-permission permissions :administrator)
-        (make-permissions *all-permissions*)
-        (progn
-          (when-let ((overwrite-everyone (overwrite channel :everyone)))
-            (setf permissions (permissions-overwrite permissions overwrite-everyone)))
-          (loop for role across (roles member)
-             do (permissions-overwrite permissions (overwrite channel role)))
-          (permissions-overwrite permissions (overwrite channel member))))))
+  (if (has-permission permissions :administrator)
+      (make-permissions *all-permissions*)
+      (progn
+        (when-let ((overwrite-everyone (overwrite channel :everyone)))
+          (setf permissions (permissions-overwrite permissions overwrite-everyone)))
+        (loop for role across (roles member)
+           do (permissions-overwrite permissions (overwrite channel role)))
+        (permissions-overwrite permissions (overwrite channel member)))))
 

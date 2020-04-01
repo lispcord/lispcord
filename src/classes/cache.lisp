@@ -22,7 +22,8 @@
     (bt:with-recursive-lock-held ((cache-lock cache))
       (let ((entity (gethash id (cache-data cache))))
         (v:debug :lispcord.cache "Cache-hit: ~20a :: ~a" id key)
-        (if entity
+        (if (and entity
+                 (eq key (type-of entity)))
             (update table entity)
             (setf (gethash id (cache-data cache)) (from-json key table)))))))
 

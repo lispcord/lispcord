@@ -1,16 +1,12 @@
 (in-package :lispcord.http)
 
-(defmethod from-id (id (c (eql :channel))
-                    &optional (bot *client*)
-                    &aux (this (getcache-id id :channel)))
-  (if this
-      this
+(defmethod from-id (id (c (eql :channel)) &optional (bot *client*))
+  (or (getcache-id id :channel)
       (let* ((req  (discord-req
                     (str-concat "channels/" id)
                     :bot bot)))
         (if req
             (cache :channel req)))))
-
 
 (defmethod edit ((c lc:partial-channel) (chan lc:channel)
                  &optional (bot *client*))
@@ -46,7 +42,7 @@
                                       "application/json")))
          (reply-nonce (gethash "nonce" response)))
     (if (equal reply-nonce nonce)
-        (from-json :message response)
+        (from-json 'lc:message response)
         (error "Could not send message, nonce failure of ~a ~a"
                nonce reply-nonce))))
 
@@ -79,7 +75,7 @@
                      ((or around before after)
                       (error ":BEFORE, :AROUND and :AFTER are exclusive to one another!~%"))
                      (t nil))))
-    (mapvec (curry #'from-json :message)
+    (mapvec (curry #'from-json 'lc:message)
             (discord-req
              (format nil "channels/~a/messages?limit=~a~@[&~a~]"
                      (to-string (lc:id channel)) limit final)
@@ -87,10 +83,10 @@
 
 (defmethod from-id (message-id (c lc:channel)
                     &optional (bot *client*))
-  (from-json :message (discord-req
-                       (str-concat "channels/" (lc:id c)
-                                   "/messages/" message-id)
-                       :bot bot)))
+  (from-json 'lc:message (discord-req
+                          (str-concat "channels/" (lc:id c)
+                                      "/messages/" message-id)
+                          :bot bot)))
 
 
 
@@ -198,7 +194,7 @@
 
 (defun get-pinned (channel &optional (bot *client*))
   (declare (type lc:channel channel))
-  (mapvec (curry #'from-json :message)
+  (mapvec (curry #'from-json 'lc:message)
           (discord-req (str-concat "channels/" (lc:id channel)
                                    "/pins")
                        :bot bot)))
