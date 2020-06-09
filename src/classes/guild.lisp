@@ -1,32 +1,34 @@
 (in-package :lispcord.classes)
 
+(deftype js-boolean () '(member :true :false))
+
 (defclass partial-role ()
-  ((name        :initarg :name     :accessor name)
-   (color       :initarg :color    :accessor color)
-   (hoist       :initarg :hoist    :accessor hoistp)
+  ((name        :initarg :name    :accessor name)
+   (color       :initarg :color   :accessor color)
+   (hoist       :initarg :hoist   :accessor hoistp)
    (permissions :initarg :perms   :accessor permissions)
    (mentionable :initarg :mention :accessor mentionablep)))
 
 (defmethod make-role (&key
                         (name "new role")
                         (color 0)
-                        hoist
+                        (hoist :false)
                         (permissions 0)
-                        mentionable)
+                        (mentionable :false))
   (make-instance 'partial-role
                  :name name
                  :color color
-                 :hoist (or hoist :false)
+                 :hoist hoist
                  :perms permissions
-                 :mention (or mentionable :false)))
+                 :mention mentionable))
 
 (defmethod %to-json ((r partial-role))
   (with-object
     (write-key-value "name" (name r))
     (write-key-value "color" (color r))
-    (write-key-value "hoist" (or (hoistp r) :false))
+    (write-key-value "hoist" (hoistp r))
     (write-key-value "permissions" (permissions r))
-    (write-key-value "mentionable" (or (mentionablep r) :false))))
+    (write-key-value "mentionable" (mentionablep r))))
 
 (defclass role ()
   ((id          :initarg :id

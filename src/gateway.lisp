@@ -6,17 +6,18 @@
   (handler-case
       (funcall func)
     ((or usocket:ns-try-again-condition usocket:timeout-error) ()
-      (unless (and retries
-                   (> retry retries))
-        (v:error :lispcord.gateway "Network not available. Retrying connection.")
-        (when delay
-          (sleep delay))
-        (when refresh-gateway
-          (refresh-gateway-url))
-        ;; Handle and retry
-        (recur network-retry-loop func delay refresh-gateway retries (1+ retry)))
-      ;; Decline
-      (v:error :lispcord.gateway "Max retries reached."))))
+      (cond ((and retries
+                  (> retry retries))
+             (v:error :lispcord.gateway "Network not available. Retrying connection.")
+             (when delay
+               (sleep delay))
+             (when refresh-gateway
+               (refresh-gateway-url))
+             ;; Handle and retry
+             (network-retry-loop func delay refresh-gateway retries (1+ retry)))
+            (t
+             ;; Decline
+             (v:error :lispcord.gateway "Max retries reached."))))))
 
 (eval-when (:compile-toplevel :load-toplevel :execute)
   (defmacro with-network-retry ((&key (delay 5) (refresh-gateway nil) (retries nil)) &body body)
@@ -29,8 +30,8 @@
 (defun refresh-gateway-url ()
   (with-network-retry (:refresh-gateway nil)
     (doit (get-rq "gateway")
-          (gethash "url" it)
           (:! v:debug :lispcord.gateway "Gateway-url: ~a" it)
+          (gethash "url" it)
           (str-concat it +api-suffix+)
           (setf *gateway-url* it))))
 
@@ -58,7 +59,7 @@
                     (v:debug :lispcord.gateway "Terminating a stale heartbeat thread"))
                   :name "Heartbeat"))
 
-;;;; Sending 
+;;;; Sending
 
 (defun send-payload (bot &key op data)
   (doit (jmake `(("op" . ,op) ("d" . ,data)))
@@ -154,9 +155,10 @@
 
 (defun on-members-chunk (data bot)
   (with-table (data id "guild_id" members "members")
-    (mapf members (m)
-      (setf (gethash "guild_id" m) id)
-      (on-member-add m bot))))
+    (mapcar (lambda (m)
+              (setf (gethash "guild_id" m) id)
+              (on-member-add m bot))
+            members)))
 
 (defun on-member-update (data bot)
   (let ((g (getcache-id (parse-snowflake (gethash "guild_id" data))
@@ -268,7 +270,7 @@
     (switch (event :test #'string=)
       ;; on handshake
       ("READY"
-       (on-ready bot data))                           
+       (on-ready bot data))
 
       ;; on resume
       ("RESUMED"
@@ -391,7 +393,7 @@
          (dispatch-event :on-reaction-purge
                          (list c mid)
                          bot)))
-      
+
       ;; someone updates their presence
       ("PRESENCE_UPDATE"
        (on-presence data bot))
@@ -487,15 +489,15 @@
     (setf (bot-running bot) t)
     (with-network-retry (:refresh-gateway t)
       (wsd:start-connection conn))
-    
+
     (wsd:on :open conn
             (lambda ()
               (v:info :lispcord.gateway "Connected!")))
-    
+
     (wsd:on :message conn
             (lambda (message)
               (on-recv bot (jparse message))))
-    
+
     (wsd:on :error conn
             (lambda (error)
               (v:error :lispcord.gateway "Websocket error: ~a" error)
@@ -507,7 +509,7 @@
               (sleep 5)
               (refresh-gateway-url)
               (reconnect-full bot)))
-    
+
     (wsd:on :close conn
             (named-lambda close-handler (&key code reason)
               (unless (eq conn (bot-conn bot))
@@ -521,7 +523,7 @@
                 (cond ((or (not (bot-running bot))
                            (member code (list 4004 ;; Authentication failed
                                               4005 ;; Already authenticated
-                                              ))) 
+                                              )))
                        ;; Either the bot is terminating or there's a good reason to disconnect us
                        ;; Give up
                        (when (bot-session-id bot)
