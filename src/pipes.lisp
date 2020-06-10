@@ -17,9 +17,9 @@
 
 (defun dispatch-event (event-key args &optional (bot *client*))
   (apply (gethash event-key (bot-event-handlers bot)
-      (lambda (&rest _)
-        (declare (ignore _))
-        nil))
-   args))
+                  (lambda (&rest _)
+                    (declare (ignore _))
+                    nil))
+         args))
 
 

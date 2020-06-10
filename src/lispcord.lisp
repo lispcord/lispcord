@@ -71,9 +71,9 @@
 (defun remove-mention (user msg)
   (declare (type lc:user user)
      (type string msg))
-  (or (remove-substring (str-concat "<@" (to-string (lc:id user)) ">")
+  (or (remove-substring (str-concat "<@" (lc:id user) ">")
                         msg)
-      (remove-substring (str-concat "<@!" (to-string (lc:id user)) ">")
+      (remove-substring (str-concat "<@!" (lc:id user) ">")
                         msg)
       msg))
 
