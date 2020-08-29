@@ -15,9 +15,9 @@
 
 (defmethod from-json ((c (eql :game)) (table hash-table))
   (instance-from-table (table 'game)
-                       :name "name"
-                       :type "type"
-                       :url "url"))
+    :name "name"
+    :type "type"
+    :url "url"))
 
 
 (defmethod %to-json ((g game))
@@ -65,14 +65,14 @@
 
 (defmethod update ((table hash-table) (u user))
   (from-table-update (table data)
-                     ("id" (id u) (parse-snowflake data))
-                     ("username" (name u) data)
-                     ("discriminator" (discrim u) data)
-                     ("avatar" (avatar u) data)
-                     ("bot" (botp u) data)
-                     ("mfa" (mfa-p u) data)
-                     ("verified" (verifiedp u) data)
-                     ("email" (emailp u) data))
+    ("id" (id u) (parse-snowflake data))
+    ("username" (name u) data)
+    ("discriminator" (discrim u) data)
+    ("avatar" (avatar u) data)
+    ("bot" (botp u) data)
+    ("mfa" (mfa-p u) data)
+    ("verified" (verifiedp u) data)
+    ("email" (emailp u) data))
   u)
 
 (defmethod %to-json ((u user))
@@ -88,14 +88,14 @@
 
 (defmethod from-json ((c (eql :user)) (table hash-table))
   (instance-from-table (table 'user)
-                       :id (parse-snowflake (gethash "id" table))
-                       :username "username"
-                       :discrim "discriminator"
-                       :avatar "avatar"
-                       :bot "bot"
-                       :mfa "mfa"
-                       :verified "verified"
-                       :email "email"))
+    :id (parse-snowflake (gethash "id" table))
+    :username "username"
+    :discrim "discriminator"
+    :avatar "avatar"
+    :bot "bot"
+    :mfa "mfa"
+    :verified "verified"
+    :email "email"))
 
 
 
@@ -103,25 +103,25 @@
 
 (defclass webhook ()
   ((id         :initarg :id
-         :type snowflake
-         :accessor id)
+               :type snowflake
+               :accessor id)
    (guild-id   :initarg :g-id
-         :type (or null snowflake)
-         :accessor guild-id)
+               :type (or null snowflake)
+               :accessor guild-id)
    (channel-id :initarg :c-id
-         :type snowflake)
+               :type snowflake)
    (user       :initarg :user
-         :type (or null user)
-         :accessor user)
+               :type (or null user)
+               :accessor user)
    (name       :initarg :name
-         :type string
-         :accessor name)
+               :type string
+               :accessor name)
    (avatar     :initarg :avatar
-         :type string
-         :accessor avatar)
+               :type string
+               :accessor avatar)
    (token      :initarg :token
-         :type string
-         :accessor token)))
+               :type string
+               :accessor token)))
 
 (defmethod from-json ((c (eql :webhook)) (table hash-table))
   (instance-from-table (table 'webhook)
@@ -136,27 +136,29 @@
 
 (defclass ready ()
   ((version     :initarg :v
-    :type fixnum
-    :accessor version)
+                :type fixnum
+                :accessor version)
    (user        :initarg :me
-          :type user
-          :accessor user)
+                :type user
+                :accessor user)
    (dm-channels :initarg :channels
-    :type array
-    :accessor channels)
+                :type array
+                :accessor channels)
    (guilds      :initarg :guilds
-    :type array
-    :accessor guilds)
+                :type array
+                :accessor guilds)
    (session-id  :initarg :session
-    :type string
-    :accessor session-id)))
+                :type string
+                :accessor session-id)))
 
 (defmethod from-json ((c (eql :ready)) (table hash-table))
   (instance-from-table (table 'ready)
     :v "v"
     :me (cache :user (gethash "user" table))
-    :channels (mapvec (curry #'cache :channel)
-          (gethash "private_channels" table))
-    :guilds (mapvec (curry #'cache :guild)
-        (gethash "guilds" table))
+    :channels (map '(vector channel)
+                   (curry #'cache :channel)
+                   (gethash "private_channels" table))
+    :guilds (map '(vector guild)
+                 (curry #'cache :guild)
+                 (gethash "guilds" table))
     :session "session_id"))

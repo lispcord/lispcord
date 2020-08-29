@@ -16,7 +16,7 @@
     `(maphash (lambda (,key ,var)
                 (case ,key
                   ,@ (loop :for (k a op) :in clauses :collect
-                        `(,k (setf ,a ,op)))))
+                           `(,k (setf ,a ,op)))))
               ,table)))
 
 (declaim (cl:inline %maybe-sf))

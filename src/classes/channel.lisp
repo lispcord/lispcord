@@ -16,15 +16,15 @@
 
 (defun make-overwrite (id &optional (allow 0) (deny 0) (type "role"))
   (make-instance 'overwrite :id id :type type
-                 :allow (make-permissions allow)
-                 :deny (make-permissions deny)))
+                            :allow (make-permissions allow)
+                            :deny (make-permissions deny)))
 
 (defmethod from-json ((c (eql :overwrite)) (table hash-table))
   (instance-from-table (table 'overwrite)
-                       :id (parse-snowflake (gethash "id" table))
-                       :type "type"
-                       :allow (make-permissions (gethash "allow" table))
-                       :deny (make-permissions (gethash "deny" table))))
+    :id (parse-snowflake (gethash "id" table))
+    :type "type"
+    :allow (make-permissions (gethash "allow" table))
+    :deny (make-permissions (gethash "deny" table))))
 
 (defmethod %to-json ((o overwrite))
   (with-object
@@ -196,83 +196,90 @@
 
 (defun %guild-text-fj (table)
   (instance-from-table (table 'text-channel)
-                       :id (parse-snowflake (gethash "id" table))
-                       :g-id (parse-snowflake (gethash "guild_id" table))
-                       :name "name"
-                       :pos "position"
-                       :overwrites (mapvec (curry #'from-json :overwrite)
-                                           (gethash "permission_overwrites" table))
-                       :nsfw "nsfw"
-                       :topic "topic"
-                       :last-message (%maybe-sf (gethash "last_message_id" table))
-                       :parent-id (%maybe-sf (gethash "parent_id" table))
-                       :last-pinned "last_pin_timestamp"))
+    :id (parse-snowflake (gethash "id" table))
+    :g-id (parse-snowflake (gethash "guild_id" table))
+    :name "name"
+    :pos "position"
+    :overwrites (map '(vector overwrite)
+                     (curry #'from-json :overwrite)
+                     (gethash "permission_overwrites" table))
+    :nsfw "nsfw"
+    :topic "topic"
+    :last-message (%maybe-sf (gethash "last_message_id" table))
+    :parent-id (%maybe-sf (gethash "parent_id" table))
+    :last-pinned "last_pin_timestamp"))
 
 (defun %guild-voice-fj (table)
   (instance-from-table (table 'voice-channel)
-                       :id (parse-snowflake (gethash "id" table))
-                       :g-id (parse-snowflake (gethash "guild_id" table))
-                       :name "name"
-                       :pos "position"
-                       :overwrites (mapvec (curry #'from-json :overwrite)
-                                           (gethash "permission_overwrites" table))
-                       :bitrate "bitrate"
-                       :user-limit "user_limit"
-                       :parent-id (%maybe-sf (gethash "parent_id" table))))
+    :id (parse-snowflake (gethash "id" table))
+    :g-id (parse-snowflake (gethash "guild_id" table))
+    :name "name"
+    :pos "position"
+    :overwrites (map '(vector overwrite)
+                     (curry #'from-json :overwrite)
+                     (gethash "permission_overwrites" table))
+    :bitrate "bitrate"
+    :user-limit "user_limit"
+    :parent-id (%maybe-sf (gethash "parent_id" table))))
 
 (defun %dm-fj (table)
   (instance-from-table (table 'dm-channel)
-                       :last-message (%maybe-sf (gethash "last_message_id" table))
-                       :id (parse-snowflake (gethash "id" table))
-                       :recipients (mapvec (curry #'cache :user)
-                                           (gethash "recipients" table))
-                       :last-pinned "last_pin_timestamp"))
+    :last-message (%maybe-sf (gethash "last_message_id" table))
+    :id (parse-snowflake (gethash "id" table))
+    :recipients (map '(vector user)
+                     (curry #'cache :user)
+                     (gethash "recipients" table))
+    :last-pinned "last_pin_timestamp"))
 
 (defun %group-dm-fj (table)
   (instance-from-table (table 'group-dm)
-                       :id (parse-snowflake (gethash "id" table))
-                       :name "name"
-                       :recipients (mapvec (curry #'cache :user)
-                                           (gethash "recipients" table))
-                       :last-message (%maybe-sf (gethash "last_message_id" table))
-                       :owner (parse-snowflake (gethash "owner_id" table))
-                       :last-pinned "last_pin_timestamp"))
+    :id (parse-snowflake (gethash "id" table))
+    :name "name"
+    :recipients (map '(vector user)
+                     (curry #'cache :user)
+                     (gethash "recipients" table))
+    :last-message (%maybe-sf (gethash "last_message_id" table))
+    :owner (parse-snowflake (gethash "owner_id" table))
+    :last-pinned "last_pin_timestamp"))
 
 (defun %guild-category-fj (table)
   (instance-from-table (table 'category)
-                       :id (parse-snowflake (gethash "id" table))
-                       :overwrites (mapvec (curry #'from-json :overwrite)
-                                           (gethash "permission_overwrites" table))
-                       :name "name"
-                       :parent-id (%maybe-sf (gethash "parent_id" table))
-                       :nsfw "nsfw"
-                       :pos "position"
-                       :g-id (parse-snowflake (gethash "guild_id" table))))
+    :id (parse-snowflake (gethash "id" table))
+    :overwrites (map '(vector overwrite)
+                     (curry #'from-json :overwrite)
+                     (gethash "permission_overwrites" table))
+    :name "name"
+    :parent-id (%maybe-sf (gethash "parent_id" table))
+    :nsfw "nsfw"
+    :pos "position"
+    :g-id (parse-snowflake (gethash "guild_id" table))))
 
 (defun %guild-news-fj (table)
   (instance-from-table (table 'news-channel)
-                       :id (parse-snowflake (gethash "id" table))
-                       :g-id (parse-snowflake (gethash "guild_id" table))
-                       :name "name"
-                       :pos "position"
-                       :overwrites (mapvec (curry #'from-json :overwrite)
-                                           (gethash "permission_overwrites" table))
-                       :nsfw "nsfw"
-                       :topic "topic"
-                       :last-message (%maybe-sf (gethash "last_message_id" table))
-                       :parent-id (%maybe-sf (gethash "parent_id" table))
-                       :last-pinned "last_pin_timestamp"))
+    :id (parse-snowflake (gethash "id" table))
+    :g-id (parse-snowflake (gethash "guild_id" table))
+    :name "name"
+    :pos "position"
+    :overwrites (map '(vector overwrite)
+                     (curry #'from-json :overwrite)
+                     (gethash "permission_overwrites" table))
+    :nsfw "nsfw"
+    :topic "topic"
+    :last-message (%maybe-sf (gethash "last_message_id" table))
+    :parent-id (%maybe-sf (gethash "parent_id" table))
+    :last-pinned "last_pin_timestamp"))
 
 (defun %guild-store-fj (table)
   (instance-from-table (table 'news-channel)
-                       :id (parse-snowflake (gethash "id" table))
-                       :g-id (parse-snowflake (gethash "guild_id" table))
-                       :name "name"
-                       :pos "position"
-                       :overwrites (mapvec (curry #'from-json :overwrite)
-                                           (gethash "permission_overwrites" table))
-                       :nsfw "nsfw"
-                       :parent-id (%maybe-sf (gethash "parent_id" table))))
+    :id (parse-snowflake (gethash "id" table))
+    :g-id (parse-snowflake (gethash "guild_id" table))
+    :name "name"
+    :pos "position"
+    :overwrites (map '(vector overwrite)
+                     (curry #'from-json :overwrite)
+                     (gethash "permission_overwrites" table))
+    :nsfw "nsfw"
+    :parent-id (%maybe-sf (gethash "parent_id" table))))
 
 (defmethod from-json ((c (eql :channel)) (table hash-table))
   (case (gethash "type" table)
@@ -287,27 +294,29 @@
 
 (defmethod update ((table hash-table) (c channel))
   (from-table-update (table data)
-                     ("id" (id c) (parse-snowflake data))
-                     ("guild_id" (guild-id c) (parse-snowflake data))
-                     ("position" (position c) data)
-                     ("permission_overwrites"
-                      (overwrites c) (mapvec (curry #'from-json :overwrite)
-                                             data))
-                     ("name" (name c) data)
-                     ("topic" (topic c) data)
-                     ("nsfw" (nsfw-p c) data)
-                     ("last_message_id"
-                      (last-message c) (parse-snowflake data))
-                     ("bitrate" (bitrate c) data)
-                     ("user_limit" (user-limit c) data)
-                     ("recipients"
-                      (recipients c) (mapvec (curry #'cache :user)
-                                             data))
-                     ("icon" (icon c) data)
-                     ("owner_id" (owner-id c) (parse-snowflake data))
-                     ("application_id" (app-id c) (parse-snowflake data))
-                     ("parent_id" (parent-id c) (parse-snowflake data))
-                     ("last_pin_timestamp" (last-pinned c) data))
+    ("id" (id c) (parse-snowflake data))
+    ("guild_id" (guild-id c) (parse-snowflake data))
+    ("position" (position c) data)
+    ("permission_overwrites"
+     (overwrites c) (map '(vector overwrite)
+                         (curry #'from-json :overwrite)
+                         data))
+    ("name" (name c) data)
+    ("topic" (topic c) data)
+    ("nsfw" (nsfw-p c) data)
+    ("last_message_id"
+     (last-message c) (parse-snowflake data))
+    ("bitrate" (bitrate c) data)
+    ("user_limit" (user-limit c) data)
+    ("recipients"
+     (recipients c) (map '(vector user)
+                         (curry #'cache :user)
+                         data))
+    ("icon" (icon c) data)
+    ("owner_id" (owner-id c) (parse-snowflake data))
+    ("application_id" (app-id c) (parse-snowflake data))
+    ("parent_id" (parent-id c) (parse-snowflake data))
+    ("last_pin_timestamp" (last-pinned c) data))
   c)
 
 (defmethod %to-json ((gtc text-channel))
@@ -359,9 +368,9 @@
 
 (defmethod %to-json ((gsc store-channel))
   (with-object
-    (write-key-value "id" (id gnc))
-    (write-key-value "guild_id" (guild-id gnc))
-    (write-key-value "name" (name gnc))
-    (write-key-value "permission_overwrites" (overwrites gnc))
-    (write-key-value "parent_id" (parent-id gnc))
-    (write-key-value "nsfw" (nsfw-p gnc))))
+    (write-key-value "id" (id gsc))
+    (write-key-value "guild_id" (guild-id gsc))
+    (write-key-value "name" (name gsc))
+    (write-key-value "permission_overwrites" (overwrites gsc))
+    (write-key-value "parent_id" (parent-id gsc))
+    (write-key-value "nsfw" (nsfw-p gsc))))

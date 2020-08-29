@@ -49,22 +49,22 @@
 
 (defmethod from-json ((c (eql :emoji)) (table hash-table))
   (instance-from-table (table 'emoji)
-                       :id (parse-snowflake (gethash "id" table))
-                       :name "name"
-                       :roles (mapvec #'parse-snowflake (gethash "roles" table))
-                       :user (cache :user (gethash "user" table))
-                       :colons? "require_colons"
-                       :managed "managed"
-                       :animated "animated"))
+    :id (parse-snowflake (gethash "id" table))
+    :name "name"
+    :roles (map '(vector snowflake) #'parse-snowflake (gethash "roles" table))
+    :user (cache :user (gethash "user" table))
+    :colons? "require_colons"
+    :managed "managed"
+    :animated "animated"))
 
 (defmethod update ((table hash-table) (e emoji))
   (from-table-update (table data)
-                     ("id" (id e) (parse-snowflake data))
-                     ("name" (name e) data)
-                     ("roles" (roles e) (mapvec #'parse-snowflake data))
-                     ("require_colons" (colonsp e) data)
-                     ("managed" (managedp e) data)
-                     ("animated" (animatedp e) data))
+    ("id" (id e) (parse-snowflake data))
+    ("name" (name e) data)
+    ("roles" (roles e) (map '(vector snowflake) #'parse-snowflake data))
+    ("require_colons" (colonsp e) data)
+    ("managed" (managedp e) data)
+    ("animated" (animatedp e) data))
   e)
 
 (defmethod %to-json ((e emoji))

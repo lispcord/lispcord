@@ -28,13 +28,13 @@
 
 (defmethod from-json ((c (eql :attachement)) (table hash-table))
   (instance-from-table (table 'attachement)
-                       :id (parse-snowflake (gethash "id" table))
-                       :file "filename"
-                       :size "size"
-                       :url "url"
-                       :proxy-url "proxy_url"
-                       :height "height"
-                       :width "width"))
+    :id (parse-snowflake (gethash "id" table))
+    :file "filename"
+    :size "size"
+    :url "url"
+    :proxy-url "proxy_url"
+    :height "height"
+    :width "width"))
 
 (defmethod %to-json ((a attachement))
   (with-object
@@ -59,9 +59,9 @@
 
 (defmethod from-json ((c (eql :reaction)) (table hash-table))
   (instance-from-table (table 'reaction)
-                       :count "count"
-                       :me "me"
-                       :emoji (cache :emoji (gethash "emoji" table))))
+    :count "count"
+    :me "me"
+    :emoji (cache :emoji (gethash "emoji" table))))
 
 
 (defclass partial-message ()
@@ -115,7 +115,7 @@
                   :type (vector user)
                   :accessor mentions)
    (mention-roles :initarg :mention-roles
-                  :type (vector role)
+                  :type (vector snowflake)
                   :accessor mention-roles)
    (attachements  :initarg :attachements
                   :type (vector attachement)
@@ -156,27 +156,32 @@
 
 (defmethod from-json ((c (eql :message)) (table hash-table))
   (instance-from-table (table 'message)
-                       :id (parse-snowflake (gethash "id" table))
-                       :channel-id (parse-snowflake (gethash "channel_id" table))
-                       :author (user-or-webhook (gethash "author" table))
-                       :content "content"
-                       :timestamp "timestamp"
-                       :edited-at "edited_timestamp"
-                       :tts "tts"
-                       :mention-all "mention_everyone"
-                       :mentions (mapvec (curry #'cache :user)
-                                         (gethash "mentions" table))
-                       :mention-roles (mapvec #'parse-snowflake
-                                              (gethash "mention_roles" table))
-                       :attachements (mapvec (curry #'from-json :attachement)
-                                             (gethash "attachements" table))
-                       :embeds (mapvec (curry #'from-json :embed)
-                                       (gethash "embeds" table))
-                       :reactions (mapvec (curry #'from-json :reaction)
-                                          (gethash "embeds" table))
-                       :nonce "nonce"
-                       :pinned "pinned"
-                       :type "type"))
+    :id (parse-snowflake (gethash "id" table))
+    :channel-id (parse-snowflake (gethash "channel_id" table))
+    :author (user-or-webhook (gethash "author" table))
+    :content "content"
+    :timestamp "timestamp"
+    :edited-at "edited_timestamp"
+    :tts "tts"
+    :mention-all "mention_everyone"
+    :mentions (map '(vector user)
+                   (curry #'cache :user)
+                   (gethash "mentions" table))
+    :mention-roles (map '(vector snowflake)
+                        #'parse-snowflake
+                        (gethash "mention_roles" table))
+    :attachements (map '(vector attachment)
+                       (curry #'from-json :attachement)
+                       (gethash "attachements" table))
+    :embeds (map '(vector embed)
+                 (curry #'from-json :embed)
+                 (gethash "embeds" table))
+    :reactions (map '(vector reaction)
+                    (curry #'from-json :reaction)
+                    (gethash "embeds" table))
+    :nonce (parse-snowflake "nonce")
+    :pinned "pinned"
+    :type "type"))
 
 (defmethod %to-json ((m message))
   (with-object

@@ -4,7 +4,7 @@
   "This is an empty dummy var to allow for implicits.
 It may be set by make-bot!")
 
-(defstruct (bot (:constructor primitive-make-bot))
+(defstruct (bot (:constructor %make-bot))
   (token "" :type string :read-only t)
   (user nil :type (or null lc:user))
   (version "0.0.1" :type string)
@@ -15,7 +15,6 @@ It may be set by make-bot!")
   conn
   (running nil :type boolean)
   (heartbeat-ack t :type boolean)
-  (auth-as-bot t :type boolean)
   heartbeat-thread)
 
 
@@ -28,10 +27,7 @@ It may be set by make-bot!")
   (str-concat "DiscordBot (" *bot-url* ", " (bot-version bot) ")"))
 
 (defun bot-auth (bot)
-  (str-concat (if (bot-auth-as-bot bot)
-                  "Bot "
-                  "")
-              (bot-token bot)))
+  (str-concat "Bot " (bot-token bot)))
 
 (defun headers (bot)
   (list (cons "Authorization" (bot-auth bot))))

@@ -1,8 +1,8 @@
 (defpackage :lispcord.classes
-  (:use :cl
-        :alexandria
-        :jonathan
-        :lispcord.util)
+  (:use #:cl
+        #:alexandria
+        #:jonathan
+        #:lispcord.util)
   (:shadow #:type
            #:position
            #:inline

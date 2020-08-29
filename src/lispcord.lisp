@@ -3,9 +3,9 @@
 ;;;; This is where all the high level abstractions for the user space
 ;;;; will go!
 
-(defun make-bot (token &key (version "0.0.1") (bot t))
+(defun make-bot (token &key (version "0.0.1"))
   (unless token (error "Token required!"))
-  (let ((b (primitive-make-bot :token token :version version :auth-as-bot bot)))
+  (let ((b (%make-bot :token token :version version)))
     (setf *client* b)
     b))
 

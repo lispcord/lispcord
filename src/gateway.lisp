@@ -38,7 +38,7 @@
 
 (defun make-heartbeat-thread (bot seconds
                               &optional (stream *error-output*))
-  (declare (type rational seconds))
+  (declare (type float seconds))
   (v:info :lispcord.gateway "Initiating heartbeat every ~d seconds" seconds)
   (bt:make-thread (lambda ()
                     (setf (bot-heartbeat-ack bot) t)
@@ -411,7 +411,7 @@
     (declare (type (unsigned-byte 32) heartbeat-interval))
     (v:debug :lispcord.gateway "Heartbeat Inverval: ~a" heartbeat-interval)
     (setf (bot-heartbeat-thread bot)
-          (make-heartbeat-thread bot (/ heartbeat-interval 1000)))
+          (make-heartbeat-thread bot (/ heartbeat-interval 1000.0)))
     (if (bot-session-id bot)
         (send-resume bot)
         (send-identify bot))))
