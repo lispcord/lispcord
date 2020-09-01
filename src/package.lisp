@@ -45,7 +45,7 @@
            #:post-rq))
 
 (defpackage :lispcord.pipes
-  (:use :cl #:lispcord.util #:lispcord.core)
+  (:use #:cl #:lispcord.util #:lispcord.core)
   (:export #:make-event-table
            #:add-event-handler
            #:dispatch-event))
