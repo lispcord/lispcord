@@ -37,11 +37,12 @@
                      (lc:members g))))
     (if m?
         m?
-        (from-json :member
-                   (discord-req
-                    (str-concat "guilds/" (lc:id g)
-                                "/members/" (lc:id u))
-                    :bot bot)))))
+        (let ((m (from-json :member
+                            (discord-req
+                             (str-concat "guilds/" (lc:id g)
+                                         "/members/" (lc:id u))
+                             :bot bot))))
+          (setf (gethash "guild_id" m) (lc:id guild))))))
 
 (defun get-members (guild &key (limit 1) after (bot *client*))
   (declare (type (or snowflake lc:guild) guild))
