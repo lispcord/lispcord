@@ -26,9 +26,10 @@
                  :type :delete)))
 
 (defun get-dms (&optional (bot *client*))
-  (mapvec (curry #'cache :channel)
-          (discord-req (str-concat "users/@me/channels")
-                       :bot bot)))
+  (map '(vector 'lc:channel)
+       (curry #'cache :channel)
+       (discord-req (str-concat "users/@me/channels")
+                    :bot bot)))
 
 (defun create-dm (user &optional (bot *client*))
   (declare (type (or snowflake lc:user) user))

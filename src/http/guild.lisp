@@ -16,9 +16,10 @@
 (defun get-channels (guild &optional (bot *client*))
   (declare (type (or snowflake lc:guild) guild))
   (let ((g (if (typep guild 'lc:guild) (lc:id guild) guild)))
-    (mapvec (curry #'cache :channels)
-            (discord-req (str-concat "guilds/" g "/channels")
-                         :bot bot))))
+    (map '(vector 'lc:channel)
+         (curry #'cache :channels)
+         (discord-req (str-concat "guilds/" g "/channels")
+                      :bot bot))))
 
 (defmethod create ((c lc:partial-channel) (g lc:guild)
                    &optional (bot *client*))
@@ -49,10 +50,11 @@
   (let ((g (if (typep guild 'lc:guild) (lc:id guild) guild))
         (params (append (if limit `(("limit" . ,(to-string limit))))
                         (if after `(("after" . ,(to-string after)))))))
-    (mapvec (curry #'from-json :g-member)
-            (discord-req (str-concat "guilds/" g "/members")
-                         :parameters params
-                         :bot bot))))
+    (map '(vector 'lc:member)
+         (curry #'from-json :g-member)
+         (discord-req (str-concat "guilds/" g "/members")
+                      :parameters params
+                      :bot bot))))
 
 
 (defmethod edit ((m lc:member) (g lc:guild) &optional (bot *client*))
@@ -60,11 +62,13 @@
                            "/members/" (lc:id (lc:user m)))
                :bot bot
                :type :patch
-               :content (jmake
-                         (list (cons "nick" (or (lc:nick m) :null))
-                               (cons "roles" (or (lc:roles m) :null))
-                               (cons "mute" (or (lc:mutep m) :false))
-                               (cons "deaf" (or (lc:deafp m) :false))))))
+               :content (let ((o nil))
+                          (when (slot-boundp m 'lc:nick) (push (cons "nick" (lc:nick m)) o)))
+               (jmake o
+                            (list (cons "nick" (or (lc:nick m) :null))
+                                  (cons "roles" (or (lc:roles m) :null))
+                                  (cons "mute" (or (lc:mutep m) :false))
+                                  (cons "deaf" (or (lc:deafp m) :false))))))
 
 (defun move-member (member channel &optional (bot *client*))
   (declare (type lc:member member)
@@ -146,7 +150,7 @@
 (defun get-roles (guild &optional (bot *client*))
   (declare (type (or snowflake lc:guild) guild))
   (let ((g (if (typep guild 'lc:guild) (lc:id guild) guild)))
-    (mapvec (curry #'cache :role)
+    (map '(vector 'lc:role) (curry #'cache :role)
             (discord-req (str-concat "guilds/" g "/roles")
                          :bot bot))))
 

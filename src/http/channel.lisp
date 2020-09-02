@@ -79,11 +79,12 @@
                      ((or around before after)
                       (error ":BEFORE, :AROUND and :AFTER are exclusive to one another!~%"))
                      (t nil))))
-    (mapvec (curry #'from-json :message)
-            (discord-req
-             (format nil "channels/~a/messages?limit=~a~@[&~a~]"
-                     (to-string (lc:id channel)) limit final)
-             :bot bot))))
+    (map '(vector 'lc:message)
+         (curry #'from-json :message)
+         (discord-req
+          (format nil "channels/~a/messages?limit=~a~@[&~a~]"
+                  (to-string (lc:id channel)) limit final)
+          :bot bot))))
 
 (defmethod from-id (message-id (c lc:channel)
                     &optional (bot *client*))
@@ -198,10 +199,11 @@
 
 (defun get-pinned (channel &optional (bot *client*))
   (declare (type lc:channel channel))
-  (mapvec (curry #'from-json :message)
-          (discord-req (str-concat "channels/" (lc:id channel)
-                                   "/pins")
-                       :bot bot)))
+  (map '(vector 'lc:message)
+       (curry #'from-json :message)
+       (discord-req (str-concat "channels/" (lc:id channel)
+                                "/pins")
+                    :bot bot)))
 
 (defun pin (message &optional (bot *client*))
   (declare (type lc:message message))

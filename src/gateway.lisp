@@ -47,14 +47,14 @@
                       (loop :while (and (eq (bot-heartbeat-thread bot)
                                             (bt:current-thread))
                                         (bot-conn bot))
-                         :do (when (not (bot-heartbeat-ack bot))
-                               (v:warn :lispcord.gateway "Discord didn't reply to heartbeat. Reconnecting.")
-                               (event-emitter:emit :no-heartbeat (bot-conn bot))
-                               (return))
-                         :do (v:debug :lispcord.gateway "Dispatching heartbeat!")
-                         :do (send-heartbeat bot)
-                         :do (setf (bot-heartbeat-ack bot) nil)
-                         :do (sleep seconds)))
+                            :do (when (not (bot-heartbeat-ack bot))
+                                  (v:warn :lispcord.gateway "Discord didn't reply to heartbeat. Reconnecting.")
+                                  (event-emitter:emit :no-heartbeat (bot-conn bot))
+                                  (return))
+                            :do (v:debug :lispcord.gateway "Dispatching heartbeat!")
+                            :do (send-heartbeat bot)
+                            :do (setf (bot-heartbeat-ack bot) nil)
+                            :do (sleep seconds)))
                     (v:debug :lispcord.gateway "Terminating a stale heartbeat thread"))
                   :name "Heartbeat"))
 
@@ -371,7 +371,8 @@
                        bot))
 
       ("MESSAGE_DELETE_BULK"
-       (let ((ids (mapvec #'parse-snowflake (gethash "ids" data)))
+       (let ((ids (map '(vector 'snowflake)
+                       #'parse-snowflake (gethash "ids" data)))
              (c (getcache-id
                  (parse-snowflake (gethash "channel_id" data))
                  :channel)))
