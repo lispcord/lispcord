@@ -26,7 +26,7 @@
                  :type :delete)))
 
 (defun get-dms (&optional (bot *client*))
-  (map '(vector 'lc:channel)
+  (map '(vector lc:channel)
        (curry #'cache :channel)
        (discord-req (str-concat "users/@me/channels")
                     :bot bot)))

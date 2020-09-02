@@ -371,7 +371,7 @@
                        bot))
 
       ("MESSAGE_DELETE_BULK"
-       (let ((ids (map '(vector 'snowflake)
+       (let ((ids (map '(vector snowflake)
                        #'parse-snowflake (gethash "ids" data)))
              (c (getcache-id
                  (parse-snowflake (gethash "channel_id" data))

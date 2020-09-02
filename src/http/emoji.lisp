@@ -11,7 +11,7 @@
 (defun get-emojis (guild &optional (bot *client*))
   (declare (type (or snowflake lc:guild) guild))
   (let ((g (if (typep guild 'lc:guild) (lc:id guild) guild)))
-    (map '(vector 'lc:emoji)
+    (map '(vector lc:emoji)
          (curry #'cache :emoji)
          (discord-req (str-concat "guilds/" g
                                   "/emojis")

@@ -79,7 +79,7 @@
                      ((or around before after)
                       (error ":BEFORE, :AROUND and :AFTER are exclusive to one another!~%"))
                      (t nil))))
-    (map '(vector 'lc:message)
+    (map '(vector lc:message)
          (curry #'from-json :message)
          (discord-req
           (format nil "channels/~a/messages?limit=~a~@[&~a~]"
@@ -199,7 +199,7 @@
 
 (defun get-pinned (channel &optional (bot *client*))
   (declare (type lc:channel channel))
-  (map '(vector 'lc:message)
+  (map '(vector lc:message)
        (curry #'from-json :message)
        (discord-req (str-concat "channels/" (lc:id channel)
                                 "/pins")
