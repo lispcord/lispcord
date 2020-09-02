@@ -26,6 +26,6 @@
     (setf token (read-line)))
   (setf *ping-bot* (make-bot token))
   ;; set up a handler waiting for message_create events
-  (add-event-handler :on-message-create #'message-create)
+  (add-event-handler :on-message-create 'message-create)
   (connect *ping-bot*))
 

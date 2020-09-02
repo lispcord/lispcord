@@ -42,12 +42,10 @@
 (defmacro defbot (symbol token
                   &key
                     prefix
-                    (bot t)
                     (version "0.0.1"))
   `(progn
      (defparameter ,symbol (make-bot ,token
-                                     :version ,version
-                                     :bot ,bot))
+                                     :version ,version))
      (when ,prefix (make-prefix ,prefix))
      ,symbol))
 
