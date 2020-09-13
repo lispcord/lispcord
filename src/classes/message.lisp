@@ -3,7 +3,7 @@
 
 (deftype message-type () `(integer 0 7))
 
-(defclass attachement ()
+(defclass attachment ()
   ((id        :initarg :id
               :type snowflake
               :accessor id)
@@ -26,8 +26,8 @@
               :type (or null fixnum)
               :accessor width)))
 
-(defmethod from-json ((c (eql :attachement)) (table hash-table))
-  (instance-from-table (table 'attachement)
+(defmethod from-json ((c (eql :attachment)) (table hash-table))
+  (instance-from-table (table 'attachment)
     :id (parse-snowflake (gethash "id" table))
     :file "filename"
     :size "size"
@@ -36,10 +36,10 @@
     :height "height"
     :width "width"))
 
-(defmethod %to-json ((a attachement))
+(defmethod %to-json ((a attachment))
   (with-object
     (write-key-value "id" (id a))
-    (write-key-value "filename" (filename a))
+    (write-key-value "filename" (file a))
     (write-key-value "size" (size a))
     (write-key-value "url" (url a))
     (write-key-value "proxy_url" (proxy-url a))
@@ -61,7 +61,10 @@
   (instance-from-table (table 'reaction)
     :count "count"
     :me "me"
-    :emoji (cache :emoji (gethash "emoji" table))))
+    :emoji (let ((emoji (gethash "emoji" table)))
+             (if (eq :null (gethash "id" emoji))
+                 (gethash "name" emoji)
+                 (cache :emoji emoji)))))
 
 
 (defclass partial-message ()
@@ -117,9 +120,9 @@
    (mention-roles :initarg :mention-roles
                   :type (vector snowflake)
                   :accessor mention-roles)
-   (attachements  :initarg :attachements
-                  :type (vector attachement)
-                  :accessor attachements)
+   (attachments  :initarg :attachments
+                  :type (vector attachment)
+                  :accessor attachments)
    (embeds        :initarg :embeds
                   :type (vector embed)
                   :accessor embeds)
@@ -170,15 +173,15 @@
     :mention-roles (map '(vector snowflake)
                         #'parse-snowflake
                         (gethash "mention_roles" table))
-    :attachements (map '(vector attachment)
-                       (curry #'from-json :attachement)
-                       (gethash "attachements" table))
+    :attachments (map '(vector attachment)
+                       (curry #'from-json :attachment)
+                       (gethash "attachments" table))
     :embeds (map '(vector embed)
                  (curry #'from-json :embed)
                  (gethash "embeds" table))
     :reactions (map '(vector reaction)
                     (curry #'from-json :reaction)
-                    (gethash "embeds" table))
+                    (gethash "reactions" table))
     :nonce (parse-snowflake "nonce")
     :pinned "pinned"
     :type "type"))
@@ -195,7 +198,7 @@
     (write-key-value "mention_everyone" (mention-all-p m))
     (write-key-value "mentions" (mentions m))
     (write-key-value "mention_roles" (mention-roles m))
-    (write-key-value "attachements" (attachements m))
+    (write-key-value "attachments" (attachments m))
     (write-key-value "embeds" (embeds m))
     (write-key-value "reactions" (reactions m))
     (write-key-value "nonce" (nonce m))

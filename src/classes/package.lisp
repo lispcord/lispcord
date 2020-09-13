@@ -61,7 +61,7 @@
            #:embed-field
            #:game
            #:presence
-           #:attachement
+           #:attachment
            #:reaction
            #:message
            #:partial-message
@@ -166,7 +166,7 @@
            #:mention-all-p
            #:mentions
            #:mention-roles
-           #:attachements
+           #:attachments
            #:embeds
            #:reactions
            #:nonce
@@ -222,7 +222,7 @@
            #:embed-field
            #:game
            #:presence
-           #:attachement
+           #:attachment
            #:reaction
            #:message
            #:partial-message
@@ -329,7 +329,7 @@
            #:mention-all-p
            #:mentions
            #:mention-roles
-           #:attachements
+           #:attachments
            #:embeds
            #:reactions
            #:nonce
