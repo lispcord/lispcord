@@ -36,8 +36,7 @@
                                 (lc:id (lc:user e))
                                 (lc:id u)))
                      (lc:members g))))
-    (if m?
-        m?
+    (or m?
         (let ((m (from-json :member
                             (discord-req
                              (str-concat "guilds/" (lc:id g)

@@ -130,7 +130,7 @@
                   :type (vector reaction)
                   :accessor reactions)
    (nonce         :initarg :nonce
-                  :type (or null snowflake)
+                  :type (or null (unsigned-byte 64))
                   :accessor nonce)
    (pinned        :initarg :pinned
                   :type t
@@ -182,7 +182,10 @@
     :reactions (map '(vector reaction)
                     (curry #'from-json :reaction)
                     (gethash "reactions" table))
-    :nonce (parse-snowflake "nonce")
+    :nonce (let ((nonce (gethash "nonce" table)))
+             (if (integerp nonce)
+                 nonce
+                 (parse-integer nonce)))
     :pinned "pinned"
     :type "type"))
 
