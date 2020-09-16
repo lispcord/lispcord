@@ -228,7 +228,7 @@
     :video (from-json :e-video (gethash "video" table))
     :provider (from-json :e-provider (gethash "provider" table))
     :author (from-json :e-author (gethash "provider" table))
-    :fields (mapvec 'embed-field
+    :fields (map '(vector embed-field)
                     (curry #'from-json :e-field)
                     (gethash "fields" table))))
 
