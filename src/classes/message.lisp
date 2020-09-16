@@ -183,9 +183,9 @@
                     (curry #'from-json :reaction)
                     (gethash "reactions" table))
     :nonce (let ((nonce (gethash "nonce" table)))
-             (if (integerp nonce)
-                 nonce
-                 (parse-integer nonce)))
+             (if (stringp nonce)
+                 (parse-integer nonce)
+                 nonce))
     :pinned "pinned"
     :type "type"))
 
