@@ -16,7 +16,7 @@
    (url       :initarg :url
               :type string
               :accessor url)
-   (proxy-url :initarg :proxy
+   (proxy-url :initarg :proxy-url
               :type string
               :accessor proxy-url)
    (height    :initarg :height
