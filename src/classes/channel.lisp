@@ -149,7 +149,7 @@
                  :type (vector user)
                  :accessor recipients)
    (last-pinned  :initarg :last-pinned
-                 :type string
+                 :type (or null string)
                  :accessor last-pinned)))
 
 (defclass group-dm (dm-channel)
