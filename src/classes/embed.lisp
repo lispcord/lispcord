@@ -6,7 +6,7 @@
 									 :type string
 									 :accessor text)
    (icon           :initarg :icon
-									 :type string
+									 :type (or null string)
 									 :accessor icon)
    (icon-proxy-url :initarg :icon-proxy-url
 									 :type string
@@ -159,13 +159,13 @@
 
 (defclass embed ()
   ((title       :initarg :title
-								:type string
+								:type (or null string)
 								:accessor title)
    (type        :initarg :type
 								:type string
 								:accessor type)
    (description :initarg :description
-								:type string
+								:type (or null string)
 								:accessor description)
    (url         :initarg :url
 								:type string
