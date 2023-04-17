@@ -11,6 +11,7 @@
 
 (defpackage :lispcord.ratelimits
   (:use #:cl #:lispcord.util #:lispcord.constants)
+  (:local-nicknames (#:v #:verbose))
   (:export #:rl-parse
            #:rl-buffer))
 
@@ -19,6 +20,7 @@
         #:lispcord.util
         #:lispcord.ratelimits
         #:lispcord.constants)
+  (:local-nicknames (#:v #:verbose))
   (:export #:bot
            #:%make-bot
            #:*client*
@@ -63,6 +65,7 @@
                 #:cache
                 #:getcache-id
                 #:decache-id)
+  (:local-nicknames (#:v #:verbose))
   (:export #:connect
            #:disconnect))
 
@@ -79,6 +82,7 @@
                 #:decache-id
                 #:from-json
                 #:botp)
+  (:local-nicknames (#:v #:verbose))
   (:export #:botp
            #:create
            #:edit
@@ -117,6 +121,7 @@
   (:import-from #:lispcord.classes
                 #:getcache-id
                 #:botp)
+  (:local-nicknames (#:v #:verbose))
   (:export #:*client*
            #:connect
            #:disconnect
