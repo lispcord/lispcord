@@ -1,5 +1,6 @@
 (defpackage :lispcord.util
   (:use :cl :split-sequence)
+  (:local-nicknames (#:v #:verbose))
   (:export #:str-concat
            #:jparse
            #:jmake

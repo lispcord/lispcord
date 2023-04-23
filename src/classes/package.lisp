@@ -8,6 +8,8 @@
            #:inline
            #:count
            #:member)
+
+  (:local-nicknames (#:v #:verbose))
   
   (:export #:%to-json
            #:from-json
@@ -180,6 +182,7 @@
 (defpackage lispcord.classes.pub
   (:use :lispcord.classes)
   (:nicknames :lc)
+  (:local-nicknames (#:v #:verbose))
   (:export #:make-game
            #:make-channel
            #:make-message
