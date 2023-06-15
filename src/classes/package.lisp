@@ -9,7 +9,7 @@
            #:count
            #:member)
 
-  (:local-nicknames (#:v #:verbose))
+  (:local-nicknames (#:v #:org.shirakumo.verbose))
   
   (:export #:%to-json
            #:from-json
@@ -182,7 +182,7 @@
 (defpackage lispcord.classes.pub
   (:use :lispcord.classes)
   (:nicknames :lc)
-  (:local-nicknames (#:v #:verbose))
+  (:local-nicknames (#:v #:org.shirakumo.verbose))
   (:export #:make-game
            #:make-channel
            #:make-message
