@@ -31,7 +31,7 @@ after cloning the repo to your `~/common-lisp` or `~/quicklisp/local-projects` f
   (:use :cl :lispcord))
 (in-package :ping-bot)
 
-(setf (v:repl-level) :info)
+(setf (org.shirakumo.verbose:repl-level) :info)
 
 (defbot *ping-bot* "<Your Token Here>")
 (connect *ping-bot*) ; Yes, you can register handlers after connect
